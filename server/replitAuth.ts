@@ -7,13 +7,23 @@ import type { Express, RequestHandler } from "express";
 import memoize from "memoizee";
 import connectPg from "connect-pg-simple";
 import { storage } from "./storage";
+import { pool } from "./db"; // Import common pool
 
 const getOidcConfig = memoize(
   async () => {
-    return await client.discovery(
-      new URL(process.env.ISSUER_URL ?? "https://replit.com/oidc"),
-      process.env.REPL_ID!
-    );
+    try {
+      return await client.discovery(
+        new URL(process.env.ISSUER_URL ?? "https://replit.com/oidc"),
+        process.env.REPL_ID!
+      );
+    } catch (error) {
+      console.error("Failed to discover OIDC configuration from Replit:", error);
+      if (process.env.NODE_ENV === "production") {
+        console.warn("Continuing without Replit OIDC in production mode...");
+        return null;
+      }
+      throw error;
+    }
   },
   { maxAge: 3600 * 1000 }
 );
@@ -22,9 +32,9 @@ export function getSession() {
   const sessionTtl = 7 * 24 * 60 * 60 * 1000; // 1 week
   const pgStore = connectPg(session);
   const sessionStore = new pgStore({
-    conString: process.env.DATABASE_URL,
-    createTableIfMissing: true, // Ensure table exists
-    ttl: sessionTtl,
+    pool: pool, // Use the existing pool with SSL settings
+    createTableIfMissing: true,
+    ttl: sessionTtl / 1000, // connect-pg-simple uses seconds
     tableName: "sessions",
   });
   return session({
@@ -34,7 +44,7 @@ export function getSession() {
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      secure: false, // Set to false for local dev (http)
+      secure: process.env.NODE_ENV === "production", // Enable secure in production
       maxAge: sessionTtl,
     },
   });
@@ -69,17 +79,20 @@ export async function setupAuth(app: Express) {
   app.use(passport.initialize());
   app.use(passport.session());
 
-  // DEV MODE BYPASS
-  if (process.env.NODE_ENV === "development") {
-    console.log("Adding Dev Login Route");
+  // DEV MODE OR NON-REPLIT BYPASS
+  const isDev = process.env.NODE_ENV === "development";
+  const isRender = process.env.RENDER === "true" || !!process.env.RENDER_EXTERNAL_URL;
+
+  if (isDev || isRender) {
+    console.log("Adding Login Bypass Route for Development/Render");
     app.get("/api/login", async (req, res) => {
       const requestedEmail = req.query.email as string || "dev@onedesk.local";
       const user = await storage.getUserByEmail(requestedEmail);
 
-      if (!user || user.role !== 'admin') {
-        console.error(`Dev login failed: User ${requestedEmail} not found or not an admin.`);
+      if (!user || (user.role !== 'admin' && !isDev)) {
+        console.error(`Login failed: User ${requestedEmail} not found or not authorized.`);
         return res.status(403).json({
-          message: "Access restricted. Please register an administrator account first.",
+          message: "Access restricted. Please ensure your account is registered as an administrator.",
           available_admins: ["dev@onedesk.local"]
         });
       }
@@ -98,7 +111,7 @@ export async function setupAuth(app: Express) {
 
       req.login(devUser, (err) => {
         if (err) {
-          console.error("Dev login error:", err);
+          console.error("Login error:", err);
           return res.status(500).json({ message: "Login failed" });
         }
         res.redirect("/");
@@ -114,89 +127,100 @@ export async function setupAuth(app: Express) {
     passport.serializeUser((user: Express.User, cb) => cb(null, user));
     passport.deserializeUser((user: Express.User, cb) => cb(null, user));
 
-    return;
+    if (isDev) return;
+    // In Render, we continue to setup OIDC if it works, but fallback to bypass
   }
 
-  const config = await getOidcConfig();
-
-  const verify: VerifyFunction = async (
-    tokens: client.TokenEndpointResponse & client.TokenEndpointResponseHelpers,
-    verified: passport.AuthenticateCallback
-  ) => {
-    const claims = tokens.claims();
-    if (!claims || !claims.sub) {
-      console.error("Invalid token: claims or sub missing");
-      return verified(null, false, { message: "Invalid authentication response." });
+  try {
+    const config = await getOidcConfig();
+    if (!config) {
+      console.warn("Replit OIDC config not available. Replit Auth routes will not be initialized.");
+      return;
     }
 
-    const userInDb = await updateUserIfRegistered(claims);
+    const verify: VerifyFunction = async (
+      tokens: client.TokenEndpointResponse & client.TokenEndpointResponseHelpers,
+      verified: passport.AuthenticateCallback
+    ) => {
+      const claims = tokens.claims();
+      if (!claims || !claims.sub) {
+        console.error("Invalid token: claims or sub missing");
+        return verified(null, false, { message: "Invalid authentication response." });
+      }
 
-    if (!userInDb || userInDb.role !== 'admin') {
-      console.log(`Access denied: User ${claims.email} (${claims.sub}) is not an administrator.`);
-      return verified(null, false, { message: "Access restricted to administrators only." });
-    }
+      const userInDb = await updateUserIfRegistered(claims);
 
-    const user = {};
-    updateUserSession(user, tokens);
-    verified(null, user);
-  };
+      if (!userInDb || userInDb.role !== 'admin') {
+        console.log(`Access denied: User ${claims.email} (${claims.sub}) is not an administrator.`);
+        return verified(null, false, { message: "Access restricted to administrators only." });
+      }
 
-  const registeredStrategies = new Set<string>();
+      const user = {};
+      updateUserSession(user, tokens);
+      verified(null, user);
+    };
 
-  const ensureStrategy = (domain: string) => {
-    const strategyName = `replitauth:${domain}`;
-    if (!registeredStrategies.has(strategyName)) {
-      const strategy = new Strategy(
-        {
-          name: strategyName,
-          config,
-          scope: "openid email profile offline_access",
-          callbackURL: `https://${domain}/api/callback`,
-        },
-        verify,
-      );
-      passport.use(strategy);
-      registeredStrategies.add(strategyName);
-    }
-  };
+    const registeredStrategies = new Set<string>();
 
-  passport.serializeUser((user: Express.User, cb) => cb(null, user));
-  passport.deserializeUser((user: Express.User, cb) => cb(null, user));
+    const ensureStrategy = (domain: string) => {
+      const strategyName = `replitauth:${domain}`;
+      if (!registeredStrategies.has(strategyName)) {
+        const strategy = new Strategy(
+          {
+            name: strategyName,
+            config,
+            scope: "openid email profile offline_access",
+            callbackURL: `https://${domain}/api/callback`,
+          },
+          verify,
+        );
+        passport.use(strategy);
+        registeredStrategies.add(strategyName);
+      }
+    };
 
-  app.get("/api/login", (req, res, next) => {
-    ensureStrategy(req.hostname);
-    passport.authenticate(`replitauth:${req.hostname}`, {
-      prompt: "login consent",
-      scope: ["openid", "email", "profile", "offline_access"],
-    })(req, res, next);
-  });
+    passport.serializeUser((user: Express.User, cb) => cb(null, user));
+    passport.deserializeUser((user: Express.User, cb) => cb(null, user));
 
-  app.get("/api/callback", (req, res, next) => {
-    ensureStrategy(req.hostname);
-    passport.authenticate(`replitauth:${req.hostname}`, {
-      successReturnToOrRedirect: "/",
-      failureRedirect: "/api/login",
-    })(req, res, next);
-  });
+    app.get("/api/login", (req, res, next) => {
+      ensureStrategy(req.hostname);
+      passport.authenticate(`replitauth:${req.hostname}`, {
+        prompt: "login consent",
+        scope: ["openid", "email", "profile", "offline_access"],
+      })(req, res, next);
+    });
 
-  app.get("/api/logout", async (req, res) => {
-    const user = req.user as any;
-    if (user?.claims?.sub) {
-      await storage.updateUserStatus(user.claims.sub, "offline");
-    }
-    req.logout(() => {
-      res.redirect(
-        client.buildEndSessionUrl(config, {
+    app.get("/api/callback", (req, res, next) => {
+      ensureStrategy(req.hostname);
+      passport.authenticate(`replitauth:${req.hostname}`, {
+        successReturnToOrRedirect: "/",
+        failureRedirect: "/api/login",
+      })(req, res, next);
+    });
+
+    app.get("/api/logout", async (req, res) => {
+      const user = req.user as any;
+      if (user?.claims?.sub) {
+        await storage.updateUserStatus(user.claims.sub, "offline");
+      }
+      req.logout(() => {
+        const endSessionUrl = client.buildEndSessionUrl(config, {
           client_id: process.env.REPL_ID!,
           post_logout_redirect_uri: `${req.protocol}://${req.hostname}`,
-        }).href
-      );
+        });
+        res.redirect(endSessionUrl.href);
+      });
     });
-  });
+  } catch (error) {
+    console.error("Error setting up Replit Auth:", error);
+  }
 }
 
 export const isAuthenticated: RequestHandler = async (req, res, next) => {
-  if (process.env.NODE_ENV === "development") {
+  const isDev = process.env.NODE_ENV === "development";
+  const isRender = process.env.RENDER === "true" || !!process.env.RENDER_EXTERNAL_URL;
+
+  if (isDev || isRender) {
     if (req.isAuthenticated()) {
       return next();
     }
@@ -222,6 +246,7 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
 
   try {
     const config = await getOidcConfig();
+    if (!config) throw new Error("OIDC config unavailable for token refresh");
     const tokenResponse = await client.refreshTokenGrant(config, refreshToken);
     updateUserSession(user, tokenResponse);
     return next();
