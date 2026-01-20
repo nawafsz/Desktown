@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: onedesk-app
+    env: node
+    plan: free
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromConfig: DATABASE_URL
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: REPL_ID
+        value: onedesk-production
