@@ -1,7 +1,7 @@
 services:
   - type: web
-    name: onedesk-app
-    env: node
+    name: Desktwon
+    runtime: node
     plan: free
     buildCommand: npm install && npm run build
     startCommand: npm start
@@ -12,5 +12,3 @@ services:
         fromConfig: DATABASE_URL
       - key: SESSION_SECRET
         generateValue: true
-      - key: REPL_ID
-        value: onedesk-production
