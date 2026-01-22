@@ -129,9 +129,9 @@ export async function setupAuth(app: Express) {
         if (err) throw err;
         res.status(201).json({ message: "Registered successfully", user: newUser });
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Registration error:", error);
-      res.status(500).json({ message: "Registration failed" });
+      res.status(500).json({ message: `Registration failed: ${error.message || error}` });
     }
   });
 
