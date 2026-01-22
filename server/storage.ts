@@ -2487,14 +2487,6 @@ export class DatabaseStorage implements IStorage {
     ];
   }
 
-  async getPublishedOffices(): Promise<Office[]> {
-    return await db
-      .select()
-      .from(offices)
-      .where(and(eq(offices.isPublished, true), eq(offices.approvalStatus, 'approved')))
-      .orderBy(desc(offices.createdAt));
-  }
-
   async getAllOfficesAdmin(): Promise<Office[]> {
     return await db.select().from(offices).orderBy(desc(offices.createdAt));
   }
