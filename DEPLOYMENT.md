@@ -21,6 +21,12 @@ postgresql://postgres:Rayan201667$@db.ngnbwllvwvblvylllvyr.supabase.co:5432/post
 1. سجل الدخول إلى لوحة تحكم Neon.tech.
 2. اذهب إلى المشروع واضغط على زر التفعيل (Wake up/Start).
 
+**الحل 3: استخدام رابط اتصال Neon الجديد (تم التحقق منه)**
+إذا قمت بإنشاء قاعدة بيانات جديدة أو نقطة اتصال جديدة، استخدم الرابط التالي في إعدادات Render:
+```
+postgresql://neondb_owner:npg_paYlKD4R7hSI@ep-super-rain-ahlt4hgi-pooler.c-3.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require
+```
+
 ## الخطوات العامة للنشر:
 
 ### 1. إعداد المتغيرات البيئية (Environment Variables)
