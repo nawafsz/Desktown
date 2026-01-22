@@ -4,9 +4,24 @@
 
 ## المتطلبات الأساسية
 - **Node.js**: الإصدار 18 أو أحدث.
-- **قاعدة بيانات PostgreSQL**: المشروع مجهز للعمل مع Neon.tech أو أي مزود PostgreSQL آخر.
+- **قاعدة بيانات PostgreSQL**: المشروع مجهز للعمل مع Neon.tech أو أي مزود PostgreSQL آخر (مثل Supabase).
 
-## الخطوات:
+## حل مشكلة "Endpoint Disabled" (Render/Neon)
+إذا ظهر لك الخطأ `The endpoint has been disabled. Enable it using Neon API and retry`، فهذا يعني أن قاعدة بيانات Neon قد توقفت بسبب عدم النشاط.
+
+**الحل 1: استخدام Supabase (مستقر ومجاني)**
+استخدم رابط الاتصال الخاص بـ Supabase بدلاً من Neon في إعدادات Render.
+1. اذهب إلى Render Dashboard > Environment.
+2. عدل المتغير `DATABASE_URL` إلى:
+```
+postgresql://postgres:Rayan201667$@db.ngnbwllvwvblvylllvyr.supabase.co:5432/postgres?sslmode=no-verify
+```
+
+**الحل 2: إعادة تفعيل Neon**
+1. سجل الدخول إلى لوحة تحكم Neon.tech.
+2. اذهب إلى المشروع واضغط على زر التفعيل (Wake up/Start).
+
+## الخطوات العامة للنشر:
 
 ### 1. إعداد المتغيرات البيئية (Environment Variables)
 يجب إنشاء ملف `.env` في المجلد الرئيسي للمشروع على الاستضافة وإضافة القيم التالية:
