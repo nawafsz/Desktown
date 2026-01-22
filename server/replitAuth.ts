@@ -81,10 +81,9 @@ export async function setupAuth(app: Express) {
 
   // DEV MODE OR NON-REPLIT BYPASS
   const isDev = process.env.NODE_ENV === "development";
-  const isRender = process.env.RENDER === "true" || !!process.env.RENDER_EXTERNAL_URL;
 
-  if (isDev || isRender) {
-    console.log("Adding Login Bypass Route for Development/Render");
+  if (isDev) {
+    console.log("Adding Login Bypass Route for Development");
     app.get("/api/login", async (req, res) => {
       const requestedEmail = req.query.email as string || "dev@onedesk.local";
       const user = await storage.getUserByEmail(requestedEmail);

@@ -39,6 +39,10 @@ app.use(
 
 app.use(express.urlencoded({ extended: false, limit: '50mb' }));
 
+  app.get('/health', (_req, res) => {
+    res.status(200).json({ status: 'ok' });
+  });
+
 export function log(message: string, source = "express") {
   const formattedTime = new Date().toLocaleTimeString("en-US", {
     hour: "numeric",
@@ -84,7 +88,7 @@ app.use((req, res, next) => {
     const message = err.message || "Internal Server Error";
 
     res.status(status).json({ message });
-    throw err;
+    console.error("Server Error:", err);
   });
 
   // importantly only setup vite in development and after
