@@ -11,7 +11,10 @@ import {
 
 const REPLIT_SIDECAR_ENDPOINT = "http://127.0.0.1:1106";
 
-export const objectStorageClient = new Storage({
+// Check if we are running in Replit environment
+const isReplit = !!process.env.REPL_ID || !!process.env.REPLIT_ID;
+
+const storageOptions = isReplit ? {
   credentials: {
     audience: "replit",
     subject_token_type: "access_token",
@@ -27,7 +30,9 @@ export const objectStorageClient = new Storage({
     universe_domain: "googleapis.com",
   },
   projectId: "",
-});
+} : undefined; // Use default Google Cloud credentials if not on Replit
+
+export const objectStorageClient = new Storage(storageOptions);
 
 export class ObjectNotFoundError extends Error {
   constructor() {

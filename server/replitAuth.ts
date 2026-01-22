@@ -1,42 +1,25 @@
-import * as client from "openid-client";
-import { Strategy, type VerifyFunction } from "openid-client/passport";
-
 import passport from "passport";
+import { Strategy as LocalStrategy } from "passport-local";
 import session from "express-session";
 import type { Express, RequestHandler } from "express";
-import memoize from "memoizee";
 import connectPg from "connect-pg-simple";
 import { storage } from "./storage";
-import { pool } from "./db"; // Import common pool
+import { pool } from "./db";
+import { scrypt, randomBytes, timingSafeEqual } from "crypto";
+import { promisify } from "util";
 
-const getOidcConfig = memoize(
-  async () => {
-    try {
-      return await client.discovery(
-        new URL(process.env.ISSUER_URL ?? "https://replit.com/oidc"),
-        process.env.REPL_ID!
-      );
-    } catch (error) {
-      console.error("Failed to discover OIDC configuration from Replit:", error);
-      if (process.env.NODE_ENV === "production") {
-        console.warn("Continuing without Replit OIDC in production mode...");
-        return null;
-      }
-      throw error;
-    }
-  },
-  { maxAge: 3600 * 1000 }
-);
+const scryptAsync = promisify(scrypt);
 
 export function getSession() {
   const sessionTtl = 7 * 24 * 60 * 60 * 1000; // 1 week
   const pgStore = connectPg(session);
   const sessionStore = new pgStore({
-    pool: pool, // Use the existing pool with SSL settings
+    pool: pool,
     createTableIfMissing: true,
-    ttl: sessionTtl / 1000, // connect-pg-simple uses seconds
+    ttl: sessionTtl / 1000,
     tableName: "sessions",
   });
+
   if (!process.env.SESSION_SECRET && process.env.NODE_ENV === "production") {
     console.warn("WARNING: SESSION_SECRET is not defined. Using a default secret. This is not secure for production.");
   }
@@ -48,33 +31,25 @@ export function getSession() {
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production", // Enable secure in production
+      secure: process.env.NODE_ENV === "production",
       maxAge: sessionTtl,
     },
   });
 }
 
-function updateUserSession(
-  user: any,
-  tokens: client.TokenEndpointResponse & client.TokenEndpointResponseHelpers
-) {
-  user.claims = tokens.claims();
-  user.access_token = tokens.access_token;
-  user.refresh_token = tokens.refresh_token;
-  user.expires_at = user.claims?.exp;
+// Helper to hash password
+async function hashPassword(password: string): Promise<string> {
+  const salt = randomBytes(16).toString("hex");
+  const buf = (await scryptAsync(password, salt, 64)) as Buffer;
+  return `${buf.toString("hex")}.${salt}`;
 }
 
-async function updateUserIfRegistered(claims: any) {
-  const existingUser = await storage.getUser(claims["sub"]);
-  if (!existingUser) return null;
-
-  return await storage.updateUser(existingUser.id, {
-    firstName: claims["first_name"],
-    lastName: claims["last_name"],
-    profileImageUrl: claims["profile_image_url"],
-    status: "online",
-    lastSeenAt: new Date(),
-  });
+// Helper to compare password
+async function comparePassword(supplied: string, stored: string): Promise<boolean> {
+  const [hashed, salt] = stored.split(".");
+  const hashedBuf = Buffer.from(hashed, "hex");
+  const suppliedBuf = (await scryptAsync(supplied, salt, 64)) as Buffer;
+  return timingSafeEqual(hashedBuf, suppliedBuf);
 }
 
 export async function setupAuth(app: Express) {
@@ -83,196 +58,101 @@ export async function setupAuth(app: Express) {
   app.use(passport.initialize());
   app.use(passport.session());
 
-  // DEV MODE OR NON-REPLIT BYPASS
-  // Check if we are in development OR if Replit Auth config is missing (local/non-Replit environment)
-  const isDev = process.env.NODE_ENV === "development" || !process.env.REPL_ID;
-
-  if (isDev) {
-    console.log("Adding Login Bypass Route for Development (or missing REPL_ID)");
-    app.get("/api/login", async (req, res) => {
-      const requestedEmail = req.query.email as string || "dev@onedesk.local";
-      let user = await storage.getUserByEmail(requestedEmail);
-
-      if (!user && requestedEmail === "dev@onedesk.local") {
-        console.log("Creating dev admin user...");
-        try {
-          user = await storage.upsertUser({
-            email: "dev@onedesk.local",
-            firstName: "Dev",
-            lastName: "Admin",
-            role: "admin",
-            profileImageUrl: "https://ui-avatars.com/api/?name=Dev+Admin&background=random",
-            status: "online",
-            department: "Engineering"
-          });
-        } catch (error) {
-          console.error("Failed to create dev user:", error);
+  passport.use(
+    new LocalStrategy({ usernameField: "username" }, async (username, password, done) => {
+      try {
+        const user = (await storage.getUserByEmail(username)) || (await storage.getUserByUsername(username));
+        if (!user || !user.password) {
+          return done(null, false, { message: "Invalid username or password" });
         }
-      }
-
-      if (!user || (user.role !== 'admin' && !isDev)) {
-        console.error(`Login failed: User ${requestedEmail} not found or not authorized.`);
-        return res.status(403).json({
-          message: "Access restricted. Please ensure your account is registered as an administrator.",
-          available_admins: ["dev@onedesk.local"]
-        });
-      }
-
-      const devUser = {
-        claims: {
-          sub: user.id,
-          email: user.email,
-          first_name: user.firstName,
-          last_name: user.lastName,
-          profile_image_url: user.profileImageUrl,
-          exp: Math.floor(Date.now() / 1000) + 3600 * 24,
-        },
-        expires_at: Math.floor(Date.now() / 1000) + 3600 * 24,
-      };
-
-      req.login(devUser, (err) => {
-        if (err) {
-          console.error("Login error:", err);
-          return res.status(500).json({ message: "Login failed" });
+        
+        const isValid = await comparePassword(password, user.password);
+        if (!isValid) {
+          return done(null, false, { message: "Invalid username or password" });
         }
-        res.redirect("/");
-      });
-    });
+        
+        return done(null, user);
+      } catch (err) {
+        return done(err);
+      }
+    })
+  );
 
-    app.get("/api/logout", (req, res) => {
-      req.logout(() => {
-        res.redirect("/");
-      });
-    });
-
-    passport.serializeUser((user: Express.User, cb) => cb(null, user));
-    passport.deserializeUser((user: Express.User, cb) => cb(null, user));
-
-    if (isDev) return;
-    // In Render, we continue to setup OIDC if it works, but fallback to bypass
-  }
-
-  try {
-    const config = await getOidcConfig();
-    if (!config) {
-      console.warn("Replit OIDC config not available. Replit Auth routes will not be initialized.");
-      return;
+  passport.serializeUser((user: any, done) => done(null, user.id));
+  passport.deserializeUser(async (id: string, done) => {
+    try {
+      const user = await storage.getUser(id);
+      done(null, user);
+    } catch (err) {
+      done(err);
     }
+  });
 
-    const verify: VerifyFunction = async (
-      tokens: client.TokenEndpointResponse & client.TokenEndpointResponseHelpers,
-      verified: passport.AuthenticateCallback
-    ) => {
-      const claims = tokens.claims();
-      if (!claims || !claims.sub) {
-        console.error("Invalid token: claims or sub missing");
-        return verified(null, false, { message: "Invalid authentication response." });
-      }
-
-      const userInDb = await updateUserIfRegistered(claims);
-
-      if (!userInDb || userInDb.role !== 'admin') {
-        console.log(`Access denied: User ${claims.email} (${claims.sub}) is not an administrator.`);
-        return verified(null, false, { message: "Access restricted to administrators only." });
-      }
-
-      const user = {};
-      updateUserSession(user, tokens);
-      verified(null, user);
-    };
-
-    const registeredStrategies = new Set<string>();
-
-    const ensureStrategy = (domain: string) => {
-      const strategyName = `replitauth:${domain}`;
-      if (!registeredStrategies.has(strategyName)) {
-        const strategy = new Strategy(
-          {
-            name: strategyName,
-            config,
-            scope: "openid email profile offline_access",
-            callbackURL: `https://${domain}/api/callback`,
-          },
-          verify,
-        );
-        passport.use(strategy);
-        registeredStrategies.add(strategyName);
-      }
-    };
-
-    passport.serializeUser((user: Express.User, cb) => cb(null, user));
-    passport.deserializeUser((user: Express.User, cb) => cb(null, user));
-
-    app.get("/api/login", (req, res, next) => {
-      ensureStrategy(req.hostname);
-      passport.authenticate(`replitauth:${req.hostname}`, {
-        prompt: "login consent",
-        scope: ["openid", "email", "profile", "offline_access"],
-      })(req, res, next);
-    });
-
-    app.get("/api/callback", (req, res, next) => {
-      ensureStrategy(req.hostname);
-      passport.authenticate(`replitauth:${req.hostname}`, {
-        successReturnToOrRedirect: "/",
-        failureRedirect: "/api/login",
-      })(req, res, next);
-    });
-
-    app.get("/api/logout", async (req, res) => {
-      const user = req.user as any;
-      if (user?.claims?.sub) {
-        await storage.updateUserStatus(user.claims.sub, "offline");
-      }
-      req.logout(() => {
-        const endSessionUrl = client.buildEndSessionUrl(config, {
-          client_id: process.env.REPL_ID!,
-          post_logout_redirect_uri: `${req.protocol}://${req.hostname}`,
-        });
-        res.redirect(endSessionUrl.href);
+  app.post("/api/login", (req, res, next) => {
+    passport.authenticate("local", (err: any, user: any, info: any) => {
+      if (err) return next(err);
+      if (!user) return res.status(401).json({ message: info?.message || "Login failed" });
+      
+      req.logIn(user, (err) => {
+        if (err) return next(err);
+        return res.json({ message: "Logged in successfully", user });
       });
+    })(req, res, next);
+  });
+
+  app.post("/api/register", async (req, res) => {
+    try {
+      const { username, password, email, firstName, lastName } = req.body;
+      
+      if (!username || !password || !email) {
+        return res.status(400).json({ message: "Missing required fields" });
+      }
+
+      const existingUser = (await storage.getUserByEmail(email)) || (await storage.getUserByUsername(username));
+      if (existingUser) {
+        return res.status(400).json({ message: "User already exists" });
+      }
+
+      const hashedPassword = await hashPassword(password);
+      const newUser = await storage.upsertUser({
+        username,
+        email,
+        password: hashedPassword,
+        firstName: firstName || username,
+        lastName: lastName || "",
+        role: "member", // Default role
+        status: "online",
+        profileImageUrl: `https://ui-avatars.com/api/?name=${username}&background=random`
+      });
+
+      req.logIn(newUser, (err) => {
+        if (err) throw err;
+        res.status(201).json({ message: "Registered successfully", user: newUser });
+      });
+    } catch (error) {
+      console.error("Registration error:", error);
+      res.status(500).json({ message: "Registration failed" });
+    }
+  });
+
+  app.post("/api/logout", (req, res) => {
+    req.logout(() => {
+      res.json({ message: "Logged out successfully" });
     });
-  } catch (error) {
-    console.error("Error setting up Replit Auth:", error);
-  }
+  });
+
+  // Keep existing /api/login GET for compatibility/fallback redirection if needed
+  // but now it should probably redirect to a frontend route or return 405
+  app.get("/api/login", (req, res) => {
+    // Redirect to frontend login page if accessed directly
+    res.redirect("/auth"); 
+  });
 }
 
-export const isAuthenticated: RequestHandler = async (req, res, next) => {
-  const isDev = process.env.NODE_ENV === "development";
-  const isRender = process.env.RENDER === "true" || !!process.env.RENDER_EXTERNAL_URL;
-
-  if (isDev || isRender) {
-    if (req.isAuthenticated()) {
-      return next();
-    }
-    return res.status(401).json({ message: "Unauthorized" });
-  }
-
-  const user = req.user as any;
-
-  if (!req.isAuthenticated() || !user.expires_at) {
-    return res.status(401).json({ message: "Unauthorized" });
-  }
-
-  const now = Math.floor(Date.now() / 1000);
-  if (now <= user.expires_at) {
+export const isAuthenticated: RequestHandler = (req, res, next) => {
+  if (req.isAuthenticated()) {
     return next();
   }
-
-  const refreshToken = user.refresh_token;
-  if (!refreshToken) {
-    res.status(401).json({ message: "Unauthorized" });
-    return;
-  }
-
-  try {
-    const config = await getOidcConfig();
-    if (!config) throw new Error("OIDC config unavailable for token refresh");
-    const tokenResponse = await client.refreshTokenGrant(config, refreshToken);
-    updateUserSession(user, tokenResponse);
-    return next();
-  } catch (error) {
-    res.status(401).json({ message: "Unauthorized" });
-    return;
-  }
+  res.status(401).json({ message: "Unauthorized" });
 };
+

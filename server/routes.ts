@@ -65,11 +65,11 @@ type UserRole = "member" | "manager" | "admin";
 function requireRole(...allowedRoles: UserRole[]) {
   return async (req: any, res: any, next: any) => {
     try {
-      if (!req.user?.claims?.sub) {
+      if (!req.user?.id) {
         return res.status(401).json({ message: "Authentication required" });
       }
 
-      const user = await storage.getUser(req.user.claims.sub);
+      const user = await storage.getUser(req.user.id);
       const userRole = (user?.role || "member") as UserRole;
 
       if (!allowedRoles.includes(userRole)) {
@@ -147,7 +147,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
   // =====================
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const user = await storage.getUser(userId);
       res.json(user);
     } catch (error) {
@@ -159,7 +159,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
   // Heartbeat endpoint to update user activity (lastSeenAt only, preserves manual status)
   app.post('/api/auth/heartbeat', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       await storage.updateLastSeen(userId);
       res.json({ success: true });
     } catch (error) {
@@ -250,7 +250,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
       const data = insertTaskSchema.parse({
         ...restBody,
         dueDate: dueDate ? new Date(dueDate) : null,
-        creatorId: req.user.claims.sub,
+        creatorId: req.user.id,
       });
       const task = await storage.createTask(data);
       res.status(201).json(task);
@@ -314,7 +314,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
   // Get tasks assigned to current user
   app.get('/api/me/tasks', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const tasks = await storage.getTasksByAssignee(userId);
       res.json(tasks);
     } catch (error) {
@@ -878,7 +878,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
     try {
       const data = insertTicketSchema.parse({
         ...req.body,
-        reporterId: req.user.claims.sub,
+        reporterId: req.user.id,
       });
       const ticket = await storage.createTicket(data);
       res.status(201).json(ticket);
@@ -916,7 +916,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
   // =====================
   app.get('/api/profile', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const profile = await storage.getOrCreateProfile(userId);
       res.json(profile);
     } catch (error) {
@@ -940,7 +940,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
 
   app.patch('/api/profile', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const profile = await storage.getOrCreateProfile(userId);
       const { displayName, bio, avatarUrl, coverUrl, website, location } = req.body;
       const updateData: any = {};
@@ -971,7 +971,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
   app.post('/api/profile/:id/follow', isAuthenticated, async (req: any, res) => {
     try {
       const profileId = parseInt(req.params.id);
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       await storage.followProfile(profileId, userId);
       const followers = await storage.getFollowerCount(profileId);
       res.json({ followers });
@@ -984,7 +984,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
   app.delete('/api/profile/:id/follow', isAuthenticated, async (req: any, res) => {
     try {
       const profileId = parseInt(req.params.id);
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       await storage.unfollowProfile(profileId, userId);
       const followers = await storage.getFollowerCount(profileId);
       res.json({ followers });
@@ -997,7 +997,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
   app.get('/api/profile/:id/following', isAuthenticated, async (req: any, res) => {
     try {
       const profileId = parseInt(req.params.id);
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const isFollowing = await storage.isFollowing(profileId, userId);
       res.json({ isFollowing });
     } catch (error) {
@@ -1031,7 +1031,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
 
   app.post('/api/posts', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const { content, mediaUrl, mediaType, dualPostToPublic } = req.body;
 
       const profile = await storage.getOrCreateProfile(userId);
@@ -1066,7 +1066,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
   app.delete('/api/posts/:id', isAuthenticated, async (req: any, res) => {
     try {
       const postId = parseInt(req.params.id);
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const post = await storage.getPost(postId);
 
       if (!post) {
@@ -1088,7 +1088,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
   app.post('/api/posts/:id/like', isAuthenticated, async (req: any, res) => {
     try {
       const postId = parseInt(req.params.id);
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       await storage.likePost(postId, userId);
       const likes = await storage.getPostLikes(postId);
       res.json({ likes });
@@ -1101,7 +1101,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
   app.delete('/api/posts/:id/like', isAuthenticated, async (req: any, res) => {
     try {
       const postId = parseInt(req.params.id);
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       await storage.unlikePost(postId, userId);
       const likes = await storage.getPostLikes(postId);
       res.json({ likes });
@@ -1125,7 +1125,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
     try {
       const data = insertPostCommentSchema.parse({
         postId: parseInt(req.params.id),
-        authorId: req.user.claims.sub,
+        authorId: req.user.id,
         content: req.body.content,
       });
       const comment = await storage.addPostComment(data);
@@ -1139,7 +1139,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
   app.delete('/api/posts/:postId/comments/:commentId', isAuthenticated, async (req: any, res) => {
     try {
       const commentId = parseInt(req.params.commentId);
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       await storage.deletePostComment(commentId, userId);
       res.status(204).send();
     } catch (error: any) {
@@ -1159,7 +1159,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
   // Get all threads for current user with last message and unread count
   app.get('/api/threads', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const threads = await storage.getChatThreads(userId);
 
       // Enhance threads with last message and unread count
@@ -1186,7 +1186,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
   // Create a new group chat
   app.post('/api/threads', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const { participantIds, ...threadData } = req.body;
       const data = insertChatThreadSchema.parse({
         ...threadData,
@@ -1205,7 +1205,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
   // Create or get direct chat between two users
   app.post('/api/threads/direct', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const { targetUserId } = req.body;
 
       if (!targetUserId) {
@@ -1233,7 +1233,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
 
       const participants = await storage.getThreadParticipants(threadId);
       const lastMessage = await storage.getLastMessage(threadId);
-      const unreadCount = await storage.getUnreadCount(threadId, req.user.claims.sub);
+      const unreadCount = await storage.getUnreadCount(threadId, req.user.id);
 
       res.json({ ...thread, participants, lastMessage, unreadCount });
     } catch (error) {
@@ -1315,7 +1315,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
   app.get('/api/threads/:id/messages', isAuthenticated, async (req: any, res) => {
     try {
       const threadId = parseInt(req.params.id);
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
 
       const messages = await storage.getMessages(threadId);
 
@@ -1334,7 +1334,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
     try {
       const data = insertMessageSchema.parse({
         threadId: parseInt(req.params.id),
-        senderId: req.user.claims.sub,
+        senderId: req.user.id,
         content: req.body.content,
         messageType: req.body.messageType || "text",
         mediaUrl: req.body.mediaUrl,
@@ -1351,7 +1351,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
   app.delete('/api/threads/:threadId/messages/:messageId', isAuthenticated, async (req: any, res) => {
     try {
       const messageId = parseInt(req.params.messageId);
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       await storage.deleteMessage(messageId, userId);
       res.status(204).send();
     } catch (error: any) {
@@ -1368,7 +1368,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
   app.post('/api/threads/:id/read', isAuthenticated, async (req: any, res) => {
     try {
       const threadId = parseInt(req.params.id);
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
 
       await storage.markMessagesRead(threadId, userId);
       res.json({ message: "Messages marked as read" });
@@ -1419,7 +1419,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
         return res.status(401).json({ message: "Unauthorized" });
       }
 
-      const userId = req.user?.claims?.sub;
+      const userId = req.user?.id;
       const canAccess = await objectStorageService.canAccessObjectEntity({
         objectFile,
         userId,
@@ -1473,7 +1473,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
         ...meetingData,
         startTime: new Date(startTime),
         endTime: new Date(endTime),
-        organizerId: req.user.claims.sub,
+        organizerId: req.user.id,
       });
       const meeting = await storage.createMeeting(data, attendeeIds || []);
       res.status(201).json(meeting);
@@ -1546,7 +1546,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
     try {
       const data = insertJobPostingSchema.parse({
         ...req.body,
-        creatorId: req.user.claims.sub,
+        creatorId: req.user.id,
       });
       const job = await storage.createJobPosting(data);
       res.status(201).json(job);
@@ -1606,7 +1606,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
     try {
       const data = insertTransactionSchema.parse({
         ...req.body,
-        submitterId: req.user.claims.sub,
+        submitterId: req.user.id,
       });
       const transaction = await storage.createTransaction(data);
       res.status(201).json(transaction);
@@ -1620,7 +1620,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
     try {
       const updateData = { ...req.body };
       if (req.body.status === 'approved' || req.body.status === 'rejected') {
-        updateData.approverId = req.user.claims.sub;
+        updateData.approverId = req.user.id;
       }
       const transaction = await storage.updateTransaction(parseInt(req.params.id), updateData);
       if (!transaction) {
@@ -1725,7 +1725,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
   // =====================
   app.get('/api/notifications', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const notifications = await storage.getNotifications(userId);
       res.json(notifications);
     } catch (error) {
@@ -1736,7 +1736,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
 
   app.get('/api/notifications/unread-count', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const count = await storage.getUnreadNotificationCount(userId);
       res.json({ count });
     } catch (error) {
@@ -1757,7 +1757,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
 
   app.post('/api/notifications/read-all', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       await storage.markAllNotificationsRead(userId);
       res.status(200).json({ message: "All notifications marked as read" });
     } catch (error) {
@@ -1771,7 +1771,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
   // =====================
   app.post('/api/push/subscribe', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const { endpoint, p256dh, auth, userAgent } = req.body;
 
       if (!endpoint || !p256dh || !auth) {
@@ -1796,7 +1796,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
   app.post('/api/push/unsubscribe', isAuthenticated, async (req: any, res) => {
     try {
       const { endpoint } = req.body;
-      const userId = req.user?.claims?.sub;
+      const userId = req.user?.id;
 
       if (!endpoint) {
         return res.status(400).json({ message: "Missing endpoint" });
@@ -1832,7 +1832,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
 
   app.get("/api/departments", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user?.claims?.sub;
+      const userId = req.user?.id;
       const departments = await storage.getDepartmentsByManager(userId);
       res.json(departments);
     } catch (error) {
@@ -1843,7 +1843,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
 
   app.get("/api/departments/:id", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user?.claims?.sub;
+      const userId = req.user?.id;
       const departmentId = parseInt(req.params.id);
       const result = await verifyDepartmentOwnership(departmentId, userId);
       if (result.error === 'not_found') {
@@ -1861,7 +1861,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
 
   app.post("/api/departments", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user?.claims?.sub;
+      const userId = req.user?.id;
       const { name, description, icon, color, password } = req.body;
       if (!name || typeof name !== 'string' || name.trim().length === 0) {
         return res.status(400).json({ message: "Name is required" });
@@ -1883,7 +1883,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
 
   app.patch("/api/departments/:id", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user?.claims?.sub;
+      const userId = req.user?.id;
       const departmentId = parseInt(req.params.id);
       const result = await verifyDepartmentOwnership(departmentId, userId);
       if (result.error === 'not_found') {
@@ -1909,7 +1909,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
 
   app.delete("/api/departments/:id", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user?.claims?.sub;
+      const userId = req.user?.id;
       const departmentId = parseInt(req.params.id);
       const result = await verifyDepartmentOwnership(departmentId, userId);
       if (result.error === 'not_found') {
@@ -1948,7 +1948,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
 
   app.get("/api/departments/:departmentId/employees", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user?.claims?.sub;
+      const userId = req.user?.id;
       const departmentId = parseInt(req.params.departmentId);
       const result = await verifyDepartmentOwnership(departmentId, userId);
       if (result.error === 'not_found') {
@@ -1967,7 +1967,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
 
   app.get("/api/employees/:id", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user?.claims?.sub;
+      const userId = req.user?.id;
       const employeeId = parseInt(req.params.id);
       const employee = await storage.getRemoteEmployee(employeeId);
       if (!employee) {
@@ -1986,7 +1986,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
 
   app.get("/api/employees/username/:username", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user?.claims?.sub;
+      const userId = req.user?.id;
       const employee = await storage.getRemoteEmployeeByUsername(req.params.username);
       if (!employee) {
         return res.status(404).json({ message: "Employee not found" });
@@ -2004,7 +2004,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
 
   app.post("/api/departments/:departmentId/employees", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user?.claims?.sub;
+      const userId = req.user?.id;
       const departmentId = parseInt(req.params.departmentId);
       const result = await verifyDepartmentOwnership(departmentId, userId);
       if (result.error === 'not_found') {
@@ -2050,7 +2050,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
 
   app.patch("/api/employees/:id", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user?.claims?.sub;
+      const userId = req.user?.id;
       const employeeId = parseInt(req.params.id);
       const employee = await storage.getRemoteEmployee(employeeId);
       if (!employee) {
@@ -2081,7 +2081,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
 
   app.delete("/api/employees/:id", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user?.claims?.sub;
+      const userId = req.user?.id;
       const employeeId = parseInt(req.params.id);
       const employee = await storage.getRemoteEmployee(employeeId);
       if (!employee) {
@@ -2104,7 +2104,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
   // =====================
   app.get('/api/subscriptions/active', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const subscription = await storage.getActiveSubscription(userId);
       res.json(subscription || null);
     } catch (error) {
@@ -2115,7 +2115,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
 
   app.get('/api/subscriptions/current', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const subscription = await storage.getSubscriptionByUser(userId);
       res.json(subscription || null);
     } catch (error) {
@@ -2126,7 +2126,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
 
   app.post('/api/subscriptions', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const data = insertSubscriptionSchema.parse({
         ...req.body,
         userId,
@@ -2153,7 +2153,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
       }
 
       // Verify ownership
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       if (subscription.userId !== userId) {
         return res.status(403).json({ message: "Access denied" });
       }
@@ -2184,7 +2184,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
   // Get user's advertisements
   app.get('/api/advertisements/my', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const ads = await storage.getAdvertisementsByUser(userId);
       res.json(ads);
     } catch (error) {
@@ -2210,7 +2210,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
   // Create advertisement (requires subscription)
   app.post('/api/advertisements', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
 
       // Check if user has active subscription
       const subscription = await storage.getActiveSubscription(userId);
@@ -2255,7 +2255,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
       }
 
       // Verify ownership
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       if (ad.userId !== userId) {
         return res.status(403).json({ message: "Access denied" });
       }
@@ -2279,7 +2279,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
       }
 
       // Verify ownership
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       if (ad.userId !== userId) {
         return res.status(403).json({ message: "Access denied" });
       }
@@ -2321,7 +2321,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
   // =====================
   app.get('/api/n8n/settings', isAuthenticated, requireRole("manager", "admin"), async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       let settings = await storage.getN8nSettings(userId);
       if (!settings) {
         settings = await storage.createN8nSettings({ userId, isEnabled: false });
@@ -2335,7 +2335,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
 
   app.put('/api/n8n/settings', isAuthenticated, requireRole("manager", "admin"), async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const { webhookUrl, apiKey, isEnabled } = req.body;
 
       let settings = await storage.getN8nSettings(userId);
@@ -2365,7 +2365,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
   // =====================
   app.get('/api/automations', isAuthenticated, requireRole("manager", "admin"), async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const automations = await storage.getTaskAutomations(userId);
       res.json(automations);
     } catch (error) {
@@ -2376,7 +2376,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
 
   app.get('/api/automations/pending', isAuthenticated, requireRole("manager", "admin"), async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const automations = await storage.getPendingAutomations(userId);
       res.json(automations);
     } catch (error) {
@@ -2399,7 +2399,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
   // Send task to n8n for automation
   app.post('/api/automations/send', isAuthenticated, requireRole("manager", "admin"), async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const { taskId } = req.body;
 
       if (!taskId) {
@@ -2513,7 +2513,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
   // Approve automation result
   app.post('/api/automations/:id/approve', isAuthenticated, requireRole("manager", "admin"), async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const automationId = parseInt(req.params.id);
 
       const automation = await storage.getTaskAutomation(automationId);
@@ -2549,7 +2549,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
   // Reject automation result
   app.post('/api/automations/:id/reject', isAuthenticated, requireRole("manager", "admin"), async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const automationId = parseInt(req.params.id);
       const { reason } = req.body;
 
@@ -2577,7 +2577,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
   // Delete automation
   app.delete('/api/automations/:id', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const automationId = parseInt(req.params.id);
 
       const automation = await storage.getTaskAutomation(automationId);
@@ -2617,7 +2617,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
     if (!req.body.mediaURL) {
       return res.status(400).json({ error: "mediaURL is required" });
     }
-    const userId = req.user?.claims?.sub;
+    const userId = req.user?.id;
     const mediaURL = req.body.mediaURL;
 
     try {
@@ -3115,7 +3115,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
   // Get all offices for owner management
   app.get('/api/offices', isAuthenticated, requireRole("manager", "admin"), async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const offices = await storage.getOffices(userId);
       res.json(offices);
     } catch (error) {
@@ -3127,7 +3127,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
   // Create new office
   app.post('/api/offices', isAuthenticated, requireRole("manager", "admin"), async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const { name, slug, description, category, location, contactEmail, contactPhone, workingHours } = req.body;
 
       // Check if slug already exists
@@ -3161,7 +3161,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
   app.patch('/api/offices/:id', isAuthenticated, requireRole("manager", "admin"), async (req: any, res) => {
     try {
       const officeId = parseInt(req.params.id);
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
 
       const office = await storage.getOffice(officeId);
       if (!office) {
@@ -3183,7 +3183,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
   app.delete('/api/offices/:id', isAuthenticated, requireRole("manager", "admin"), async (req: any, res) => {
     try {
       const officeId = parseInt(req.params.id);
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
 
       const office = await storage.getOffice(officeId);
       if (!office) {
@@ -3205,7 +3205,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
   app.get('/api/offices/:officeId/services', isAuthenticated, requireRole("manager", "admin"), async (req: any, res) => {
     try {
       const officeId = parseInt(req.params.officeId);
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
 
       const office = await storage.getOffice(officeId);
       if (!office || office.ownerId !== userId) {
@@ -3223,7 +3223,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
   app.post('/api/offices/:officeId/services', isAuthenticated, requireRole("manager", "admin"), async (req: any, res) => {
     try {
       const officeId = parseInt(req.params.officeId);
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
 
       const office = await storage.getOffice(officeId);
       if (!office || office.ownerId !== userId) {
@@ -3245,7 +3245,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
   app.patch('/api/offices/:officeId/services/:serviceId', isAuthenticated, requireRole("manager", "admin"), async (req: any, res) => {
     try {
       const serviceId = parseInt(req.params.serviceId);
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
 
       const service = await storage.getOfficeService(serviceId);
       if (!service) {
@@ -3268,7 +3268,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
   app.delete('/api/offices/:officeId/services/:serviceId', isAuthenticated, requireRole("manager", "admin"), async (req: any, res) => {
     try {
       const serviceId = parseInt(req.params.serviceId);
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
 
       const service = await storage.getOfficeService(serviceId);
       if (!service) {
@@ -3296,7 +3296,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
   app.get('/api/offices/:officeId/departments', isAuthenticated, requireRole("manager", "admin"), async (req: any, res) => {
     try {
       const officeId = parseInt(req.params.officeId);
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
 
       const office = await storage.getOffice(officeId);
       if (!office || office.ownerId !== userId) {
@@ -3315,7 +3315,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
   app.post('/api/offices/:officeId/departments', isAuthenticated, requireRole("manager", "admin"), async (req: any, res) => {
     try {
       const officeId = parseInt(req.params.officeId);
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
 
       const office = await storage.getOffice(officeId);
       if (!office || office.ownerId !== userId) {
@@ -3338,7 +3338,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
   app.patch('/api/offices/:officeId/departments/:departmentId', isAuthenticated, requireRole("manager", "admin"), async (req: any, res) => {
     try {
       const departmentId = parseInt(req.params.departmentId);
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
 
       const department = await storage.getCompanyDepartment(departmentId);
       if (!department) {
@@ -3362,7 +3362,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
   app.delete('/api/offices/:officeId/departments/:departmentId', isAuthenticated, requireRole("manager", "admin"), async (req: any, res) => {
     try {
       const departmentId = parseInt(req.params.departmentId);
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
 
       const department = await storage.getCompanyDepartment(departmentId);
       if (!department) {
@@ -3390,7 +3390,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
   app.get('/api/departments/:departmentId/sections', isAuthenticated, requireRole("manager", "admin"), async (req: any, res) => {
     try {
       const departmentId = parseInt(req.params.departmentId);
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
 
       const department = await storage.getCompanyDepartment(departmentId);
       if (!department) {
@@ -3414,7 +3414,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
   app.post('/api/departments/:departmentId/sections', isAuthenticated, requireRole("manager", "admin"), async (req: any, res) => {
     try {
       const departmentId = parseInt(req.params.departmentId);
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
 
       const department = await storage.getCompanyDepartment(departmentId);
       if (!department) {
@@ -3442,7 +3442,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
   app.patch('/api/sections/:sectionId', isAuthenticated, requireRole("manager", "admin"), async (req: any, res) => {
     try {
       const sectionId = parseInt(req.params.sectionId);
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
 
       const section = await storage.getCompanySection(sectionId);
       if (!section) {
@@ -3471,7 +3471,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
   app.delete('/api/sections/:sectionId', isAuthenticated, requireRole("manager", "admin"), async (req: any, res) => {
     try {
       const sectionId = parseInt(req.params.sectionId);
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
 
       const section = await storage.getCompanySection(sectionId);
       if (!section) {
@@ -3500,7 +3500,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
   app.post('/api/offices/:officeId/media', isAuthenticated, requireRole("manager", "admin"), async (req: any, res) => {
     try {
       const officeId = parseInt(req.params.officeId);
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
 
       const office = await storage.getOffice(officeId);
       if (!office || office.ownerId !== userId) {
@@ -3522,7 +3522,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
   app.delete('/api/offices/:officeId/media/:mediaId', isAuthenticated, requireRole("manager", "admin"), async (req: any, res) => {
     try {
       const mediaId = parseInt(req.params.mediaId);
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const officeId = parseInt(req.params.officeId);
 
       const office = await storage.getOffice(officeId);
@@ -3542,7 +3542,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
   app.post('/api/offices/:officeId/posts', isAuthenticated, requireRole("manager", "admin"), async (req: any, res) => {
     try {
       const officeId = parseInt(req.params.officeId);
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
 
       const office = await storage.getOffice(officeId);
       if (!office || office.ownerId !== userId) {
@@ -3565,7 +3565,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
   app.delete('/api/offices/:officeId/posts/:postId', isAuthenticated, requireRole("manager", "admin"), async (req: any, res) => {
     try {
       const postId = parseInt(req.params.postId);
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const officeId = parseInt(req.params.officeId);
 
       const office = await storage.getOffice(officeId);
@@ -3585,7 +3585,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
   app.get('/api/offices/:officeId/messages', isAuthenticated, requireRole("manager", "admin"), async (req: any, res) => {
     try {
       const officeId = parseInt(req.params.officeId);
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
 
       const office = await storage.getOffice(officeId);
       if (!office || (office.ownerId !== userId && office.receptionistId !== userId)) {
@@ -3604,7 +3604,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
   app.post('/api/offices/:officeId/messages', isAuthenticated, requireRole("manager", "admin"), async (req: any, res) => {
     try {
       const officeId = parseInt(req.params.officeId);
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
 
       const office = await storage.getOffice(officeId);
       if (!office || (office.ownerId !== userId && office.receptionistId !== userId)) {
@@ -3639,7 +3639,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
   app.get('/api/offices/:officeId/messages/unread', isAuthenticated, requireRole("manager", "admin"), async (req: any, res) => {
     try {
       const officeId = parseInt(req.params.officeId);
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
 
       const office = await storage.getOffice(officeId);
       if (!office || (office.ownerId !== userId && office.receptionistId !== userId)) {
@@ -3666,7 +3666,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
         return res.status(400).json({ message: officeIdResult.error.errors[0]?.message || "Invalid office ID" });
       }
       const officeId = officeIdResult.data;
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
 
       const office = await storage.getOffice(officeId);
       if (!office || (office.ownerId !== userId && office.receptionistId !== userId)) {
@@ -3696,7 +3696,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
 
       const officeId = officeIdResult.data;
       const callId = callIdResult.data;
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
 
       const office = await storage.getOffice(officeId);
       if (!office || (office.ownerId !== userId && office.receptionistId !== userId)) {
@@ -3735,7 +3735,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
 
       const officeId = officeIdResult.data;
       const callId = callIdResult.data;
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
 
       const office = await storage.getOffice(officeId);
       if (!office || (office.ownerId !== userId && office.receptionistId !== userId)) {
@@ -3774,7 +3774,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
 
       const officeId = officeIdResult.data;
       const callId = callIdResult.data;
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
 
       const office = await storage.getOffice(officeId);
       if (!office || (office.ownerId !== userId && office.receptionistId !== userId)) {
@@ -3855,7 +3855,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
 
       const author = await storage.getUser(status.authorId);
       const office = status.officeId ? await storage.getOffice(status.officeId) : null;
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
 
       // Record view if not the author
       if (status.authorId !== userId) {
@@ -3900,7 +3900,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
   // Create a new status
   app.post('/api/statuses', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
 
       // Set expiration to 24 hours from now
       const expiresAt = new Date();
@@ -3940,7 +3940,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
         return res.status(404).json({ message: "Status not found" });
       }
 
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       if (status.authorId !== userId) {
         return res.status(403).json({ message: "Not authorized to delete this status" });
       }
@@ -4003,7 +4003,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
         return res.status(404).json({ message: "Status not found" });
       }
 
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
 
       const replyData = insertStatusReplySchema.safeParse({
         statusId,
@@ -4050,7 +4050,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
         return res.status(404).json({ message: "Status not found" });
       }
 
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
 
       // Check if already liked
       const existingLike = await storage.getStatusLike(statusId, userId);
@@ -4074,7 +4074,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
         return res.status(400).json({ message: "Invalid status ID" });
       }
 
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
 
       const deleted = await storage.deleteStatusLike(statusId, userId);
       if (!deleted) {
@@ -4101,7 +4101,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
         return res.status(404).json({ message: "Status not found" });
       }
 
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       if (status.authorId !== userId) {
         return res.status(403).json({ message: "Only the author can view who saw the status" });
       }
@@ -4147,7 +4147,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
         return res.status(404).json({ message: "Office not found" });
       }
 
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
 
       const isFollowing = await storage.isFollowingOffice(officeId, userId);
       if (isFollowing) {
@@ -4178,7 +4178,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
         return res.status(404).json({ message: "Office not found" });
       }
 
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
 
       const isFollowing = await storage.isFollowingOffice(officeId, userId);
       if (!isFollowing) {
@@ -4209,7 +4209,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
         return res.status(404).json({ message: "Office not found" });
       }
 
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
 
       const isFollowing = await storage.isFollowingOffice(officeId, userId);
       const followerCount = await storage.getOfficeFollowerCount(officeId);
@@ -4228,7 +4228,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
   // Get inbox emails
   app.get('/api/emails/inbox', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const emails = await storage.getInboxEmails(userId);
 
       // Enhance with sender info
@@ -4247,7 +4247,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
   // Get sent emails
   app.get('/api/emails/sent', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const emails = await storage.getSentEmails(userId);
 
       // Enhance with recipient info
@@ -4266,7 +4266,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
   // Get draft emails
   app.get('/api/emails/drafts', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const emails = await storage.getDraftEmails(userId);
 
       const emailsWithRecipient = await Promise.all(emails.map(async (email) => {
@@ -4284,7 +4284,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
   // Get starred emails
   app.get('/api/emails/starred', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const emails = await storage.getStarredEmails(userId);
 
       const emailsWithUsers = await Promise.all(emails.map(async (email) => {
@@ -4303,7 +4303,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
   // Get archived emails
   app.get('/api/emails/archived', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const emails = await storage.getArchivedEmails(userId);
 
       const emailsWithUsers = await Promise.all(emails.map(async (email) => {
@@ -4322,7 +4322,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
   // Get unread email count
   app.get('/api/emails/unread-count', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const count = await storage.getUnreadEmailCount(userId);
       res.json({ count });
     } catch (error) {
@@ -4344,7 +4344,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
         return res.status(404).json({ message: "Email not found" });
       }
 
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       if (email.senderId !== userId && email.recipientId !== userId) {
         return res.status(403).json({ message: "Access denied" });
       }
@@ -4367,7 +4367,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
   // Send or save draft email
   app.post('/api/emails', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const { recipientId, subject, body, isDraft } = req.body;
 
       if (!recipientId || !subject) {
@@ -4409,7 +4409,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
         return res.status(404).json({ message: "Email not found" });
       }
 
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       if (email.senderId !== userId) {
         return res.status(403).json({ message: "Access denied" });
       }
@@ -4443,7 +4443,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
         return res.status(404).json({ message: "Email not found" });
       }
 
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       if (email.senderId !== userId && email.recipientId !== userId) {
         return res.status(403).json({ message: "Access denied" });
       }
@@ -4469,7 +4469,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
         return res.status(404).json({ message: "Email not found" });
       }
 
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       if (email.senderId !== userId && email.recipientId !== userId) {
         return res.status(403).json({ message: "Access denied" });
       }
@@ -4496,7 +4496,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
         return res.status(404).json({ message: "Email not found" });
       }
 
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       if (email.senderId !== userId && email.recipientId !== userId) {
         return res.status(403).json({ message: "Access denied" });
       }
@@ -4522,7 +4522,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
         return res.status(404).json({ message: "Email not found" });
       }
 
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       if (email.recipientId !== userId) {
         return res.status(403).json({ message: "Access denied" });
       }
@@ -4761,7 +4761,7 @@ ${priority ? `الأولوية: ${priority}` : ''}
   // Get all services for office renter
   app.get('/api/services', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const user = await storage.getUser(userId);
 
       if (!user || (user.role !== 'office_renter' && user.role !== 'admin' && user.role !== 'manager')) {
@@ -4807,7 +4807,7 @@ ${priority ? `الأولوية: ${priority}` : ''}
 
   app.post('/api/services', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const user = await storage.getUser(userId);
 
       if (!user || (user.role !== 'office_renter' && user.role !== 'admin' && user.role !== 'manager')) {
@@ -4849,7 +4849,7 @@ ${priority ? `الأولوية: ${priority}` : ''}
   // Update service
   app.patch('/api/services/:id', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const serviceId = parseInt(req.params.id);
 
       const service = await storage.getService(serviceId);
@@ -4873,7 +4873,7 @@ ${priority ? `الأولوية: ${priority}` : ''}
   // Delete service
   app.delete('/api/services/:id', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const serviceId = parseInt(req.params.id);
 
       const service = await storage.getService(serviceId);
@@ -5030,7 +5030,7 @@ ${priority ? `الأولوية: ${priority}` : ''}
   // Get orders for office owner
   app.get('/api/service-orders', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const orders = await storage.getServiceOrdersByOwner(userId);
       res.json(orders);
     } catch (error) {
@@ -5152,7 +5152,7 @@ ${priority ? `الأولوية: ${priority}` : ''}
   // Update order status (for office owner)
   app.patch('/api/service-orders/:id', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const orderId = parseInt(req.params.id);
 
       const order = await storage.getServiceOrder(orderId);
@@ -5178,7 +5178,7 @@ ${priority ? `الأولوية: ${priority}` : ''}
   // Get service share link for chat
   app.get('/api/services/:id/share-link', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const serviceId = parseInt(req.params.id);
 
       const service = await storage.getService(serviceId);

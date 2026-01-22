@@ -11,6 +11,7 @@ import { TopHeader } from "@/components/TopHeader";
 import { useAuth } from "@/hooks/useAuth";
 import NotFound from "@/pages/not-found";
 import Landing from "@/pages/Landing";
+import AuthPage from "@/pages/AuthPage";
 import Dashboard from "@/pages/Dashboard";
 import Welcome from "@/pages/Welcome";
 import Tasks from "@/pages/Tasks";
@@ -375,6 +376,7 @@ function PublicRouter() {
   return (
     <Switch>
       <Route path="/" component={Landing} />
+      <Route path="/auth" component={AuthPage} />
       <Route path="/storefront" component={Storefront} />
       <Route path="/office/:slug" component={OfficeDetail} />
       <Route path="/careers" component={Careers} />
@@ -390,7 +392,7 @@ function AppContent() {
   const { isAuthenticated, isLoading } = useAuth();
   const [location] = useLocation();
 
-  const publicRoutes = ["/", "/storefront", "/careers", "/employee-portal", "/payment-success"];
+  const publicRoutes = ["/", "/auth", "/storefront", "/careers", "/employee-portal", "/payment-success"];
   const isPublicRoute = publicRoutes.includes(location) || location.startsWith("/office/") || location.startsWith("/s/");
 
   if (isLoading) {

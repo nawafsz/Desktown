@@ -104,7 +104,7 @@ export default function Landing() {
   }, [activeAds]);
 
   const handleLogin = () => {
-    window.location.href = "/api/login";
+    window.location.href = "/auth";
   };
 
   const handleLanguageChange = (lang: 'en' | 'ar') => {
