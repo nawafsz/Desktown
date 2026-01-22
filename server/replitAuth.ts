@@ -37,8 +37,12 @@ export function getSession() {
     ttl: sessionTtl / 1000, // connect-pg-simple uses seconds
     tableName: "sessions",
   });
+  if (!process.env.SESSION_SECRET && process.env.NODE_ENV === "production") {
+    console.warn("WARNING: SESSION_SECRET is not defined. Using a default secret. This is not secure for production.");
+  }
+
   return session({
-    secret: process.env.SESSION_SECRET!,
+    secret: process.env.SESSION_SECRET || "default_dev_secret_key_change_me",
     store: sessionStore,
     resave: false,
     saveUninitialized: false,
