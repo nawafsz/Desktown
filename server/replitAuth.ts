@@ -80,13 +80,31 @@ export async function setupAuth(app: Express) {
   app.use(passport.session());
 
   // DEV MODE OR NON-REPLIT BYPASS
-  const isDev = process.env.NODE_ENV === "development";
+  // Check if we are in development OR if Replit Auth config is missing (local/non-Replit environment)
+  const isDev = process.env.NODE_ENV === "development" || !process.env.REPL_ID;
 
   if (isDev) {
-    console.log("Adding Login Bypass Route for Development");
+    console.log("Adding Login Bypass Route for Development (or missing REPL_ID)");
     app.get("/api/login", async (req, res) => {
       const requestedEmail = req.query.email as string || "dev@onedesk.local";
-      const user = await storage.getUserByEmail(requestedEmail);
+      let user = await storage.getUserByEmail(requestedEmail);
+
+      if (!user && requestedEmail === "dev@onedesk.local") {
+        console.log("Creating dev admin user...");
+        try {
+          user = await storage.upsertUser({
+            email: "dev@onedesk.local",
+            firstName: "Dev",
+            lastName: "Admin",
+            role: "admin",
+            profileImageUrl: "https://ui-avatars.com/api/?name=Dev+Admin&background=random",
+            status: "online",
+            department: "Engineering"
+          });
+        } catch (error) {
+          console.error("Failed to create dev user:", error);
+        }
+      }
 
       if (!user || (user.role !== 'admin' && !isDev)) {
         console.error(`Login failed: User ${requestedEmail} not found or not authorized.`);
