@@ -1,8 +1,8 @@
-# OneDesk - Virtual Workspace
+# DeskTown - Virtual Workspace
 
 ## Overview
 
-OneDesk is a comprehensive virtual cloud office platform designed for remote teams. It unifies task management, support ticketing, team communication, meeting scheduling, job postings, financial tracking, and access control into a single integrated workspace. The application provides a professional, productivity-focused interface combining Linear's clean task management aesthetics with Material Design's robust component patterns.
+DeskTown is a comprehensive virtual cloud office platform designed for remote teams. It unifies task management, support ticketing, team communication, meeting scheduling, job postings, financial tracking, and access control into a single integrated workspace. The application provides a professional, productivity-focused interface combining Linear's clean task management aesthetics with Material Design's robust component patterns.
 
 ## User Preferences
 

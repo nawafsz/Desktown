@@ -49,7 +49,7 @@ export default function VisitorContact() {
     {
       icon: Mail,
       label: language === 'ar' ? 'البريد الإلكتروني' : 'Email',
-      value: 'support@onedesk.sa',
+      value: 'support@desktown.sa',
     },
     {
       icon: Phone,
@@ -80,8 +80,8 @@ export default function VisitorContact() {
                 <ArrowLeft className="h-5 w-5" />
               </Button>
             </Link>
-            <img src={logoUrl} alt="OneDesk" className="h-8 w-8 object-contain" />
-            <span className="text-lg font-bold text-white">OneDesk</span>
+            <img src={logoUrl} alt="DeskTown" className="h-8 w-8 object-contain" />
+            <span className="text-lg font-bold text-white">DeskTown</span>
           </div>
         </header>
 

@@ -20,7 +20,7 @@ async function main() {
 
         await client.query(query, [
             'dev-user-id',
-            'dev@onedesk.local',
+            'dev@desktown.local',
             'Admin',
             'User',
             'https://via.placeholder.com/150',

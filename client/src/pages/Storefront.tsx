@@ -359,8 +359,8 @@ export default function Storefront() {
       <header className="fixed top-0 left-0 right-0 z-50 border-b border-white/5 bg-background/80 backdrop-blur-xl">
         <div className="container mx-auto px-4 py-3 flex items-center justify-between">
           <div className={`flex items-center gap-3`}>
-            <img src={logoUrl} alt="OneDesk" className="h-9 w-9" />
-            <span className="text-lg font-bold gradient-text">OneDesk</span>
+            <img src={logoUrl} alt="DeskTown" className="h-9 w-9" />
+            <span className="text-lg font-bold gradient-text">DeskTown</span>
           </div>
           <nav className="hidden md:flex items-center gap-6">
             <a href="#services" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
@@ -623,8 +623,8 @@ export default function Storefront() {
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-3">
-              <img src={logoUrl} alt="OneDesk" className="h-8 w-8" />
-              <span className="font-semibold">OneDesk</span>
+              <img src={logoUrl} alt="DeskTown" className="h-8 w-8" />
+              <span className="font-semibold">DeskTown</span>
             </div>
             <div className="flex items-center gap-6 text-sm text-muted-foreground">
               <a href="#services" className="hover:text-foreground transition-colors">
@@ -644,7 +644,7 @@ export default function Storefront() {
             </div>
           </div>
           <div className="mt-8 pt-8 border-t border-white/5 text-center text-sm text-muted-foreground">
-            <p>&copy; {new Date().getFullYear()} OneDesk. {t.allRightsReserved}</p>
+            <p>&copy; {new Date().getFullYear()} DeskTown. {t.allRightsReserved}</p>
           </div>
         </div>
       </footer>

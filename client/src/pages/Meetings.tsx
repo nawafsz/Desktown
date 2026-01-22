@@ -101,7 +101,7 @@ export default function Meetings() {
   };
 
   const handleJoinMeeting = (meetingId: string, meetingTitle: string) => {
-    const roomName = `OneDesk-${meetingId}-${meetingTitle.replace(/\s+/g, '-').replace(/[^a-zA-Z0-9-]/g, '')}`;
+    const roomName = `DeskTown-${meetingId}-${meetingTitle.replace(/\s+/g, '-').replace(/[^a-zA-Z0-9-]/g, '')}`;
     const jitsiUrl = `https://meet.jit.si/${roomName}`;
     window.open(jitsiUrl, '_blank');
     toast({ 

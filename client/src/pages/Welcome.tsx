@@ -84,8 +84,8 @@ export default function Welcome() {
         {/* Header */}
         <header className="flex items-center justify-between py-3">
           <div className="flex items-center gap-2">
-            <img src={logoUrl} alt="OneDesk" className="h-8 w-8 object-contain" />
-            <span className="text-lg font-bold text-white">OneDesk</span>
+            <img src={logoUrl} alt="DeskTown" className="h-8 w-8 object-contain" />
+            <span className="text-lg font-bold text-white">DeskTown</span>
           </div>
           <div className="flex items-center gap-2">
             <DropdownMenu>

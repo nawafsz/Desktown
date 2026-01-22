@@ -377,9 +377,9 @@ export default function Careers() {
               </Button>
             </Link>
             <div className="flex items-center gap-2">
-              <img src={logoUrl} alt="OneDesk" className="h-8 w-8 object-contain" />
-              <span className="font-semibold text-lg">{t.headerTitle}</span>
-            </div>
+            <img src={logoUrl} alt="DeskTown" className="h-8 w-8 object-contain" />
+            <span className="font-semibold text-lg">DeskTown</span>
+          </div>
           </div>
         </div>
       </header>
@@ -510,7 +510,7 @@ export default function Careers() {
 
       <footer className="border-t bg-muted/50 py-8 pb-24">
         <div className="container mx-auto px-4 text-center text-muted-foreground">
-          <p>&copy; {new Date().getFullYear()} OneDesk. {t.allRightsReserved}</p>
+          <p>&copy; {new Date().getFullYear()} DeskTown. {t.allRightsReserved}</p>
         </div>
       </footer>
 

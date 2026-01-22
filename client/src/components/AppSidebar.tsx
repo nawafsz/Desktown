@@ -216,7 +216,7 @@ export function AppSidebar({ user }: AppSidebarProps) {
               <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 rounded-full border-2 border-sidebar" />
             </div>
             <div>
-              <h1 className="font-bold text-lg tracking-tight">OneDesk</h1>
+              <h1 className="font-bold text-lg tracking-tight">DeskTown</h1>
               <p className="text-xs text-muted-foreground">
                 {isOfficeRenter ? t.sidebar?.businessServices || "Business Services" : t.sidebar?.virtualWorkspace || "Virtual Workspace"}
               </p>

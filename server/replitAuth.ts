@@ -103,6 +103,7 @@ export async function setupAuth(app: Express) {
   app.post("/api/register", async (req, res) => {
     try {
       const { username, password, email, firstName, lastName } = req.body;
+      console.log(`[Auth] Registration attempt for username: ${username}, email: ${email}`);
       
       if (!username || !password || !email) {
         return res.status(400).json({ message: "Missing required fields" });
@@ -126,12 +127,16 @@ export async function setupAuth(app: Express) {
       });
 
       req.logIn(newUser, (err) => {
-        if (err) throw err;
+        if (err) {
+          console.error("Login error after registration:", err);
+          return res.status(500).json({ message: `LOGIN_FAIL: ${err.message}` });
+        }
         res.status(201).json({ message: "Registered successfully", user: newUser });
       });
     } catch (error: any) {
       console.error("Registration error:", error);
-      res.status(500).json({ message: `Registration failed: ${error.message || error}` });
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      res.status(500).json({ message: `REG_CRASH: ${errorMessage}` });
     }
   });
 

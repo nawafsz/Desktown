@@ -9,7 +9,7 @@ async function seed() {
         console.log("Dev user not found. Creating...");
         await storage.upsertUser({
             id: "dev-user-id",
-            email: "dev@onedesk.local",
+            email: "dev@desktown.local",
             firstName: "Dev",
             lastName: "User",
             profileImageUrl: "https://via.placeholder.com/150",

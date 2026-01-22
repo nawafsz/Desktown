@@ -100,8 +100,8 @@ export default function PublicServicePage() {
       <div className="min-h-screen bg-background">
         <header className="border-b border-white/5 bg-background/80 backdrop-blur-xl">
           <div className="container mx-auto px-4 py-3 flex items-center gap-3">
-            <img src={logoUrl} alt="OneDesk" className="h-9 w-9" />
-            <span className="text-lg font-bold gradient-text">OneDesk</span>
+            <img src={logoUrl} alt="DeskTown" className="h-9 w-9" />
+            <span className="text-lg font-bold gradient-text">DeskTown</span>
           </div>
         </header>
         <div className="container mx-auto px-4 py-12 max-w-4xl">
@@ -124,8 +124,8 @@ export default function PublicServicePage() {
       <div className="min-h-screen bg-background">
         <header className="border-b border-white/5 bg-background/80 backdrop-blur-xl">
           <div className="container mx-auto px-4 py-3 flex items-center gap-3">
-            <img src={logoUrl} alt="OneDesk" className="h-9 w-9" />
-            <span className="text-lg font-bold gradient-text">OneDesk</span>
+            <img src={logoUrl} alt="DeskTown" className="h-9 w-9" />
+            <span className="text-lg font-bold gradient-text">DeskTown</span>
           </div>
         </header>
         <div className="container mx-auto px-4 py-12 max-w-4xl">
@@ -150,8 +150,8 @@ export default function PublicServicePage() {
       <div className="min-h-screen bg-background">
         <header className="border-b border-white/5 bg-background/80 backdrop-blur-xl">
           <div className="container mx-auto px-4 py-3 flex items-center gap-3">
-            <img src={logoUrl} alt="OneDesk" className="h-9 w-9" />
-            <span className="text-lg font-bold gradient-text">OneDesk</span>
+            <img src={logoUrl} alt="DeskTown" className="h-9 w-9" />
+            <span className="text-lg font-bold gradient-text">DeskTown</span>
           </div>
         </header>
         <div className="container mx-auto px-4 py-12 max-w-lg">
@@ -179,8 +179,8 @@ export default function PublicServicePage() {
       <header className="border-b border-white/5 bg-background/80 backdrop-blur-xl sticky top-0 z-50">
         <div className="container mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <img src={logoUrl} alt="OneDesk" className="h-9 w-9" />
-            <span className="text-lg font-bold gradient-text">OneDesk</span>
+            <img src={logoUrl} alt="DeskTown" className="h-9 w-9" />
+            <span className="text-lg font-bold gradient-text">DeskTown</span>
           </div>
           {service.office && (
             <div className="flex items-center gap-2 text-sm text-muted-foreground">

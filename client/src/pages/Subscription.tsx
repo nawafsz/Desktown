@@ -237,7 +237,7 @@ export default function Subscription() {
         <div className="container mx-auto flex items-center justify-between h-16 px-4">
           <div className="flex items-center gap-2">
             <Building2 className="h-8 w-8 text-primary" />
-            <span className="font-semibold text-xl">OneDesk</span>
+            <span className="font-semibold text-xl">DeskTown</span>
           </div>
           <div className="flex items-center gap-2">
             <Badge variant="outline" className="gap-1">

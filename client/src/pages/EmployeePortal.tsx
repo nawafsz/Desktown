@@ -686,7 +686,7 @@ export default function EmployeePortal() {
                 </Button>
               </Link>
               <div className="flex items-center gap-2">
-                <img src={logoUrl} alt="OneDesk" className="h-8 w-8 object-contain" />
+                <img src={logoUrl} alt="DeskTown" className="h-8 w-8 object-contain" />
                 <span className="font-semibold text-lg">{language === 'ar' ? 'بوابة الموظف' : 'Employee Portal'}</span>
               </div>
             </div>
@@ -733,7 +733,7 @@ export default function EmployeePortal() {
 
         <footer className="border-t bg-muted/50 py-6 pb-24">
           <div className="container mx-auto px-4 text-center text-muted-foreground text-sm">
-            <p>&copy; {new Date().getFullYear()} OneDesk. {language === 'ar' ? 'جميع الحقوق محفوظة.' : 'All rights reserved.'}</p>
+            <p>&copy; {new Date().getFullYear()} DeskTown. {language === 'ar' ? 'جميع الحقوق محفوظة.' : 'All rights reserved.'}</p>
           </div>
         </footer>
 
@@ -797,7 +797,7 @@ export default function EmployeePortal() {
               </Button>
             </Link>
             <div className="flex items-center gap-2">
-              <img src={logoUrl} alt="OneDesk" className="h-8 w-8 object-contain" />
+              <img src={logoUrl} alt="DeskTown" className="h-8 w-8 object-contain" />
               <span className="font-semibold text-lg">{language === 'ar' ? 'بوابة الموظف' : 'Employee Portal'}</span>
             </div>
           </div>
@@ -1453,7 +1453,7 @@ export default function EmployeePortal() {
 
       <footer className="border-t bg-muted/50 py-6 pb-24 mt-auto">
         <div className="container mx-auto px-4 text-center text-muted-foreground text-sm">
-          <p>&copy; {new Date().getFullYear()} OneDesk. {language === 'ar' ? 'جميع الحقوق محفوظة.' : 'All rights reserved.'}</p>
+          <p>&copy; {new Date().getFullYear()} DeskTown. {language === 'ar' ? 'جميع الحقوق محفوظة.' : 'All rights reserved.'}</p>
         </div>
       </footer>
 

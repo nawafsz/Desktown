@@ -167,8 +167,8 @@ export default function Landing() {
             )}
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-lg font-bold text-white">OneDesk</span>
-            <img src={logoUrl} alt="OneDesk" className="h-8 w-8 object-contain" />
+            <span className="text-lg font-bold text-white">DeskTown</span>
+            <img src={logoUrl} alt="DeskTown" className="h-8 w-8 object-contain" />
           </div>
         </header>
 

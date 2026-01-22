@@ -8,8 +8,8 @@ export default function PaymentSuccess() {
     <div className="min-h-screen bg-background">
       <header className="border-b border-white/5 bg-background/80 backdrop-blur-xl">
         <div className="container mx-auto px-4 py-3 flex items-center gap-3">
-          <img src={logoUrl} alt="OneDesk" className="h-9 w-9" />
-          <span className="text-lg font-bold gradient-text">OneDesk</span>
+          <img src={logoUrl} alt="DeskTown" className="h-9 w-9" />
+          <span className="text-lg font-bold gradient-text">DeskTown</span>
         </div>
       </header>
 

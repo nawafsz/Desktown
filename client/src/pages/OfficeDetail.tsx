@@ -770,8 +770,8 @@ export default function OfficeDetail() {
                 <ArrowLeft className={isRTL ? "h-5 w-5 rotate-180" : "h-5 w-5"} />
               </Button>
             </Link>
-            <img src={logoUrl} alt="OneDesk" className="h-10 w-10" />
-            <span className="text-xl font-semibold">OneDesk</span>
+            <img src={logoUrl} alt="DeskTown" className="h-10 w-10" />
+            <span className="text-xl font-semibold">DeskTown</span>
           </div>
           <Button variant="default" size="sm" onClick={handleLogin} data-testid="button-login">
             {t.login}

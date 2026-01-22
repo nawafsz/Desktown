@@ -36,8 +36,8 @@ export default function VisitorServices() {
                 <ArrowLeft className="h-5 w-5" />
               </Button>
             </Link>
-            <img src={logoUrl} alt="OneDesk" className="h-8 w-8 object-contain" />
-            <span className="text-lg font-bold text-white">OneDesk</span>
+            <img src={logoUrl} alt="DeskTown" className="h-8 w-8 object-contain" />
+            <span className="text-lg font-bold text-white">DeskTown</span>
           </div>
         </header>
 

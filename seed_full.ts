@@ -11,7 +11,7 @@ async function seed() {
     if (!user) {
         await storage.upsertUser({
             id: adminId,
-            email: "dev@onedesk.local",
+            email: "dev@desktown.local",
             firstName: "Dev",
             lastName: "User",
             role: "admin",
