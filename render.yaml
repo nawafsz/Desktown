@@ -1,10 +1,10 @@
 services:
   - type: web
-    name: Desktwon
+    name: Desktwon-Standalone
     runtime: node
     plan: free
-    buildCommand: npm install && npm run build
-    startCommand: npm start
+    buildCommand: npm install && npm run build:standalone
+    startCommand: npm run start:standalone
     envVars:
       - key: NODE_ENV
         value: production
@@ -12,3 +12,5 @@ services:
         fromConfig: DATABASE_URL
       - key: SESSION_SECRET
         generateValue: true
+      - key: OPENROUTER_API_KEY
+        sync: false

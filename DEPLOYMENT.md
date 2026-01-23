@@ -65,6 +65,20 @@ npm start
 - المشروع تم ضغطه بدون مجلد `node_modules` لتقليل الحجم، لذا يجب تشغيل `npm install` عند الرفع.
 - تأكد من أن المنفذ (Port) المختار (مثلاً 5000) مفتوح في إعدادات جدار الحماية الخاص بالاستضافة.
 - تم حصر الدخول فقط للحسابات الإدارية المسجلة في قاعدة البيانات لضمان خصوصية العمل.
+- تم دعم النشر على Vercel و Render (للنسخة المستقلة).
+
+## النشر على Render (Standalone)
+لتشغيل النسخة المستقلة على Render:
+1. استخدم `npm run build:standalone` كأمر البناء (Build Command).
+2. استخدم `npm run start:standalone` كأمر التشغيل (Start Command).
+3. تأكد من إضافة `DATABASE_URL` و `SESSION_SECRET` في المتغيرات البيئية.
+
+## النشر على Vercel
+تم إضافة دعم Vercel. تأكد من إعداد متغيرات البيئة في لوحة تحكم Vercel.
+- `DATABASE_URL`: رابط قاعدة البيانات (Supabase).
+- `SESSION_SECRET`: مفتاح الجلسة.
+- `OPENROUTER_API_KEY`: مفتاح الذكاء الاصطناعي (اختياري).
+
 
 ---
 **تم التجهيز بواسطة Antigravity AI**
