@@ -18,10 +18,10 @@ let connectionString = process.env.DATABASE_URL;
 const dbUrl = new URL(connectionString);
 
 try {
-  // If it's a Supabase host, try to use port 6543 for better stability
+  // For Supabase, we prefer port 5432 for direct connection with IPv4 force
   if (dbUrl.hostname.includes('supabase.co')) {
-    dbUrl.port = '6543';
-    console.log(`[DB] Switching Supabase connection to pooler port 6543`);
+    dbUrl.port = '5432';
+    console.log(`[DB] Using Supabase direct port 5432`);
   }
   
   // Remove problematic parameters for direct connections

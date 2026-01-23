@@ -45,7 +45,7 @@ import { cn } from "@/lib/utils";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { useLanguage, translations } from "@/lib/i18n";
 
-type UserRole = "member" | "manager" | "admin" | "office_renter" | "visitor";
+type UserRole = "member" | "manager" | "admin" | "super_admin" | "office_renter" | "visitor";
 
 interface NavItem {
   titleKey: string;
@@ -56,27 +56,27 @@ interface NavItem {
 }
 
 const navigationItems: NavItem[] = [
-  { titleKey: "workspace", url: "/", icon: LayoutGrid, categoryKey: "overview", allowedRoles: ["member", "manager", "admin"] },
-  { titleKey: "dashboard", url: "/dashboard", icon: LayoutDashboard, categoryKey: "overview", allowedRoles: ["member", "manager", "admin"] },
-  { titleKey: "employeeProfile", url: "/my-profile", icon: Briefcase, categoryKey: "overview", allowedRoles: ["member", "manager", "admin"] },
-  { titleKey: "tasks", url: "/tasks", icon: CheckSquare, categoryKey: "productivity", allowedRoles: ["member", "manager", "admin"] },
-  { titleKey: "tickets", url: "/tickets", icon: Ticket, categoryKey: "productivity", allowedRoles: ["member", "manager", "admin"] },
-  { titleKey: "aiAssistant", url: "/ai-assistant", icon: Bot, categoryKey: "productivity", allowedRoles: ["member", "manager", "admin"] },
-  { titleKey: "n8nAutomation", url: "/n8n-settings", icon: Zap, categoryKey: "productivity", allowedRoles: ["manager", "admin"] },
-  { titleKey: "socialProfile", url: "/profile", icon: User, categoryKey: "communication", allowedRoles: ["member", "manager", "admin"] },
-  { titleKey: "socialFeed", url: "/feed", icon: Rss, categoryKey: "communication", allowedRoles: ["member", "manager", "admin"] },
-  { titleKey: "messages", url: "/messages", icon: MessageSquare, categoryKey: "communication", allowedRoles: ["member", "manager", "admin"] },
-  { titleKey: "internalMail", url: "/mail", icon: Mail, categoryKey: "communication", allowedRoles: ["member", "manager", "admin", "office_renter"] },
-  { titleKey: "meetings", url: "/meetings", icon: Video, categoryKey: "communication", allowedRoles: ["member", "manager", "admin"] },
-  { titleKey: "team", url: "/team", icon: Users, categoryKey: "organization", allowedRoles: ["member", "manager", "admin"] },
-  { titleKey: "departments", url: "/departments", icon: Building2, categoryKey: "organization", allowedRoles: ["member", "manager", "admin"] },
-  { titleKey: "officeManagement", url: "/office-management", icon: Store, categoryKey: "management", allowedRoles: ["manager", "admin"] },
-  { titleKey: "servicesShowcase", url: "/services-showcase", icon: Package, categoryKey: "management", allowedRoles: ["manager", "admin"] },
-  { titleKey: "jobPostings", url: "/jobs", icon: Briefcase, categoryKey: "management", allowedRoles: ["manager", "admin"] },
-  { titleKey: "finances", url: "/finances", icon: DollarSign, categoryKey: "admin", allowedRoles: ["admin"] },
-  { titleKey: "advertising", url: "/advertising", icon: Megaphone, categoryKey: "admin", allowedRoles: ["admin"] },
-  { titleKey: "accessControl", url: "/access", icon: Shield, categoryKey: "admin", allowedRoles: ["admin"] },
-  { titleKey: "platformManagement", url: "/admin/platform", icon: ShieldCheck, categoryKey: "admin", allowedRoles: ["admin"] },
+  { titleKey: "workspace", url: "/", icon: LayoutGrid, categoryKey: "overview", allowedRoles: ["member", "manager", "admin", "super_admin"] },
+  { titleKey: "dashboard", url: "/dashboard", icon: LayoutDashboard, categoryKey: "overview", allowedRoles: ["member", "manager", "admin", "super_admin"] },
+  { titleKey: "employeeProfile", url: "/my-profile", icon: Briefcase, categoryKey: "overview", allowedRoles: ["member", "manager", "admin", "super_admin"] },
+  { titleKey: "tasks", url: "/tasks", icon: CheckSquare, categoryKey: "productivity", allowedRoles: ["member", "manager", "admin", "super_admin"] },
+  { titleKey: "tickets", url: "/tickets", icon: Ticket, categoryKey: "productivity", allowedRoles: ["member", "manager", "admin", "super_admin"] },
+  { titleKey: "aiAssistant", url: "/ai-assistant", icon: Bot, categoryKey: "productivity", allowedRoles: ["member", "manager", "admin", "super_admin"] },
+  { titleKey: "n8nAutomation", url: "/n8n-settings", icon: Zap, categoryKey: "productivity", allowedRoles: ["manager", "admin", "super_admin"] },
+  { titleKey: "socialProfile", url: "/profile", icon: User, categoryKey: "communication", allowedRoles: ["member", "manager", "admin", "super_admin"] },
+  { titleKey: "socialFeed", url: "/feed", icon: Rss, categoryKey: "communication", allowedRoles: ["member", "manager", "admin", "super_admin"] },
+  { titleKey: "messages", url: "/messages", icon: MessageSquare, categoryKey: "communication", allowedRoles: ["member", "manager", "admin", "super_admin"] },
+  { titleKey: "internalMail", url: "/mail", icon: Mail, categoryKey: "communication", allowedRoles: ["member", "manager", "admin", "super_admin", "office_renter"] },
+  { titleKey: "meetings", url: "/meetings", icon: Video, categoryKey: "communication", allowedRoles: ["member", "manager", "admin", "super_admin"] },
+  { titleKey: "team", url: "/team", icon: Users, categoryKey: "organization", allowedRoles: ["member", "manager", "admin", "super_admin"] },
+  { titleKey: "departments", url: "/departments", icon: Building2, categoryKey: "organization", allowedRoles: ["member", "manager", "admin", "super_admin"] },
+  { titleKey: "officeManagement", url: "/office-management", icon: Store, categoryKey: "management", allowedRoles: ["manager", "admin", "super_admin"] },
+  { titleKey: "servicesShowcase", url: "/services-showcase", icon: Package, categoryKey: "management", allowedRoles: ["manager", "admin", "super_admin"] },
+  { titleKey: "jobPostings", url: "/jobs", icon: Briefcase, categoryKey: "management", allowedRoles: ["manager", "admin", "super_admin"] },
+  { titleKey: "finances", url: "/finances", icon: DollarSign, categoryKey: "admin", allowedRoles: ["admin", "super_admin"] },
+  { titleKey: "advertising", url: "/advertising", icon: Megaphone, categoryKey: "admin", allowedRoles: ["admin", "super_admin"] },
+  { titleKey: "accessControl", url: "/access", icon: Shield, categoryKey: "admin", allowedRoles: ["admin", "super_admin"] },
+  { titleKey: "platformManagement", url: "/admin/platform", icon: ShieldCheck, categoryKey: "admin", allowedRoles: ["admin", "super_admin"] },
   { titleKey: "myOffice", url: "/my-office", icon: Store, categoryKey: "businessServices", allowedRoles: ["office_renter"] },
   { titleKey: "myServices", url: "/my-services", icon: Package, categoryKey: "businessServices", allowedRoles: ["office_renter"] },
   { titleKey: "paidServices", url: "/paid-services", icon: CreditCard, categoryKey: "businessServices", allowedRoles: ["office_renter"] },

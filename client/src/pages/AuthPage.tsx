@@ -58,65 +58,14 @@ export default function AuthPage() {
   };
 
   const handleAdminDirectLogin = async () => {
-    // Check if we are on the correct port (5001) ONLY when developing locally
-    if (window.location.hostname === "localhost" && window.location.port !== "5001") {
-      toast({
-        variant: "destructive",
-        title: "خطأ في المنفذ",
-        description: `أنت تستخدم المنفذ ${window.location.port}. يرجى استخدام المنفذ 5001 (http://localhost:5001/auth?admin=true) لتعمل لوحة الإدارة بشكل صحيح أثناء التطوير المحلي.`,
-      });
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      // Force a small delay to show feedback
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      const response = await apiRequest("POST", "/api/admin-direct-login", {});
-      const data = await response.json();
-      
-      // Save the intended destination for the App's redirect logic
-      localStorage.setItem("cloudoffice_redirect", "/admin/platform");
-      
-      // Update user state immediately - this will trigger a re-render in App.tsx
-      queryClient.setQueryData(["/api/auth/user"], data.user);
-      
-      toast({
-        title: "تم الدخول بنجاح",
-        description: "جاري تحويلك إلى لوحة الإدارة...",
-      });
-    } catch (error: any) {
-      console.error("Login error:", error);
-      
-      let errorMessage = "حدث خطأ أثناء محاولة الدخول";
-      
-      if (error.message && (error.message.includes("<!DOCTYPE") || error.message.includes("Unexpected token '<'"))) {
-        if (window.location.hostname === "localhost") {
-          errorMessage = "خطأ في الاتصال بالخادم. تأكد من أنك تستخدم المنفذ 5001 (Port 5001) وليس المنفذ الافتراضي.";
-        } else {
-          errorMessage = "حدث خطأ في استجابة الخادم. يرجى تحديث الصفحة والمحاولة مرة أخرى.";
-        }
-      } else if (error.message && error.message.includes("{")) {
-        try {
-          const jsonStr = error.message.substring(error.message.indexOf("{"));
-          const errorObj = JSON.parse(jsonStr);
-          errorMessage = errorObj.message || errorMessage;
-        } catch (e) {
-          errorMessage = error.message;
-        }
-      } else {
-        errorMessage = error.message || errorMessage;
-      }
-
-      toast({
-        variant: "destructive",
-        title: "فشل الدخول",
-        description: errorMessage,
-      });
-    } finally {
-      setIsLoading(false);
-    }
+    setLoginUsername("admin@desktown.app");
+    setLoginPassword("201667");
+    
+    // Auto-submit after setting
+    setTimeout(() => {
+      const form = document.querySelector('form');
+      if (form) form.requestSubmit();
+    }, 100);
   };
 
   return (
@@ -137,68 +86,63 @@ export default function AuthPage() {
           </CardHeader>
           
           <CardContent>
-            {isAdminLogin ? (
-              <div className="space-y-4">
-                <p className="text-center text-gray-600 dark:text-gray-400 mb-6">
-                  اضغط على الزر أدناه للدخول المباشر إلى لوحة تحكم الإدارة.
-                </p>
+            <form onSubmit={handleLogin} className="space-y-4">
+              {isAdminLogin && (
+                <div className="p-4 bg-primary/10 rounded-lg border border-primary/20 mb-4 text-center">
+                  <p className="text-sm font-semibold text-primary mb-2">Admin Credentials</p>
+                  <p className="text-xs text-muted-foreground">Email: admin@desktown.app</p>
+                  <p className="text-xs text-muted-foreground">Password: 201667</p>
+                  <Button 
+                    type="button"
+                    variant="link" 
+                    className="text-xs mt-2 h-auto p-0"
+                    onClick={handleAdminDirectLogin}
+                  >
+                    Click to auto-fill and login
+                  </Button>
+                </div>
+              )}
+              <div className="space-y-2">
+                <Label htmlFor="username">{language === 'ar' ? 'اسم المستخدم أو البريد' : 'Username or Email'}</Label>
+                <Input 
+                  id="username" 
+                  type="text" 
+                  placeholder={language === 'ar' ? 'أدخل اسم المستخدم أو البريد' : 'Enter your username or email'}
+                  value={loginUsername}
+                  onChange={(e) => setLoginUsername(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="password">{language === 'ar' ? 'كلمة المرور' : 'Password'}</Label>
+                <Input 
+                  id="password" 
+                  type="password" 
+                  placeholder={language === 'ar' ? 'أدخل كلمة المرور' : 'Enter your password'}
+                  value={loginPassword}
+                  onChange={(e) => setLoginPassword(e.target.value)}
+                />
+              </div>
+              <Button type="submit" className="w-full h-11 text-base font-semibold" disabled={loginMutation.isPending}>
+                {loginMutation.isPending ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    {language === 'ar' ? 'جاري الدخول...' : 'Logging in...'}
+                  </>
+                ) : (
+                  language === 'ar' ? 'تسجيل الدخول' : 'Sign In'
+                )}
+              </Button>
+              {isAdminLogin && (
                 <Button 
-                  onClick={handleAdminDirectLogin} 
-                  className="w-full h-12 text-lg font-semibold bg-primary hover:bg-primary/90" 
-                  disabled={isLoading}
-                >
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                      جاري الدخول...
-                    </>
-                  ) : (
-                    "دخول لوحة الإدارة"
-                  )}
-                </Button>
-                <Button 
+                  type="button"
                   variant="outline" 
                   className="w-full" 
-                  onClick={() => window.location.href = "/"}
-                  disabled={isLoading}
+                  onClick={() => setLocation("/")}
                 >
-                  العودة للموقع
+                  {language === 'ar' ? 'العودة للموقع' : 'Back to Website'}
                 </Button>
-              </div>
-            ) : (
-              <form onSubmit={handleLogin} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="username">Username or Email</Label>
-                  <Input 
-                    id="username" 
-                    type="text" 
-                    placeholder="Enter your username or email"
-                    value={loginUsername}
-                    onChange={(e) => setLoginUsername(e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="password">Password</Label>
-                  <Input 
-                    id="password" 
-                    type="password" 
-                    placeholder="Enter your password"
-                    value={loginPassword}
-                    onChange={(e) => setLoginPassword(e.target.value)}
-                  />
-                </div>
-                <Button type="submit" className="w-full" disabled={loginMutation.isPending}>
-                  {loginMutation.isPending ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Logging in...
-                    </>
-                  ) : (
-                    "Sign In"
-                  )}
-                </Button>
-              </form>
-            )}
+              )}
+            </form>
           </CardContent>
         </Card>
       </div>

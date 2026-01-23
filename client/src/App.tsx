@@ -163,47 +163,53 @@ function AuthenticatedRouter({ userRole }: { userRole: string | null | undefined
       <Route path="/employees/:username" component={EmployeeProfile} />
       <Route path="/subscription" component={Subscription} />
       <Route path="/ai-assistant" component={AiAssistant} />
+      <Route path="/welcome" component={Welcome} />
+      <Route path="/storefront" component={Storefront} />
+      <Route path="/visitor/offices" component={Storefront} />
+      <Route path="/visitor/services" component={VisitorServices} />
+      <Route path="/visitor/contact" component={VisitorContact} />
+      <Route path="/office/:slug" component={OfficeDetail} />
 
       {/* Manager & Admin only routes */}
       <Route path="/jobs">
-        <RoleGuard allowedRoles={["manager", "admin"]} userRole={userRole}>
+        <RoleGuard allowedRoles={["manager", "admin", "super_admin"]} userRole={userRole}>
           <Jobs />
         </RoleGuard>
       </Route>
       <Route path="/n8n-settings">
-        <RoleGuard allowedRoles={["manager", "admin"]} userRole={userRole}>
+        <RoleGuard allowedRoles={["manager", "admin", "super_admin"]} userRole={userRole}>
           <N8nSettings />
         </RoleGuard>
       </Route>
       <Route path="/office-management">
-        <RoleGuard allowedRoles={["manager", "admin"]} userRole={userRole}>
+        <RoleGuard allowedRoles={["manager", "admin", "super_admin"]} userRole={userRole}>
           <OfficeManagement />
         </RoleGuard>
       </Route>
       <Route path="/services-showcase">
-        <RoleGuard allowedRoles={["manager", "admin"]} userRole={userRole}>
+        <RoleGuard allowedRoles={["manager", "admin", "super_admin"]} userRole={userRole}>
           <OfficeServicesShowcase />
         </RoleGuard>
       </Route>
 
       {/* Admin only routes */}
       <Route path="/finances">
-        <RoleGuard allowedRoles={["admin"]} userRole={userRole}>
+        <RoleGuard allowedRoles={["admin", "super_admin"]} userRole={userRole}>
           <Finances />
         </RoleGuard>
       </Route>
       <Route path="/advertising">
-        <RoleGuard allowedRoles={["admin"]} userRole={userRole}>
+        <RoleGuard allowedRoles={["admin", "super_admin"]} userRole={userRole}>
           <Advertising />
         </RoleGuard>
       </Route>
       <Route path="/access">
-        <RoleGuard allowedRoles={["admin"]} userRole={userRole}>
+        <RoleGuard allowedRoles={["admin", "super_admin"]} userRole={userRole}>
           <AccessControl />
         </RoleGuard>
       </Route>
       <Route path="/admin/platform">
-        <RoleGuard allowedRoles={["admin"]} userRole={userRole}>
+        <RoleGuard allowedRoles={["admin", "super_admin"]} userRole={userRole}>
           <PlatformManagement />
         </RoleGuard>
       </Route>

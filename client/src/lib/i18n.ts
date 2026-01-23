@@ -2256,7 +2256,7 @@ export const translations = {
       meetings: "الاجتماعات",
       team: "الفريق",
       departments: "الأقسام",
-      officeManagement: "إدارة الشركات",
+      officeManagement: "المكاتب",
       servicesShowcase: "عرض الخدمات",
       jobPostings: "الوظائف",
       finances: "المالية",
