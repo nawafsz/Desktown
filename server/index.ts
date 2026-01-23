@@ -1,4 +1,10 @@
 import "dotenv/config";
+import dns from "dns";
+
+// Force IPv4 globally for all network requests (database, fetch, etc.)
+// This resolves ENETUNREACH errors in environments with problematic IPv6 routing
+dns.setDefaultResultOrder('ipv4first');
+
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";

@@ -2,6 +2,11 @@ import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
 import session from "express-session";
 import type { Express, RequestHandler } from "express";
+import dns from "dns";
+
+// Force IPv4 for database and fetch calls
+dns.setDefaultResultOrder('ipv4first');
+
 import { storage } from "./storage";
 import { pool } from "./db";
 import { scrypt, randomBytes, timingSafeEqual } from "crypto";

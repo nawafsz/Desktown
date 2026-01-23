@@ -19,9 +19,12 @@ let connectionString = process.env.DATABASE_URL;
 try {
   const dbUrl = new URL(connectionString);
   
-  // Use port 6543 (pooler port) by default if it was provided
-  // or switch to 5432 if 6543 fails.
-  // Actually, port 6543 is better for IPv4 stability in some regions.
+  // If it's a Supabase host and using default port 5432, try switching to 6543
+  // which is the Supavisor pooler port and often more stable for IPv4/IPv6 transition
+  if (dbUrl.hostname.includes('supabase.co') && (!dbUrl.port || dbUrl.port === '5432')) {
+    dbUrl.port = '6543';
+    console.log(`[DB] Switching Supabase connection to pooler port 6543 for better stability`);
+  }
   
   // Remove problematic parameters for direct connections
   dbUrl.searchParams.delete('options');
@@ -47,6 +50,8 @@ export const pool = new Pool({
   // @ts-ignore - 'family' is supported by pg but might not be in the typings for all versions
   family: 4
 });
+
+console.log("[DB] Database pool initialized with family: 4 (IPv4 Only)");
 
 // Monkey-patch pool.connect to enforce search_path on every connection
 // This is necessary because some connection poolers (like Supabase Transaction mode)
