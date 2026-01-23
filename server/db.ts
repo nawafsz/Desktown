@@ -22,6 +22,8 @@ export const pool = new Pool({
   ssl: {
     rejectUnauthorized: false,
   },
+  // Explicitly set search_path to public for every connection
+  options: '-c search_path=public'
 });
 
 // Force search path and log it
