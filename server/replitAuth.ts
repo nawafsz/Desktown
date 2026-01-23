@@ -22,6 +22,9 @@ const sessionStore = new MemoryStore({
   checkPeriod: 86400000 // prune expired entries every 24h
 });
 
+// Simple in-memory cache for users to prevent auto-logout during DB connectivity issues
+const userCache = new Map<string, any>();
+
 export function getSession() {
   const sessionTtl = 30 * 24 * 60 * 60 * 1000; // 30 days
   
@@ -32,12 +35,14 @@ export function getSession() {
   return session({
     secret: process.env.SESSION_SECRET || "default_dev_secret_key_change_me",
     store: sessionStore,
-    resave: false,
+    resave: true, // Set to true to ensure session is kept alive
     saveUninitialized: false,
+    rolling: true, // Refresh session on every request
     cookie: {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       maxAge: sessionTtl,
+      sameSite: 'lax'
     },
   });
 }
@@ -76,19 +81,49 @@ export async function setupAuth(app: Express) {
           return done(null, false, { message: "Invalid username or password" });
         }
         
+        // Cache the user object
+        userCache.set(user.id, user);
         return done(null, user);
       } catch (err) {
+        console.error("[Auth] Login error:", err);
         return done(err);
       }
     })
   );
 
-  passport.serializeUser((user: any, done) => done(null, user.id));
+  passport.serializeUser((user: any, done) => {
+    // Cache the user object on serialization too
+    if (user && user.id) {
+      userCache.set(user.id, user);
+    }
+    done(null, user.id);
+  });
+
   passport.deserializeUser(async (id: string, done) => {
     try {
+      // Try to get user from DB
       const user = await storage.getUser(id);
-      done(null, user);
+      if (user) {
+        userCache.set(id, user); // Update cache
+        return done(null, user);
+      }
+      
+      // If not in DB but in cache, use cache (fallback for DB downtime)
+      if (userCache.has(id)) {
+        console.log(`[Auth] Using cached user for ${id} (DB record missing)`);
+        return done(null, userCache.get(id));
+      }
+      
+      done(null, false);
     } catch (err) {
+      console.error(`[Auth] Deserialize error for ${id}:`, err);
+      
+      // If DB is down (ENETUNREACH etc), use cache if available
+      if (userCache.has(id)) {
+        console.warn(`[Auth] DB Connection issue, using cached user for ${id}`);
+        return done(null, userCache.get(id));
+      }
+      
       done(err);
     }
   });
@@ -109,7 +144,7 @@ export async function setupAuth(app: Express) {
     try {
       console.log("[Auth] Attempting admin direct login via REST API...");
       
-      const projectRef = "svgvrasmudxtwzhrfkmk";
+      const projectRef = process.env.SUPABASE_PROJECT_REF || "svgvrasmudxtwzhrfkmk";
       // Fallback to the known service role key if environment variable is missing
       const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN2Z3ZyYXNtdWR4dHd6aHJma21rIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2ODkzNDc2MywiZXhwIjoyMDg0NTEwNzYzfQ.7x3pkFzMH6n6gRiOkRrViSDEt9r1xXmUx4KyQg9_Z04";
       

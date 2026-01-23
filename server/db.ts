@@ -15,15 +15,13 @@ if (!process.env.DATABASE_URL) {
 
 // Ensure we use the most stable connection settings for Supabase
 let connectionString = process.env.DATABASE_URL;
+const dbUrl = new URL(connectionString);
 
 try {
-  const dbUrl = new URL(connectionString);
-  
-  // If it's a Supabase host and using default port 5432, try switching to 6543
-  // which is the Supavisor pooler port and often more stable for IPv4/IPv6 transition
-  if (dbUrl.hostname.includes('supabase.co') && (!dbUrl.port || dbUrl.port === '5432')) {
+  // If it's a Supabase host, try to use port 6543 for better stability
+  if (dbUrl.hostname.includes('supabase.co')) {
     dbUrl.port = '6543';
-    console.log(`[DB] Switching Supabase connection to pooler port 6543 for better stability`);
+    console.log(`[DB] Switching Supabase connection to pooler port 6543`);
   }
   
   // Remove problematic parameters for direct connections
@@ -33,17 +31,21 @@ try {
   connectionString = dbUrl.toString();
   console.log(`[DB] Sanitized connection: ${dbUrl.hostname}:${dbUrl.port || 5432}`);
 } catch (e) {
-  console.log("[DB] Using DATABASE_URL as provided");
+  console.log("[DB] Error parsing DATABASE_URL, using as provided");
 }
 
 export const pool = new Pool({
-  connectionString,
+  host: dbUrl.hostname,
+  port: parseInt(dbUrl.port || '5432'),
+  user: dbUrl.username,
+  password: decodeURIComponent(dbUrl.password),
+  database: dbUrl.pathname.split('/')[1] || 'postgres',
   ssl: {
     rejectUnauthorized: false,
   },
   max: 20,
   idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 15000, // Increase timeout for slower networks
+  connectionTimeoutMillis: 15000,
   keepAlive: true,
   keepAliveInitialDelayMillis: 10000,
   // Force IPv4 for the database connection to prevent ENETUNREACH on IPv6-only networks

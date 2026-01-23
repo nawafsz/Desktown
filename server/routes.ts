@@ -148,11 +148,20 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
   // =====================
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {
+      // Use req.user directly as it's already populated by passport and includes caching logic
+      if (req.user) {
+        return res.json(req.user);
+      }
+      
       const userId = req.user.id;
       const user = await storage.getUser(userId);
       res.json(user);
     } catch (error) {
       console.error("Error fetching user:", error);
+      // Fallback to req.user if DB fails
+      if (req.user) {
+        return res.json(req.user);
+      }
       res.status(500).json({ message: "Failed to fetch user" });
     }
   });
