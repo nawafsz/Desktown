@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
+import { queryClient, apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,7 +9,6 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
 
 export default function AuthPage() {
   const [location, setLocation] = useLocation();
@@ -16,9 +16,15 @@ export default function AuthPage() {
   const searchParams = new URLSearchParams(window.location.search);
   const isAdminLogin = searchParams.get('admin') === 'true';
 
-  const { loginMutation } = useAuth();
+  const { loginMutation, user } = useAuth();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+
+  // Redirect if already logged in as admin
+  if (user && (user.role === 'admin' || user.role === 'super_admin') && isAdminLogin) {
+    setLocation("/admin/platform");
+    return null;
+  }
 
   // Login form state
   const [loginUsername, setLoginUsername] = useState("");
@@ -60,15 +66,18 @@ export default function AuthPage() {
       const response = await apiRequest("POST", "/api/admin-direct-login", {});
       
       if (response.ok) {
+        const data = await response.json();
+        
+        // Save the intended destination for the App's redirect logic
+        localStorage.setItem("cloudoffice_redirect", "/admin/platform");
+        
+        // Update user state immediately - this will trigger a re-render in App.tsx
+        queryClient.setQueryData(["/api/auth/user"], data.user);
+        
         toast({
           title: "تم الدخول بنجاح",
           description: "جاري تحويلك إلى لوحة الإدارة...",
         });
-        
-        // Use a slightly longer delay before redirect to ensure session cookie is processed
-        setTimeout(() => {
-          window.location.href = "/admin/platform";
-        }, 800);
       } else {
         const data = await response.json();
         toast({

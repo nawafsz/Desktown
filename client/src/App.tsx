@@ -359,6 +359,11 @@ function AuthenticatedApp() {
     );
   }
 
+  // Check if we are in admin platform path and allow rendering if user is admin
+  if (user?.role === 'admin' || user?.role === 'super_admin') {
+     // Allow default rendering for admins
+  }
+
   return (
     <SidebarProvider style={sidebarStyle as React.CSSProperties}>
       <div className="flex h-screen w-full">
