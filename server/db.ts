@@ -42,7 +42,10 @@ export const pool = new Pool({
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 15000, // Increase timeout for slower networks
   keepAlive: true,
-  keepAliveInitialDelayMillis: 10000
+  keepAliveInitialDelayMillis: 10000,
+  // Force IPv4 for the database connection to prevent ENETUNREACH on IPv6-only networks
+  // @ts-ignore - 'family' is supported by pg but might not be in the typings for all versions
+  family: 4
 });
 
 // Monkey-patch pool.connect to enforce search_path on every connection
