@@ -172,6 +172,10 @@ export async function setupAuth(app: Express) {
       res.json({ message: "Logged out successfully" });
     });
   });
+
+  app.get("/api/test-direct-login", (req, res) => {
+    res.json({ status: "alive", message: "Direct login endpoint is registered" });
+  });
 }
 
 export const isAuthenticated: RequestHandler = (req, res, next) => {

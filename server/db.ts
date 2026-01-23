@@ -15,14 +15,25 @@ let connectionString = process.env.DATABASE_URL;
 try {
   const dbUrl = new URL(process.env.DATABASE_URL);
   
+  // Use port 5432 for direct connection if we're on 6543, as it's more stable for Drizzle
+  if (dbUrl.port === '6543') {
+    console.log("[DB] Switching from pooler port 6543 to direct port 5432 for better stability");
+    dbUrl.port = '5432';
+  }
+
   // Remove any 'options' query parameter that might be in the URL (e.g. ?options=project=...)
   // as this causes the "unsupported startup parameter" error with transaction poolers
   if (dbUrl.searchParams.has('options')) {
-    console.log("[DB] Removing unsupported 'options' parameter from DATABASE_URL to prevent connection errors");
+    console.log("[DB] Removing unsupported 'options' parameter from DATABASE_URL");
     dbUrl.searchParams.delete('options');
-    connectionString = dbUrl.toString();
   }
   
+  // Remove sslmode=disable if present since we handle SSL in the Pool config
+  if (dbUrl.searchParams.get('sslmode') === 'disable') {
+    dbUrl.searchParams.delete('sslmode');
+  }
+
+  connectionString = dbUrl.toString();
   console.log(`Connecting to database at ${dbUrl.hostname}:${dbUrl.port || 5432}`);
 } catch (e) {
   console.log("Connecting to database (URL could not be parsed for logging)");

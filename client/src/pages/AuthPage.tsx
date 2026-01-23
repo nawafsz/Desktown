@@ -79,11 +79,19 @@ export default function AuthPage() {
           description: "جاري تحويلك إلى لوحة الإدارة...",
         });
       } else {
-        const data = await response.json();
+        let errorMessage = "حدث خطأ أثناء محاولة الدخول";
+        try {
+          const data = await response.json();
+          errorMessage = data.message || errorMessage;
+        } catch (e) {
+          // If response is not JSON, use the status text
+          errorMessage = `Error ${response.status}: ${response.statusText}`;
+        }
+        
         toast({
           variant: "destructive",
           title: "فشل الدخول",
-          description: data.message || "حدث خطأ أثناء محاولة الدخول",
+          description: errorMessage,
         });
       }
     } catch (error: any) {
