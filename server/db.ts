@@ -9,16 +9,27 @@ if (!process.env.DATABASE_URL) {
   );
 }
 
-// Log connection attempt (masking credentials)
+// Parse and sanitize connection string to avoid "unsupported startup parameter" errors
+// with connection poolers (like Supabase Transaction mode)
+let connectionString = process.env.DATABASE_URL;
 try {
   const dbUrl = new URL(process.env.DATABASE_URL);
+  
+  // Remove any 'options' query parameter that might be in the URL (e.g. ?options=project=...)
+  // as this causes the "unsupported startup parameter" error with transaction poolers
+  if (dbUrl.searchParams.has('options')) {
+    console.log("[DB] Removing unsupported 'options' parameter from DATABASE_URL to prevent connection errors");
+    dbUrl.searchParams.delete('options');
+    connectionString = dbUrl.toString();
+  }
+  
   console.log(`Connecting to database at ${dbUrl.hostname}:${dbUrl.port || 5432}`);
 } catch (e) {
   console.log("Connecting to database (URL could not be parsed for logging)");
 }
 
 export const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
+  connectionString,
   ssl: {
     rejectUnauthorized: false,
   },
