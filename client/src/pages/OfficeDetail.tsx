@@ -109,11 +109,11 @@ function ServiceCard({
     average: number;
     count: number;
   }>({
-    queryKey: ['/api/public/services', service.id, 'ratings'],
+    queryKey: [`/api/public/services/${service.id}/ratings`],
   });
 
   const { data: comments = [] } = useQuery<ServiceComment[]>({
-    queryKey: ['/api/public/services', service.id, 'comments'],
+    queryKey: [`/api/public/services/${service.id}/comments`],
   });
 
   const submitRatingMutation = useMutation({
@@ -494,7 +494,7 @@ function VideoChatPanel({
   });
 
   const { data: callStatusData } = useQuery<VideoCall>({
-    queryKey: ['/api/public/video-calls', currentCall?.roomId],
+    queryKey: [`/api/public/video-calls/${currentCall?.roomId}`],
     enabled: !!currentCall?.roomId && (callStatus === 'pending' || callStatus === 'active'),
     refetchInterval: 2000,
   });
@@ -681,22 +681,22 @@ export default function OfficeDetail() {
   const isRTL = language === 'ar';
 
   const { data: office, isLoading: officeLoading, error } = useQuery<Office>({
-    queryKey: ['/api/public/offices', slug],
+    queryKey: [`/api/public/offices/${slug}`],
     enabled: !!slug,
   });
 
   const { data: services = [], isLoading: servicesLoading } = useQuery<OfficeService[]>({
-    queryKey: ['/api/public/offices', office?.id, 'services'],
+    queryKey: [`/api/public/offices/${office?.id}/services`],
     enabled: !!office?.id,
   });
 
   const { data: media = [] } = useQuery<OfficeMedia[]>({
-    queryKey: ['/api/public/offices', office?.id, 'media'],
+    queryKey: [`/api/public/offices/${office?.id}/media`],
     enabled: !!office?.id,
   });
 
   const { data: posts = [] } = useQuery<OfficePost[]>({
-    queryKey: ['/api/public/offices', office?.id, 'posts'],
+    queryKey: [`/api/public/offices/${office?.id}/posts`],
     enabled: !!office?.id,
   });
 
