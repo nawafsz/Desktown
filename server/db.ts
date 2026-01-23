@@ -2,6 +2,10 @@ import { Pool } from 'pg';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import * as schema from "@shared/schema";
 import { URL } from 'url';
+import dns from "dns";
+
+// Force IPv4 globally to resolve ENETUNREACH on IPv6 addresses
+dns.setDefaultResultOrder('ipv4first');
 
 if (!process.env.DATABASE_URL) {
   throw new Error(
@@ -9,26 +13,37 @@ if (!process.env.DATABASE_URL) {
   );
 }
 
-// Prefer individual PG environment variables for better stability and avoiding URL parsing issues
-const poolConfig = {
-  user: process.env.PGUSER || 'postgres',
-  password: process.env.PGPASSWORD || 'Rayan201667$',
-  host: process.env.PGHOST || 'db.svgvrasmudxtwzhrfkmk.supabase.co',
-  port: parseInt(process.env.PGPORT || '5432'),
-  database: process.env.PGDATABASE || 'postgres',
+// Ensure we use the most stable connection settings for Supabase
+let connectionString = process.env.DATABASE_URL;
+
+try {
+  const dbUrl = new URL(connectionString);
+  
+  // Use port 6543 (pooler port) by default if it was provided
+  // or switch to 5432 if 6543 fails.
+  // Actually, port 6543 is better for IPv4 stability in some regions.
+  
+  // Remove problematic parameters for direct connections
+  dbUrl.searchParams.delete('options');
+  dbUrl.searchParams.delete('sslmode');
+  
+  connectionString = dbUrl.toString();
+  console.log(`[DB] Sanitized connection: ${dbUrl.hostname}:${dbUrl.port || 5432}`);
+} catch (e) {
+  console.log("[DB] Using DATABASE_URL as provided");
+}
+
+export const pool = new Pool({
+  connectionString,
   ssl: {
     rejectUnauthorized: false,
   },
   max: 20,
   idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 10000,
+  connectionTimeoutMillis: 15000, // Increase timeout for slower networks
   keepAlive: true,
   keepAliveInitialDelayMillis: 10000
-};
-
-console.log(`[DB] Connecting to database at ${poolConfig.host}:${poolConfig.port} as ${poolConfig.user}`);
-
-export const pool = new Pool(poolConfig);
+});
 
 // Monkey-patch pool.connect to enforce search_path on every connection
 // This is necessary because some connection poolers (like Supabase Transaction mode)

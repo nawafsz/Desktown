@@ -51,6 +51,7 @@ export function log(message: string, source = "express-standalone") {
 }
 
 app.use((req, res, next) => {
+  log(`Incoming Request: ${req.method} ${req.path}`);
   const start = Date.now();
   const path = req.path;
   let capturedJsonResponse: Record<string, any> | undefined = undefined;
@@ -74,6 +75,11 @@ app.use((req, res, next) => {
 
 (async () => {
   await registerRoutes(httpServer, app);
+
+  // Fallback for unmatched API routes to prevent HTML responses
+  app.use("/api/*", (req, res) => {
+    res.status(404).json({ message: `API route not found: ${req.method} ${req.originalUrl}` });
+  });
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
