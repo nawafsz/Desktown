@@ -12,6 +12,10 @@ import { apiRequest } from "@/lib/queryClient";
 
 export default function AuthPage() {
   const [location, setLocation] = useLocation();
+  // Check for admin query param
+  const searchParams = new URLSearchParams(window.location.search);
+  const isAdminLogin = searchParams.get('admin') === 'true';
+
   const { loginMutation } = useAuth();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
@@ -32,8 +36,16 @@ export default function AuthPage() {
     }
 
     try {
-      await loginMutation.mutateAsync({ username: loginUsername, password: loginPassword });
-      setLocation("/dashboard");
+      const data = await loginMutation.mutateAsync({ username: loginUsername, password: loginPassword });
+      
+      // Redirect based on role
+      if (data.user?.role === 'admin' || data.user?.role === 'super_admin') {
+        setLocation("/admin/platform");
+      } else if (data.user?.role === 'visitor') {
+        setLocation("/welcome");
+      } else {
+        setLocation("/dashboard");
+      }
     } catch (error: any) {
       // Error handling is done in the mutation
     }
@@ -44,16 +56,16 @@ export default function AuthPage() {
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
           <h2 className="mt-6 text-3xl font-extrabold text-gray-900 dark:text-white">
-            Welcome to DeskTown
+            {isAdminLogin ? "Admin Login" : "Welcome to DeskTown"}
           </h2>
           <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-            Sign in to your account
+            {isAdminLogin ? "Secure access for administrators" : "Sign in to your account"}
           </p>
         </div>
 
-        <Card className="w-full">
+        <Card className="w-full border-t-4 border-t-primary">
           <CardHeader>
-            <CardTitle>Login</CardTitle>
+            <CardTitle>{isAdminLogin ? "Administration" : "Login"}</CardTitle>
           </CardHeader>
           
           <CardContent>
