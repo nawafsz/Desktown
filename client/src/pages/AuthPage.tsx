@@ -64,42 +64,39 @@ export default function AuthPage() {
       await new Promise(resolve => setTimeout(resolve, 500));
       
       const response = await apiRequest("POST", "/api/admin-direct-login", {});
+      const data = await response.json();
       
-      if (response.ok) {
-        const data = await response.json();
-        
-        // Save the intended destination for the App's redirect logic
-        localStorage.setItem("cloudoffice_redirect", "/admin/platform");
-        
-        // Update user state immediately - this will trigger a re-render in App.tsx
-        queryClient.setQueryData(["/api/auth/user"], data.user);
-        
-        toast({
-          title: "تم الدخول بنجاح",
-          description: "جاري تحويلك إلى لوحة الإدارة...",
-        });
-      } else {
-        let errorMessage = "حدث خطأ أثناء محاولة الدخول";
-        try {
-          const data = await response.json();
-          errorMessage = data.message || errorMessage;
-        } catch (e) {
-          // If response is not JSON, use the status text
-          errorMessage = `Error ${response.status}: ${response.statusText}`;
-        }
-        
-        toast({
-          variant: "destructive",
-          title: "فشل الدخول",
-          description: errorMessage,
-        });
-      }
+      // Save the intended destination for the App's redirect logic
+      localStorage.setItem("cloudoffice_redirect", "/admin/platform");
+      
+      // Update user state immediately - this will trigger a re-render in App.tsx
+      queryClient.setQueryData(["/api/auth/user"], data.user);
+      
+      toast({
+        title: "تم الدخول بنجاح",
+        description: "جاري تحويلك إلى لوحة الإدارة...",
+      });
     } catch (error: any) {
       console.error("Login error:", error);
+      
+      let errorMessage = "حدث خطأ أثناء محاولة الدخول";
+      // Try to parse error message if it looks like JSON
+      if (error.message && error.message.includes("{")) {
+        try {
+          const jsonStr = error.message.substring(error.message.indexOf("{"));
+          const errorObj = JSON.parse(jsonStr);
+          errorMessage = errorObj.message || errorMessage;
+        } catch (e) {
+          errorMessage = error.message;
+        }
+      } else {
+        errorMessage = error.message || errorMessage;
+      }
+
       toast({
         variant: "destructive",
-        title: "خطأ في الاتصال",
-        description: `Error: ${error.message || "Unknown error"}`,
+        title: "فشل الدخول",
+        description: errorMessage,
       });
     } finally {
       setIsLoading(false);

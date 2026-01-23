@@ -9,48 +9,26 @@ if (!process.env.DATABASE_URL) {
   );
 }
 
-// Parse and sanitize connection string to avoid "unsupported startup parameter" errors
-// with connection poolers (like Supabase Transaction mode)
-let connectionString = process.env.DATABASE_URL;
-try {
-  const dbUrl = new URL(process.env.DATABASE_URL);
-  
-  // Use port 5432 for direct connection if we're on 6543, as it's more stable for Drizzle
-  if (dbUrl.port === '6543') {
-    console.log("[DB] Switching from pooler port 6543 to direct port 5432 for better stability");
-    dbUrl.port = '5432';
-  }
-
-  // Remove any 'options' query parameter that might be in the URL (e.g. ?options=project=...)
-  // as this causes the "unsupported startup parameter" error with transaction poolers
-  if (dbUrl.searchParams.has('options')) {
-    console.log("[DB] Removing unsupported 'options' parameter from DATABASE_URL");
-    dbUrl.searchParams.delete('options');
-  }
-  
-  // Remove sslmode=disable if present since we handle SSL in the Pool config
-  if (dbUrl.searchParams.get('sslmode') === 'disable') {
-    dbUrl.searchParams.delete('sslmode');
-  }
-
-  connectionString = dbUrl.toString();
-  console.log(`Connecting to database at ${dbUrl.hostname}:${dbUrl.port || 5432}`);
-} catch (e) {
-  console.log("Connecting to database (URL could not be parsed for logging)");
-}
-
-export const pool = new Pool({
-  connectionString,
+// Prefer individual PG environment variables for better stability and avoiding URL parsing issues
+const poolConfig = {
+  user: process.env.PGUSER || 'postgres',
+  password: process.env.PGPASSWORD || 'Rayan201667$',
+  host: process.env.PGHOST || 'db.svgvrasmudxtwzhrfkmk.supabase.co',
+  port: parseInt(process.env.PGPORT || '5432'),
+  database: process.env.PGDATABASE || 'postgres',
   ssl: {
     rejectUnauthorized: false,
   },
   max: 20,
   idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 10000, // Increase timeout
-  // Explicitly set keepAlive to prevent connection drops
+  connectionTimeoutMillis: 10000,
   keepAlive: true,
   keepAliveInitialDelayMillis: 10000
-});
+};
+
+console.log(`[DB] Connecting to database at ${poolConfig.host}:${poolConfig.port} as ${poolConfig.user}`);
+
+export const pool = new Pool(poolConfig);
 
 // Monkey-patch pool.connect to enforce search_path on every connection
 // This is necessary because some connection poolers (like Supabase Transaction mode)
