@@ -51,6 +51,36 @@ export default function AuthPage() {
     }
   };
 
+  const handleAdminDirectLogin = async () => {
+    setIsLoading(true);
+    try {
+      const response = await apiRequest("POST", "/api/admin-direct-login", {});
+      const data = await response.json();
+      
+      if (response.ok) {
+        toast({
+          title: "Success",
+          description: "Welcome back, Admin",
+        });
+        setLocation("/admin/platform");
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: data.message || "Admin login failed",
+        });
+      }
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "An unexpected error occurred",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
@@ -69,38 +99,68 @@ export default function AuthPage() {
           </CardHeader>
           
           <CardContent>
-            <form onSubmit={handleLogin} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="username">Username or Email</Label>
-                <Input 
-                  id="username" 
-                  type="text" 
-                  placeholder="Enter your username or email"
-                  value={loginUsername}
-                  onChange={(e) => setLoginUsername(e.target.value)}
-                />
+            {isAdminLogin ? (
+              <div className="space-y-4">
+                <p className="text-center text-gray-600 dark:text-gray-400 mb-6">
+                  Click the button below to access the administration panel directly.
+                </p>
+                <Button 
+                  onClick={handleAdminDirectLogin} 
+                  className="w-full h-12 text-lg font-semibold" 
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                      Authenticating...
+                    </>
+                  ) : (
+                    "Enter Admin Panel"
+                  )}
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className="w-full" 
+                  onClick={() => setLocation("/")}
+                  disabled={isLoading}
+                >
+                  Back to Website
+                </Button>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <Input 
-                  id="password" 
-                  type="password" 
-                  placeholder="Enter your password"
-                  value={loginPassword}
-                  onChange={(e) => setLoginPassword(e.target.value)}
-                />
-              </div>
-              <Button type="submit" className="w-full" disabled={loginMutation.isPending}>
-                {loginMutation.isPending ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Logging in...
-                  </>
-                ) : (
-                  "Sign In"
-                )}
-              </Button>
-            </form>
+            ) : (
+              <form onSubmit={handleLogin} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="username">Username or Email</Label>
+                  <Input 
+                    id="username" 
+                    type="text" 
+                    placeholder="Enter your username or email"
+                    value={loginUsername}
+                    onChange={(e) => setLoginUsername(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="password">Password</Label>
+                  <Input 
+                    id="password" 
+                    type="password" 
+                    placeholder="Enter your password"
+                    value={loginPassword}
+                    onChange={(e) => setLoginPassword(e.target.value)}
+                  />
+                </div>
+                <Button type="submit" className="w-full" disabled={loginMutation.isPending}>
+                  {loginMutation.isPending ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Logging in...
+                    </>
+                  ) : (
+                    "Sign In"
+                  )}
+                </Button>
+              </form>
+            )}
           </CardContent>
         </Card>
       </div>

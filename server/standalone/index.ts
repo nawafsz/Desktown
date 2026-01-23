@@ -1,5 +1,10 @@
 
 import "dotenv/config";
+import dns from "dns";
+
+// Force IPv4 for database connections
+dns.setDefaultResultOrder('ipv4first');
+
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { serveStatic } from "../static";
