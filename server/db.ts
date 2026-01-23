@@ -36,6 +36,9 @@ export const pool = new Pool({
   max: 20,
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 10000, // Increase timeout
+  // Explicitly set keepAlive to prevent connection drops
+  keepAlive: true,
+  keepAliveInitialDelayMillis: 10000
 });
 
 // Monkey-patch pool.connect to enforce search_path on every connection

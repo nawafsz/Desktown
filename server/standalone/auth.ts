@@ -12,13 +12,14 @@ import { promisify } from "util";
 const scryptAsync = promisify(scrypt);
 
 export function getSession() {
-  const sessionTtl = 7 * 24 * 60 * 60 * 1000; // 1 week
+  const sessionTtl = 30 * 24 * 60 * 60 * 1000; // 30 days
   const pgStore = connectPg(session);
   const sessionStore = new pgStore({
     pool: pool,
     createTableIfMissing: true,
     ttl: sessionTtl / 1000,
     tableName: "sessions",
+    pruneSessionInterval: 60 * 60, // Prune every hour
   });
 
   return session({
@@ -97,19 +98,37 @@ export async function setupAuth(app: Express) {
 
   app.post("/api/admin-direct-login", async (req, res, next) => {
     try {
-      const allUsers = await storage.getAllUsers();
-      const admin = allUsers.find(u => u.role === 'admin' || u.role === 'super_admin');
+      console.log("[Auth] Attempting admin direct login...");
+      
+      // Direct query for admin to be faster and more reliable
+      const [admin] = await db.select().from(users)
+        .where(or(eq(users.role, 'admin'), eq(users.role, 'super_admin')))
+        .limit(1);
       
       if (!admin) {
+        console.warn("[Auth] No administrator account found in database");
         return res.status(404).json({ message: "No administrator account found" });
       }
 
+      console.log(`[Auth] Logging in as admin: ${admin.username || admin.email}`);
       req.logIn(admin, (err) => {
-        if (err) return next(err);
-        return res.json({ message: "Admin direct login successful", user: admin });
+        if (err) {
+          console.error("[Auth] Passport logIn error:", err);
+          return next(err);
+        }
+        console.log("[Auth] Admin login successful");
+        // Ensure session is saved before responding
+        req.session.save((err) => {
+          if (err) {
+            console.error("[Auth] Session save error:", err);
+            return next(err);
+          }
+          return res.json({ message: "Admin direct login successful", user: admin });
+        });
       });
     } catch (error: any) {
-      next(error);
+      console.error("[Auth] Admin direct login crash:", error);
+      res.status(500).json({ message: "Database connection error. Please try again." });
     }
   });
 

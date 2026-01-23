@@ -54,27 +54,35 @@ export default function AuthPage() {
   const handleAdminDirectLogin = async () => {
     setIsLoading(true);
     try {
+      // Force a small delay to show feedback
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
       const response = await apiRequest("POST", "/api/admin-direct-login", {});
-      const data = await response.json();
       
       if (response.ok) {
         toast({
-          title: "Success",
-          description: "Welcome back, Admin",
+          title: "تم الدخول بنجاح",
+          description: "جاري تحويلك إلى لوحة الإدارة...",
         });
-        setLocation("/admin/platform");
+        
+        // Use a slightly longer delay before redirect to ensure session cookie is processed
+        setTimeout(() => {
+          window.location.href = "/admin/platform";
+        }, 800);
       } else {
+        const data = await response.json();
         toast({
           variant: "destructive",
-          title: "Error",
-          description: data.message || "Admin login failed",
+          title: "فشل الدخول",
+          description: data.message || "حدث خطأ أثناء محاولة الدخول",
         });
       }
     } catch (error: any) {
+      console.error("Login error:", error);
       toast({
         variant: "destructive",
-        title: "Error",
-        description: "An unexpected error occurred",
+        title: "خطأ في الاتصال",
+        description: "تأكد من استقرار الاتصال بالإنترنت وحاول مرة أخرى",
       });
     } finally {
       setIsLoading(false);
@@ -86,45 +94,45 @@ export default function AuthPage() {
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
           <h2 className="mt-6 text-3xl font-extrabold text-gray-900 dark:text-white">
-            {isAdminLogin ? "Admin Login" : "Welcome to DeskTown"}
+            {isAdminLogin ? "دخول الإدارة" : "مرحباً بك في DeskTown"}
           </h2>
           <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-            {isAdminLogin ? "Secure access for administrators" : "Sign in to your account"}
+            {isAdminLogin ? "دخول مباشر وآمن للمشرفين" : "قم بتسجيل الدخول إلى حسابك"}
           </p>
         </div>
 
         <Card className="w-full border-t-4 border-t-primary">
           <CardHeader>
-            <CardTitle>{isAdminLogin ? "Administration" : "Login"}</CardTitle>
+            <CardTitle>{isAdminLogin ? "الإدارة" : "تسجيل الدخول"}</CardTitle>
           </CardHeader>
           
           <CardContent>
             {isAdminLogin ? (
               <div className="space-y-4">
                 <p className="text-center text-gray-600 dark:text-gray-400 mb-6">
-                  Click the button below to access the administration panel directly.
+                  اضغط على الزر أدناه للدخول المباشر إلى لوحة تحكم الإدارة.
                 </p>
                 <Button 
                   onClick={handleAdminDirectLogin} 
-                  className="w-full h-12 text-lg font-semibold" 
+                  className="w-full h-12 text-lg font-semibold bg-primary hover:bg-primary/90" 
                   disabled={isLoading}
                 >
                   {isLoading ? (
                     <>
                       <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                      Authenticating...
+                      جاري الدخول...
                     </>
                   ) : (
-                    "Enter Admin Panel"
+                    "دخول لوحة الإدارة"
                   )}
                 </Button>
                 <Button 
                   variant="outline" 
                   className="w-full" 
-                  onClick={() => setLocation("/")}
+                  onClick={() => window.location.href = "/"}
                   disabled={isLoading}
                 >
-                  Back to Website
+                  العودة للموقع
                 </Button>
               </div>
             ) : (
