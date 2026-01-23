@@ -170,6 +170,78 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
   });
 
   // =====================
+  // OTP API
+  // =====================
+  app.post('/api/auth/otp/send', async (req, res) => {
+    try {
+      const { email, type = 'login' } = req.body;
+      if (!email) {
+        return res.status(400).json({ message: "Email is required" });
+      }
+
+      const user = await storage.getUserByEmail(email);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Generate a 6-digit OTP
+      const code = Math.floor(100000 + Math.random() * 900000).toString();
+      const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes expiry
+
+      await storage.createOtpCode({
+        userId: user.id,
+        code,
+        type,
+        expiresAt,
+      });
+
+      // In a real app, you would send this via email/SMS.
+      // For now, we'll log it and return it in development mode for easy testing.
+      console.log(`[OTP] Sent ${code} to ${email} for ${type}`);
+
+      if (process.env.NODE_ENV === 'development') {
+        return res.json({ success: true, message: "OTP sent successfully", code }); // Return code in dev for testing
+      }
+
+      res.json({ success: true, message: "OTP sent successfully" });
+    } catch (error) {
+      console.error("Error sending OTP:", error);
+      res.status(500).json({ message: "Failed to send OTP" });
+    }
+  });
+
+  app.post('/api/auth/otp/verify', async (req, res) => {
+    try {
+      const { email, code, type = 'login' } = req.body;
+      if (!email || !code) {
+        return res.status(400).json({ message: "Email and code are required" });
+      }
+
+      const user = await storage.getUserByEmail(email);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      const otp = await storage.getOtpCode(user.id, code, type);
+      if (!otp) {
+        return res.status(400).json({ message: "Invalid or expired OTP" });
+      }
+
+      await storage.markOtpAsUsed(otp.id);
+
+      // If it's a login OTP, we should log the user in.
+      // However, since we're using Passport, we'd normally use a strategy.
+      // For now, let's just return the user info and success.
+      // The frontend can then use this to establish a session or redirect.
+      
+      res.json({ success: true, message: "OTP verified successfully", user });
+    } catch (error) {
+      console.error("Error verifying OTP:", error);
+      res.status(500).json({ message: "Failed to verify OTP" });
+    }
+  });
+
+  // =====================
   // User Routes
   // =====================
   app.get('/api/users', isAuthenticated, async (req, res) => {
@@ -4641,8 +4713,12 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
       // Import OpenAI
       const OpenAI = (await import('openai')).default;
       const openai = new OpenAI({
-        apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
-        baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
+        apiKey: process.env.OPEN_ROUTER_API_KEY || process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
+        baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL || "https://openrouter.ai/api/v1",
+        defaultHeaders: {
+          "HTTP-Referer": "https://cloudoffice.app",
+          "X-Title": "CloudOffice",
+        }
       });
 
       // Create AI prompt based on task
@@ -4664,7 +4740,7 @@ ${priority ? `الأولوية: ${priority}` : ''}
 
       // Call OpenAI
       const completion = await openai.chat.completions.create({
-        model: "gpt-4o-mini",
+        model: "google/gemini-pro-1.5", // Using Gemini Pro via OpenRouter
         messages: [
           { role: "system", content: "أنت مساعد ذكي متخصص في البحث والتحليل. تقدم إجابات دقيقة ومفصلة باللغة العربية." },
           { role: "user", content: taskPrompt }

@@ -941,7 +941,7 @@ function DepartmentsPanel({ officeId }: { officeId: number }) {
 
   const createDeptMutation = useMutation({
     mutationFn: async (data: Partial<InsertCompanyDepartment>) => {
-      return apiRequest(`/api/offices/${officeId}/departments`, { method: 'POST', body: JSON.stringify(data), headers: { 'Content-Type': 'application/json' } });
+      return apiRequest('POST', `/api/offices/${officeId}/departments`, data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/offices', officeId, 'departments'] });
@@ -956,7 +956,7 @@ function DepartmentsPanel({ officeId }: { officeId: number }) {
 
   const updateDeptMutation = useMutation({
     mutationFn: async ({ id, data }: { id: number; data: Partial<InsertCompanyDepartment> }) => {
-      return apiRequest(`/api/offices/${officeId}/departments/${id}`, { method: 'PATCH', body: JSON.stringify(data), headers: { 'Content-Type': 'application/json' } });
+      return apiRequest('PATCH', `/api/offices/${officeId}/departments/${id}`, data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/offices', officeId, 'departments'] });
@@ -970,7 +970,7 @@ function DepartmentsPanel({ officeId }: { officeId: number }) {
 
   const deleteDeptMutation = useMutation({
     mutationFn: async (id: number) => {
-      return apiRequest(`/api/offices/${officeId}/departments/${id}`, { method: 'DELETE' });
+      return apiRequest('DELETE', `/api/offices/${officeId}/departments/${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/offices', officeId, 'departments'] });
@@ -1204,7 +1204,7 @@ function DepartmentCard({
 
   const deleteSectionMutation = useMutation({
     mutationFn: async (id: number) => {
-      return apiRequest(`/api/sections/${id}`, { method: 'DELETE' });
+      return apiRequest('DELETE', `/api/sections/${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/departments', department.id, 'sections'] });
@@ -1329,7 +1329,7 @@ function SectionDialogs({
 
   const createSectionMutation = useMutation({
     mutationFn: async ({ departmentId, data }: { departmentId: number; data: Partial<InsertCompanySection> }) => {
-      return apiRequest(`/api/departments/${departmentId}/sections`, { method: 'POST', body: JSON.stringify(data), headers: { 'Content-Type': 'application/json' } });
+      return apiRequest('POST', `/api/departments/${departmentId}/sections`, data);
     },
     onSuccess: (_, { departmentId }) => {
       queryClient.invalidateQueries({ queryKey: ['/api/departments', departmentId, 'sections'] });
@@ -1344,7 +1344,7 @@ function SectionDialogs({
 
   const updateSectionMutation = useMutation({
     mutationFn: async ({ id, departmentId, data }: { id: number; departmentId: number; data: Partial<InsertCompanySection> }) => {
-      return apiRequest(`/api/sections/${id}`, { method: 'PATCH', body: JSON.stringify(data), headers: { 'Content-Type': 'application/json' } });
+      return apiRequest('PATCH', `/api/sections/${id}`, data);
     },
     onSuccess: (_, { departmentId }) => {
       queryClient.invalidateQueries({ queryKey: ['/api/departments', departmentId, 'sections'] });

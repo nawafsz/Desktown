@@ -170,6 +170,83 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
   });
 
   // =====================
+  // OTP API
+  // =====================
+  app.post('/api/auth/otp/send', async (req, res) => {
+    try {
+      const { email, type = 'login' } = req.body;
+      if (!email) {
+        return res.status(400).json({ message: "Email is required" });
+      }
+
+      const user = await storage.getUserByEmail(email);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Generate a 6-digit OTP
+      const code = Math.floor(100000 + Math.random() * 900000).toString();
+      const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes expiry
+
+      await storage.createOtpCode({
+        userId: user.id,
+        code,
+        type,
+        expiresAt,
+      });
+
+      // In a real app, you would send this via email/SMS.
+      console.log(`[OTP Standalone] Sent ${code} to ${email} for ${type}`);
+
+      if (process.env.NODE_ENV === 'development') {
+        return res.json({ success: true, message: "OTP sent successfully", code });
+      }
+
+      res.json({ success: true, message: "OTP sent successfully" });
+    } catch (error) {
+      console.error("Error sending OTP:", error);
+      res.status(500).json({ message: "Failed to send OTP" });
+    }
+  });
+
+  app.post('/api/auth/otp/verify', async (req, res) => {
+    try {
+      const { email, code, type = 'login' } = req.body;
+      if (!email || !code) {
+        return res.status(400).json({ message: "Email and code are required" });
+      }
+
+      const user = await storage.getUserByEmail(email);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      const otp = await storage.getOtpCode(user.id, code, type);
+      if (!otp) {
+        return res.status(400).json({ message: "Invalid or expired OTP" });
+      }
+
+      await storage.markOtpAsUsed(otp.id);
+
+      // In standalone, we might want to manually log the user in if it's a login OTP
+      if (type === 'login' && (req as any).login) {
+        (req as any).login(user, (err: any) => {
+          if (err) {
+            console.error("Login error after OTP verify:", err);
+            return res.status(500).json({ message: "Failed to log in" });
+          }
+          return res.json({ success: true, message: "OTP verified and logged in", user });
+        });
+      } else {
+        res.json({ success: true, message: "OTP verified successfully", user });
+      }
+    } catch (error) {
+      console.error("Error verifying OTP:", error);
+      res.status(500).json({ message: "Failed to verify OTP" });
+    }
+  });
+
+  // =====================
   // User Routes
   // =====================
   app.get('/api/users', isAuthenticated, async (req, res) => {
@@ -1406,7 +1483,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
 
       // Check if object is public - if so, serve it without auth
       const canAccessPublic = await objectStorageService.canAccessObjectEntity({
-        objectFile,
+        objectPath: req.path,
         userId: undefined, // No user - checking public access
         requestedPermission: ObjectPermission.READ,
       });
@@ -1422,7 +1499,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
 
       const userId = req.user?.id;
       const canAccess = await objectStorageService.canAccessObjectEntity({
-        objectFile,
+        objectPath: req.path,
         userId,
         requestedPermission: ObjectPermission.READ,
       });
@@ -2358,6 +2435,43 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
     } catch (error) {
       console.error("Error updating n8n settings:", error);
       res.status(500).json({ message: "Failed to update n8n settings" });
+    }
+  });
+
+  // AI Chat Assistant
+  app.post('/api/ai/chat', isAuthenticated, async (req: any, res) => {
+    try {
+      const { message, history } = req.body;
+
+      // Import OpenAI
+      const OpenAI = (await import('openai')).default;
+      const openai = new OpenAI({
+        apiKey: process.env.OPEN_ROUTER_API_KEY || process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
+        baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL || "https://openrouter.ai/api/v1",
+        defaultHeaders: {
+          "HTTP-Referer": "https://cloudoffice.app",
+          "X-Title": "CloudOffice",
+        }
+      });
+
+      const systemPrompt = "أنت مساعد ذكي في CloudOffice. ساعد المستخدمين في إدارة مهامهم ومشاريعهم ومكاتبهم الافتراضية. أجب باللغة العربية بشكل افتراضي إلا إذا طلب المستخدم غير ذلك.";
+
+      const completion = await openai.chat.completions.create({
+        model: "google/gemini-pro-1.5",
+        messages: [
+          { role: "system", content: systemPrompt },
+          ...history.map((m: any) => ({ role: m.role, content: m.content })),
+          { role: "user", content: message }
+        ],
+        max_tokens: 1000,
+        temperature: 0.7,
+      });
+
+      const reply = completion.choices[0]?.message?.content || "عذراً، لم أتمكن من معالجة طلبك.";
+      res.json({ reply });
+    } catch (error) {
+      console.error("AI Chat error:", error);
+      res.status(500).json({ message: "Failed to process AI chat" });
     }
   });
 
@@ -4641,8 +4755,12 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
       // Import OpenAI
       const OpenAI = (await import('openai')).default;
       const openai = new OpenAI({
-        apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
-        baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
+        apiKey: process.env.OPEN_ROUTER_API_KEY || process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
+        baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL || "https://openrouter.ai/api/v1",
+        defaultHeaders: {
+          "HTTP-Referer": "https://cloudoffice.app", // Optional, for OpenRouter rankings
+          "X-Title": "CloudOffice", // Optional, for OpenRouter rankings
+        }
       });
 
       // Create AI prompt based on task
@@ -4664,7 +4782,7 @@ ${priority ? `الأولوية: ${priority}` : ''}
 
       // Call OpenAI
       const completion = await openai.chat.completions.create({
-        model: "gpt-4o-mini",
+        model: "google/gemini-pro-1.5", // Using Gemini Pro via OpenRouter
         messages: [
           { role: "system", content: "أنت مساعد ذكي متخصص في البحث والتحليل. تقدم إجابات دقيقة ومفصلة باللغة العربية." },
           { role: "user", content: taskPrompt }

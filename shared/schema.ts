@@ -9,17 +9,14 @@ import {
   index,
   jsonb,
   serial,
-  pgSchema,
 } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-export const publicSchema = pgSchema("public");
-
 // ============================================
 // Session storage table (Required for Replit Auth)
 // ============================================
-export const sessions = publicSchema.table(
+export const sessions = pgTable(
   "sessions",
   {
     sid: varchar("sid").primaryKey(),
@@ -32,7 +29,7 @@ export const sessions = publicSchema.table(
 // ============================================
 // Users table (Required for Replit Auth)
 // ============================================
-export const users = publicSchema.table("users", {
+export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   email: varchar("email").unique(),
   username: varchar("username").unique(),
@@ -47,6 +44,7 @@ export const users = publicSchema.table("users", {
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
+
 
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
@@ -64,7 +62,7 @@ export type UpdateUser = z.infer<typeof updateUserSchema>;
 // ============================================
 // Clients (Subscriber Management Module)
 // ============================================
-export const clients = publicSchema.table("clients", {
+export const clients = pgTable("clients", {
   id: serial("id").primaryKey(),
   userId: varchar("user_id").references(() => users.id).notNull().unique(), // Link to auth user
   companyName: varchar("company_name").notNull(),
@@ -95,7 +93,7 @@ export type Client = typeof clients.$inferSelect;
 // ============================================
 // Admin Audit Logs
 // ============================================
-export const adminAuditLogs = publicSchema.table("admin_audit_logs", {
+export const adminAuditLogs = pgTable("admin_audit_logs", {
   id: serial("id").primaryKey(),
   adminId: varchar("admin_id").references(() => users.id).notNull(),
   action: varchar("action").notNull(),
@@ -117,7 +115,7 @@ export type AdminAuditLog = typeof adminAuditLogs.$inferSelect;
 // ============================================
 // Tasks
 // ============================================
-export const tasks = publicSchema.table("tasks", {
+export const tasks = pgTable("tasks", {
   id: serial("id").primaryKey(),
   title: text("title").notNull(),
   description: text("description"),
@@ -142,7 +140,7 @@ export type Task = typeof tasks.$inferSelect;
 // ============================================
 // Tickets (Support)
 // ============================================
-export const tickets = publicSchema.table("tickets", {
+export const tickets = pgTable("tickets", {
   id: serial("id").primaryKey(),
   title: text("title").notNull(),
   description: text("description"),
@@ -166,7 +164,7 @@ export type Ticket = typeof tickets.$inferSelect;
 // ============================================
 // Social Profiles
 // ============================================
-export const profiles = publicSchema.table("profiles", {
+export const profiles = pgTable("profiles", {
   id: serial("id").primaryKey(),
   ownerId: varchar("owner_id").references(() => users.id).notNull().unique(),
   displayName: varchar("display_name"),
@@ -191,7 +189,7 @@ export type Profile = typeof profiles.$inferSelect;
 // ============================================
 // Followers
 // ============================================
-export const followers = publicSchema.table("followers", {
+export const followers = pgTable("followers", {
   id: serial("id").primaryKey(),
   profileId: integer("profile_id").references(() => profiles.id).notNull(),
   followerUserId: varchar("follower_user_id").references(() => users.id).notNull(),
@@ -208,7 +206,7 @@ export type Follower = typeof followers.$inferSelect;
 // ============================================
 // Social Posts
 // ============================================
-export const posts = publicSchema.table("posts", {
+export const posts = pgTable("posts", {
   id: serial("id").primaryKey(),
   authorId: varchar("author_id").references(() => users.id).notNull(),
   content: text("content").notNull(),
@@ -234,7 +232,7 @@ export type Post = typeof posts.$inferSelect;
 // ============================================
 // Post Likes
 // ============================================
-export const postLikes = publicSchema.table("post_likes", {
+export const postLikes = pgTable("post_likes", {
   id: serial("id").primaryKey(),
   postId: integer("post_id").references(() => posts.id).notNull(),
   userId: varchar("user_id").references(() => users.id).notNull(),
@@ -249,7 +247,7 @@ export const postLikesRelations = relations(postLikes, ({ one }) => ({
 // ============================================
 // Post Comments
 // ============================================
-export const postComments = publicSchema.table("post_comments", {
+export const postComments = pgTable("post_comments", {
   id: serial("id").primaryKey(),
   postId: integer("post_id").references(() => posts.id).notNull(),
   authorId: varchar("author_id").references(() => users.id).notNull(),
@@ -269,7 +267,7 @@ export type PostComment = typeof postComments.$inferSelect;
 // ============================================
 // Chat Threads (WhatsApp-style messaging)
 // ============================================
-export const chatThreads = publicSchema.table("chat_threads", {
+export const chatThreads = pgTable("chat_threads", {
   id: serial("id").primaryKey(),
   name: varchar("name").notNull(),
   type: varchar("type").default("group"), // "group" or "direct"
@@ -294,7 +292,7 @@ export type ChatThread = typeof chatThreads.$inferSelect;
 // ============================================
 // Chat Participants
 // ============================================
-export const chatParticipants = publicSchema.table("chat_participants", {
+export const chatParticipants = pgTable("chat_participants", {
   id: serial("id").primaryKey(),
   threadId: integer("thread_id").references(() => chatThreads.id).notNull(),
   userId: varchar("user_id").references(() => users.id).notNull(),
@@ -313,7 +311,7 @@ export type ChatParticipant = typeof chatParticipants.$inferSelect;
 // ============================================
 // Messages
 // ============================================
-export const messages = publicSchema.table("messages", {
+export const messages = pgTable("messages", {
   id: serial("id").primaryKey(),
   threadId: integer("thread_id").references(() => chatThreads.id).notNull(),
   senderId: varchar("sender_id").references(() => users.id).notNull(),
@@ -335,7 +333,7 @@ export type Message = typeof messages.$inferSelect;
 // ============================================
 // Internal Emails (Company Mail System)
 // ============================================
-export const internalEmails = publicSchema.table("internal_emails", {
+export const internalEmails = pgTable("internal_emails", {
   id: serial("id").primaryKey(),
   senderId: varchar("sender_id").references(() => users.id).notNull(),
   recipientId: varchar("recipient_id").references(() => users.id).notNull(),
@@ -371,7 +369,7 @@ export type InternalEmail = typeof internalEmails.$inferSelect;
 // ============================================
 // Employee Documents (Personal File Storage)
 // ============================================
-export const employeeDocuments = publicSchema.table("employee_documents", {
+export const employeeDocuments = pgTable("employee_documents", {
   id: serial("id").primaryKey(),
   employeeId: varchar("employee_id").references(() => users.id).notNull(),
   objectPath: varchar("object_path").notNull(),
@@ -396,7 +394,7 @@ export type EmployeeDocument = typeof employeeDocuments.$inferSelect;
 // ============================================
 // Meetings
 // ============================================
-export const meetings = publicSchema.table("meetings", {
+export const meetings = pgTable("meetings", {
   id: serial("id").primaryKey(),
   title: text("title").notNull(),
   description: text("description"),
@@ -421,7 +419,7 @@ export type Meeting = typeof meetings.$inferSelect;
 // ============================================
 // Meeting Attendees
 // ============================================
-export const meetingAttendees = publicSchema.table("meeting_attendees", {
+export const meetingAttendees = pgTable("meeting_attendees", {
   id: serial("id").primaryKey(),
   meetingId: integer("meeting_id").references(() => meetings.id).notNull(),
   userId: varchar("user_id").references(() => users.id).notNull(),
@@ -436,7 +434,7 @@ export const meetingAttendeesRelations = relations(meetingAttendees, ({ one }) =
 // ============================================
 // Job Postings
 // ============================================
-export const jobPostings = publicSchema.table("job_postings", {
+export const jobPostings = pgTable("job_postings", {
   id: serial("id").primaryKey(),
   title: text("title").notNull(),
   department: varchar("department").notNull(),
@@ -462,7 +460,7 @@ export type JobPosting = typeof jobPostings.$inferSelect;
 // ============================================
 // Transactions (Finance)
 // ============================================
-export const transactions = publicSchema.table("transactions", {
+export const transactions = pgTable("transactions", {
   id: serial("id").primaryKey(),
   description: text("description").notNull(),
   amount: integer("amount").notNull(),
@@ -488,7 +486,7 @@ export type Transaction = typeof transactions.$inferSelect;
 // ============================================
 // Roles (Access Control)
 // ============================================
-export const roles = publicSchema.table("roles", {
+export const roles = pgTable("roles", {
   id: serial("id").primaryKey(),
   name: varchar("name").notNull().unique(),
   description: text("description"),
@@ -504,7 +502,7 @@ export type Role = typeof roles.$inferSelect;
 // ============================================
 // User Roles (many-to-many)
 // ============================================
-export const userRoles = publicSchema.table("user_roles", {
+export const userRoles = pgTable("user_roles", {
   id: serial("id").primaryKey(),
   userId: varchar("user_id").references(() => users.id).notNull(),
   roleId: integer("role_id").references(() => roles.id).notNull(),
@@ -519,7 +517,7 @@ export const userRolesRelations = relations(userRoles, ({ one }) => ({
 // ============================================
 // Departments (Standalone - Manager Owned)
 // ============================================
-export const departments = publicSchema.table("departments", {
+export const departments = pgTable("departments", {
   id: serial("id").primaryKey(),
   name: varchar("name").notNull(),
   description: text("description"),
@@ -543,7 +541,7 @@ export type Department = typeof departments.$inferSelect;
 // ============================================
 // Remote Employees
 // ============================================
-export const remoteEmployees = publicSchema.table("remote_employees", {
+export const remoteEmployees = pgTable("remote_employees", {
   id: serial("id").primaryKey(),
   username: varchar("username").notNull().unique(),
   firstName: varchar("first_name").notNull(),
@@ -574,7 +572,7 @@ export type RemoteEmployee = typeof remoteEmployees.$inferSelect;
 // ============================================
 // Notifications
 // ============================================
-export const notifications = publicSchema.table("notifications", {
+export const notifications = pgTable("notifications", {
   id: serial("id").primaryKey(),
   userId: varchar("user_id").references(() => users.id).notNull(),
   type: varchar("type").notNull(),
@@ -596,7 +594,7 @@ export type Notification = typeof notifications.$inferSelect;
 // ============================================
 // Subscriptions (Office Plans)
 // ============================================
-export const subscriptions = publicSchema.table("subscriptions", {
+export const subscriptions = pgTable("subscriptions", {
   id: serial("id").primaryKey(),
   userId: varchar("user_id").references(() => users.id).notNull(),
   billingCycle: varchar("billing_cycle").notNull(), // 'monthly' or 'yearly'
@@ -623,7 +621,7 @@ export type Subscription = typeof subscriptions.$inferSelect;
 // ============================================
 // Advertisements
 // ============================================
-export const advertisements = publicSchema.table("advertisements", {
+export const advertisements = pgTable("advertisements", {
   id: serial("id").primaryKey(),
   userId: varchar("user_id").references(() => users.id).notNull(),
   title: varchar("title").notNull(),
@@ -653,7 +651,7 @@ export type Advertisement = typeof advertisements.$inferSelect;
 // ============================================
 // n8n Integration Settings
 // ============================================
-export const n8nSettings = publicSchema.table("n8n_settings", {
+export const n8nSettings = pgTable("n8n_settings", {
   id: serial("id").primaryKey(),
   userId: varchar("user_id").references(() => users.id).notNull().unique(),
   webhookUrl: varchar("webhook_url"), // n8n webhook URL for task automation
@@ -674,7 +672,7 @@ export type N8nSettings = typeof n8nSettings.$inferSelect;
 // ============================================
 // Task Automation (AI suggestions from n8n)
 // ============================================
-export const taskAutomations = publicSchema.table("task_automations", {
+export const taskAutomations = pgTable("task_automations", {
   id: serial("id").primaryKey(),
   taskId: integer("task_id").references(() => tasks.id).notNull(),
   userId: varchar("user_id").references(() => users.id).notNull(),
@@ -702,7 +700,7 @@ export type TaskAutomation = typeof taskAutomations.$inferSelect;
 // ============================================
 // Offices (Virtual Office Storefront)
 // ============================================
-export const offices = publicSchema.table("offices", {
+export const offices = pgTable("offices", {
   id: serial("id").primaryKey(),
   name: varchar("name").notNull(),
   slug: varchar("slug").notNull().unique(),
@@ -740,7 +738,7 @@ export type Office = typeof offices.$inferSelect;
 // ============================================
 // Company Departments (Hierarchical structure under offices/companies)
 // ============================================
-export const companyDepartments = publicSchema.table("company_departments", {
+export const companyDepartments = pgTable("company_departments", {
   id: serial("id").primaryKey(),
   officeId: integer("office_id").references(() => offices.id).notNull(),
   name: varchar("name").notNull(),
@@ -767,7 +765,7 @@ export type CompanyDepartment = typeof companyDepartments.$inferSelect;
 // ============================================
 // Company Sections (Under departments)
 // ============================================
-export const companySections = publicSchema.table("company_sections", {
+export const companySections = pgTable("company_sections", {
   id: serial("id").primaryKey(),
   departmentId: integer("department_id").references(() => companyDepartments.id).notNull(),
   name: varchar("name").notNull(),
@@ -793,7 +791,7 @@ export type CompanySection = typeof companySections.$inferSelect;
 // ============================================
 // Office Services
 // ============================================
-export const officeServices = publicSchema.table("office_services", {
+export const officeServices = pgTable("office_services", {
   id: serial("id").primaryKey(),
   officeId: integer("office_id").references(() => offices.id).notNull(),
   title: varchar("title").notNull(),
@@ -822,7 +820,7 @@ export type OfficeService = typeof officeServices.$inferSelect;
 // ============================================
 // Service Ratings
 // ============================================
-export const serviceRatings = publicSchema.table("service_ratings", {
+export const serviceRatings = pgTable("service_ratings", {
   id: serial("id").primaryKey(),
   serviceId: integer("service_id").references(() => officeServices.id).notNull(),
   visitorName: varchar("visitor_name"), // For anonymous visitors
@@ -843,7 +841,7 @@ export type ServiceRating = typeof serviceRatings.$inferSelect;
 // ============================================
 // Service Comments (Reviews)
 // ============================================
-export const serviceComments = publicSchema.table("service_comments", {
+export const serviceComments = pgTable("service_comments", {
   id: serial("id").primaryKey(),
   serviceId: integer("service_id").references(() => officeServices.id).notNull(),
   visitorName: varchar("visitor_name"), // For anonymous visitors
@@ -868,7 +866,7 @@ export type ServiceComment = typeof serviceComments.$inferSelect;
 // ============================================
 // Service Requests (Visitor Inquiries)
 // ============================================
-export const serviceRequests = publicSchema.table("service_requests", {
+export const serviceRequests = pgTable("service_requests", {
   id: serial("id").primaryKey(),
   serviceId: integer("service_id").references(() => officeServices.id).notNull(),
   officeId: integer("office_id").references(() => offices.id).notNull(),
@@ -894,7 +892,7 @@ export type ServiceRequest = typeof serviceRequests.$inferSelect;
 // ============================================
 // Office Media (Daily Videos, Announcements)
 // ============================================
-export const officeMedia = publicSchema.table("office_media", {
+export const officeMedia = pgTable("office_media", {
   id: serial("id").primaryKey(),
   officeId: integer("office_id").references(() => offices.id).notNull(),
   type: varchar("type").notNull(), // 'video', 'announcement', 'image'
@@ -920,7 +918,7 @@ export type OfficeMedia = typeof officeMedia.$inferSelect;
 // ============================================
 // Office Posts (Social Media for Office)
 // ============================================
-export const officePosts = publicSchema.table("office_posts", {
+export const officePosts = pgTable("office_posts", {
   id: serial("id").primaryKey(),
   officeId: integer("office_id").references(() => offices.id).notNull(),
   authorId: varchar("author_id").references(() => users.id).notNull(),
@@ -944,7 +942,7 @@ export type OfficePost = typeof officePosts.$inferSelect;
 // ============================================
 // Office Messages (Visitor to Receptionist Chat)
 // ============================================
-export const officeMessages = publicSchema.table("office_messages", {
+export const officeMessages = pgTable("office_messages", {
   id: serial("id").primaryKey(),
   officeId: integer("office_id").references(() => offices.id).notNull(),
   sessionId: varchar("session_id").notNull(), // For tracking visitor session
@@ -969,7 +967,7 @@ export type OfficeMessage = typeof officeMessages.$inferSelect;
 // ============================================
 // Video Calls (Visitor to Receptionist Video Chat)
 // ============================================
-export const videoCalls = publicSchema.table("video_calls", {
+export const videoCalls = pgTable("video_calls", {
   id: serial("id").primaryKey(),
   officeId: integer("office_id").references(() => offices.id).notNull(),
   sessionId: varchar("session_id").notNull(), // Visitor session ID
@@ -994,7 +992,7 @@ export type VideoCall = typeof videoCalls.$inferSelect;
 // ============================================
 // Daily Statuses (Stories)
 // ============================================
-export const statuses = publicSchema.table("statuses", {
+export const statuses = pgTable("statuses", {
   id: serial("id").primaryKey(),
   authorId: varchar("author_id").references(() => users.id).notNull(),
   officeId: integer("office_id").references(() => offices.id),
@@ -1020,7 +1018,7 @@ export type Status = typeof statuses.$inferSelect;
 // ============================================
 // Status Replies (Chat Messages on Stories)
 // ============================================
-export const statusReplies = publicSchema.table("status_replies", {
+export const statusReplies = pgTable("status_replies", {
   id: serial("id").primaryKey(),
   statusId: integer("status_id").references(() => statuses.id).notNull(),
   senderId: varchar("sender_id").references(() => users.id).notNull(),
@@ -1041,7 +1039,7 @@ export type StatusReply = typeof statusReplies.$inferSelect;
 // ============================================
 // Status Views (Who Viewed the Story)
 // ============================================
-export const statusViews = publicSchema.table("status_views", {
+export const statusViews = pgTable("status_views", {
   id: serial("id").primaryKey(),
   statusId: integer("status_id").references(() => statuses.id).notNull(),
   viewerId: varchar("viewer_id").references(() => users.id).notNull(),
@@ -1060,7 +1058,7 @@ export type StatusView = typeof statusViews.$inferSelect;
 // ============================================
 // Status Likes (Like a Story)
 // ============================================
-export const statusLikes = publicSchema.table("status_likes", {
+export const statusLikes = pgTable("status_likes", {
   id: serial("id").primaryKey(),
   statusId: integer("status_id").references(() => statuses.id).notNull(),
   userId: varchar("user_id").references(() => users.id).notNull(),
@@ -1079,7 +1077,7 @@ export type StatusLike = typeof statusLikes.$inferSelect;
 // ============================================
 // Office Follows (Follow Office Profile)
 // ============================================
-export const officeFollowers = publicSchema.table("office_followers", {
+export const officeFollowers = pgTable("office_followers", {
   id: serial("id").primaryKey(),
   officeId: integer("office_id").references(() => offices.id).notNull(),
   followerId: varchar("follower_id").references(() => users.id).notNull(),
@@ -1098,7 +1096,7 @@ export type OfficeFollower = typeof officeFollowers.$inferSelect;
 // ============================================
 // Push Subscriptions (Browser Push Notifications)
 // ============================================
-export const pushSubscriptions = publicSchema.table("push_subscriptions", {
+export const pushSubscriptions = pgTable("push_subscriptions", {
   id: serial("id").primaryKey(),
   userId: varchar("user_id").references(() => users.id).notNull(),
   endpoint: text("endpoint").notNull(),
@@ -1120,7 +1118,7 @@ export type PushSubscription = typeof pushSubscriptions.$inferSelect;
 // ============================================
 // Services (Office-provided services for sale)
 // ============================================
-export const services = publicSchema.table("services", {
+export const services = pgTable("services", {
   id: serial("id").primaryKey(),
   officeId: integer("office_id").references(() => offices.id).notNull(),
   ownerUserId: varchar("owner_user_id").references(() => users.id).notNull(),
@@ -1154,7 +1152,7 @@ export type Service = typeof services.$inferSelect;
 // ============================================
 // Service Orders (Customer orders and invoices)
 // ============================================
-export const serviceOrders = publicSchema.table("service_orders", {
+export const serviceOrders = pgTable("service_orders", {
   id: serial("id").primaryKey(),
   serviceId: integer("service_id").references(() => services.id).notNull(),
   officeId: integer("office_id").references(() => offices.id).notNull(),
@@ -1185,3 +1183,24 @@ export const serviceOrdersRelations = relations(serviceOrders, ({ one }) => ({
 export const insertServiceOrderSchema = createInsertSchema(serviceOrders).omit({ id: true, createdAt: true, updatedAt: true, paidAt: true });
 export type InsertServiceOrder = z.infer<typeof insertServiceOrderSchema>;
 export type ServiceOrder = typeof serviceOrders.$inferSelect;
+
+// ============================================
+// OTP Codes (Authentication)
+// ============================================
+export const otpCodes = pgTable("otp_codes", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  code: varchar("code").notNull(),
+  type: varchar("type").notNull(), // 'login', 'verify_email', 'reset_password'
+  expiresAt: timestamp("expires_at").notNull(),
+  isUsed: boolean("is_used").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const otpCodesRelations = relations(otpCodes, ({ one }) => ({
+  user: one(users, { fields: [otpCodes.userId], references: [users.id] }),
+}));
+
+export const insertOtpCodeSchema = createInsertSchema(otpCodes).omit({ id: true, createdAt: true, isUsed: true });
+export type InsertOtpCode = z.infer<typeof insertOtpCodeSchema>;
+export type OtpCode = typeof otpCodes.$inferSelect;

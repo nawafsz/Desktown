@@ -42,6 +42,7 @@ import Careers from "@/pages/Careers";
 import EmployeePortal from "@/pages/EmployeePortal";
 import InternalMail from "@/pages/InternalMail";
 import MyWorkspace from "@/pages/MyWorkspace";
+import AiAssistant from "@/pages/AiAssistant";
 import VisitorServices from "@/pages/VisitorServices";
 import VisitorContact from "@/pages/VisitorContact";
 import PlatformManagement from "@/pages/PlatformManagement";
@@ -161,6 +162,7 @@ function AuthenticatedRouter({ userRole }: { userRole: string | null | undefined
       <Route path="/departments/:id" component={Department} />
       <Route path="/employees/:username" component={EmployeeProfile} />
       <Route path="/subscription" component={Subscription} />
+      <Route path="/ai-assistant" component={AiAssistant} />
 
       {/* Manager & Admin only routes */}
       <Route path="/jobs">

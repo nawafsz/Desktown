@@ -111,6 +111,27 @@ export class ObjectStorageService {
     });
     return url;
   }
+
+  async trySetObjectEntityAclPolicy(objectPath: string, aclPolicy: ObjectAclPolicy): Promise<string> {
+    try {
+      const file = await this.getObjectEntityFile(objectPath);
+      await setObjectAclPolicy(file, aclPolicy);
+      return objectPath;
+    } catch (error) {
+      console.error("Error setting ACL policy:", error);
+      return objectPath;
+    }
+  }
+
+  async canAccessObjectEntity({ userId, objectPath, requestedPermission }: { userId?: string; objectPath: string; requestedPermission: ObjectPermission }): Promise<boolean> {
+    try {
+      const file = await this.getObjectEntityFile(objectPath);
+      return await canAccessObject({ userId, objectFile: file, requestedPermission });
+    } catch (error) {
+      console.error("Error checking access:", error);
+      return false;
+    }
+  }
 }
 
 function parseObjectPath(path: string): { bucketName: string; objectName: string } {

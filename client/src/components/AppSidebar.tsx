@@ -38,6 +38,7 @@ import {
   Mail,
   CreditCard,
   ShieldCheck,
+  Bot,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -60,6 +61,7 @@ const navigationItems: NavItem[] = [
   { titleKey: "employeeProfile", url: "/my-profile", icon: Briefcase, categoryKey: "overview", allowedRoles: ["member", "manager", "admin"] },
   { titleKey: "tasks", url: "/tasks", icon: CheckSquare, categoryKey: "productivity", allowedRoles: ["member", "manager", "admin"] },
   { titleKey: "tickets", url: "/tickets", icon: Ticket, categoryKey: "productivity", allowedRoles: ["member", "manager", "admin"] },
+  { titleKey: "aiAssistant", url: "/ai-assistant", icon: Bot, categoryKey: "productivity", allowedRoles: ["member", "manager", "admin"] },
   { titleKey: "n8nAutomation", url: "/n8n-settings", icon: Zap, categoryKey: "productivity", allowedRoles: ["manager", "admin"] },
   { titleKey: "socialProfile", url: "/profile", icon: User, categoryKey: "communication", allowedRoles: ["member", "manager", "admin"] },
   { titleKey: "socialFeed", url: "/feed", icon: Rss, categoryKey: "communication", allowedRoles: ["member", "manager", "admin"] },
@@ -114,6 +116,12 @@ export function AppSidebar({ user }: AppSidebarProps) {
 
   const { data: emailUnreadData } = useQuery<{ count: number }>({
     queryKey: ['/api/emails/unread-count'],
+    refetchInterval: 30000,
+  });
+
+  // Fetch unread OTP count
+  const { data: otpData } = useQuery<{ count: number }>({
+    queryKey: ['/api/otp/unread-count'],
     refetchInterval: 30000,
   });
 
@@ -179,6 +187,7 @@ export function AppSidebar({ user }: AppSidebarProps) {
       employeeProfile: t.sidebar?.employeeProfile || "Employee Profile",
       tasks: t.sidebar?.tasks || "Tasks",
       tickets: t.sidebar?.tickets || "Tickets",
+      aiAssistant: language === 'ar' ? 'المساعد الذكي' : 'AI Assistant',
       n8nAutomation: t.sidebar?.n8nAutomation || "n8n Automation",
       socialProfile: t.sidebar?.socialProfile || "Social Profile",
       socialFeed: t.sidebar?.socialFeed || "Social Feed",

@@ -125,6 +125,12 @@ import {
   type InsertCompanyDepartment,
   type CompanySection,
   type InsertCompanySection,
+  otpCodes,
+  type OtpCode,
+  type InsertOtpCode,
+  clients,
+  type Client,
+  type InsertClient,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, or, like, sql, inArray } from "drizzle-orm";
@@ -437,6 +443,12 @@ export interface IStorage {
   updateOfficeApprovalStatus(id: number, status: string): Promise<Office | undefined>;
   getPaymentLogs(): Promise<any[]>;
   getFinancialReports(): Promise<any>;
+
+  // OTP operations
+  createOtpCode(otp: InsertOtpCode): Promise<OtpCode>;
+  getOtpCode(userId: string, code: string, type: string): Promise<OtpCode | undefined>;
+  markOtpAsUsed(id: number): Promise<void>;
+  deleteExpiredOtps(): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -2559,6 +2571,45 @@ export class DatabaseStorage implements IStorage {
 
   async deleteClient(id: number): Promise<void> {
     await db.delete(clients).where(eq(clients.id, id));
+  }
+
+  // =====================
+  // OTP Operations
+  // =====================
+  async createOtpCode(otp: InsertOtpCode): Promise<OtpCode> {
+    const [newOtp] = await db.insert(otpCodes).values(otp).returning();
+    return newOtp;
+  }
+
+  async getOtpCode(userId: string, code: string, type: string): Promise<OtpCode | undefined> {
+    const now = new Date();
+    const [otp] = await db
+      .select()
+      .from(otpCodes)
+      .where(
+        and(
+          eq(otpCodes.userId, userId),
+          eq(otpCodes.code, code),
+          eq(otpCodes.type, type),
+          eq(otpCodes.isUsed, false),
+          sql`${otpCodes.expiresAt} > ${now}`
+        )
+      )
+      .orderBy(desc(otpCodes.createdAt))
+      .limit(1);
+    return otp;
+  }
+
+  async markOtpAsUsed(id: number): Promise<void> {
+    await db
+      .update(otpCodes)
+      .set({ isUsed: true })
+      .where(eq(otpCodes.id, id));
+  }
+
+  async deleteExpiredOtps(): Promise<void> {
+    const now = new Date();
+    await db.delete(otpCodes).where(sql`${otpCodes.expiresAt} <= ${now}`);
   }
 }
 

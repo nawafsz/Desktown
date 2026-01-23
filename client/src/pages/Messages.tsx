@@ -141,7 +141,7 @@ export default function Messages() {
     mutationFn: async (targetUserId: string) => {
       return await apiRequest("POST", "/api/threads/direct", { targetUserId });
     },
-    onSuccess: (data) => {
+    onSuccess: (data: any) => {
       queryClient.invalidateQueries({ queryKey: ["/api/threads"] });
       setActiveThreadId(data.id);
       setShowNewChat(false);
@@ -153,7 +153,7 @@ export default function Messages() {
     mutationFn: async ({ name, participantIds }: { name: string; participantIds: string[] }) => {
       return await apiRequest("POST", "/api/threads", { name, participantIds, type: "group" });
     },
-    onSuccess: (data) => {
+    onSuccess: (data: any) => {
       queryClient.invalidateQueries({ queryKey: ["/api/threads"] });
       setActiveThreadId(data.id);
       setShowNewGroup(false);

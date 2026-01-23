@@ -44,7 +44,7 @@ const originalConnect = pool.connect.bind(pool);
 pool.connect = async (...args: any[]) => {
   // Handle callback style if ever used (unlikely by Drizzle)
   if (args.length > 0 && typeof args[0] === 'function') {
-    return originalConnect(...args);
+    return (originalConnect as any)(...args);
   }
 
   const client = await originalConnect();
