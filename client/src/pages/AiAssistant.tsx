@@ -8,6 +8,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useLanguage, translations } from "@/lib/i18n";
 import { Bot, User, Send, Loader2, Sparkles } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
+import ReactMarkdown from 'react-markdown';
 
 interface Message {
   role: "user" | "assistant";
@@ -106,7 +107,13 @@ export default function AiAssistant() {
                         ? 'bg-primary text-primary-foreground' 
                         : 'bg-muted'
                     }`}>
-                      {m.content}
+                      {m.role === 'assistant' ? (
+                        <div className="prose prose-sm dark:prose-invert max-w-none">
+                          <ReactMarkdown>{m.content}</ReactMarkdown>
+                        </div>
+                      ) : (
+                        m.content
+                      )}
                     </div>
                   </div>
                 </div>
