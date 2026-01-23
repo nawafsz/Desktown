@@ -91,7 +91,7 @@ export default function AuthPage() {
       toast({
         variant: "destructive",
         title: "خطأ في الاتصال",
-        description: "تأكد من استقرار الاتصال بالإنترنت وحاول مرة أخرى",
+        description: `Error: ${error.message || "Unknown error"}`,
       });
     } finally {
       setIsLoading(false);
