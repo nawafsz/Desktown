@@ -17,14 +17,14 @@ import MemoryStoreFactory from "memorystore";
 const scryptAsync = promisify(scrypt);
 const MemoryStore = MemoryStoreFactory(session);
 
+// Use a single MemoryStore instance for all sessions
+const sessionStore = new MemoryStore({
+  checkPeriod: 86400000 // prune expired entries every 24h
+});
+
 export function getSession() {
   const sessionTtl = 30 * 24 * 60 * 60 * 1000; // 30 days
   
-  // Use MemoryStore instead of PG Store for better stability in production
-  const sessionStore = new MemoryStore({
-    checkPeriod: 86400000 // prune expired entries every 24h
-  });
-
   if (!process.env.SESSION_SECRET && process.env.NODE_ENV === "production") {
     console.warn("WARNING: SESSION_SECRET is not defined. Using a default secret. This is not secure for production.");
   }

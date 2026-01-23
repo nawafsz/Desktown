@@ -16,14 +16,14 @@ import MemoryStoreFactory from "memorystore";
 const scryptAsync = promisify(scrypt);
 const MemoryStore = MemoryStoreFactory(session);
 
+// Use a single MemoryStore instance for all sessions
+const sessionStore = new MemoryStore({
+  checkPeriod: 86400000 // prune expired entries every 24h
+});
+
 export function getSession() {
   const sessionTtl = 30 * 24 * 60 * 60 * 1000; // 30 days
   
-  // Use MemoryStore instead of PG Store for better stability in standalone mode
-  const sessionStore = new MemoryStore({
-    checkPeriod: 86400000 // prune expired entries every 24h
-  });
-
   return session({
     secret: process.env.SESSION_SECRET || "standalone_secret_key_change_me",
     store: sessionStore,
