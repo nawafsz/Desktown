@@ -22,21 +22,28 @@ export const pool = new Pool({
   ssl: {
     rejectUnauthorized: false,
   },
-  // Explicitly set search_path to public for every connection
-  options: '-c search_path=public'
 });
 
-// Force search path and log it
-pool.on('connect', async (client) => {
-  try {
-    // Force search path to public to ensure tables are found
-    await client.query("SET search_path TO public");
-    const res = await client.query('SHOW search_path');
-    console.log(`[DB] New client connected. Search path set to: ${res.rows[0].search_path}`);
-  } catch (err) {
-    console.error('[DB] Failed to set search path', err);
+// Monkey-patch pool.connect to enforce search_path on every connection
+// This is necessary because some connection poolers (like Supabase Transaction mode)
+// do not support the "options" startup parameter, and session-level SET commands
+// via "on('connect')" event are race-condition prone.
+const originalConnect = pool.connect.bind(pool);
+// @ts-ignore - overriding method with compatible signature
+pool.connect = async (...args: any[]) => {
+  // Handle callback style if ever used (unlikely by Drizzle)
+  if (args.length > 0 && typeof args[0] === 'function') {
+    return originalConnect(...args);
   }
-});
+
+  const client = await originalConnect();
+  try {
+    await client.query("SET search_path TO public");
+  } catch (err) {
+    console.error('[DB] Failed to set search_path in connection interceptor', err);
+  }
+  return client;
+};
 
 // Basic error handler for the pool to prevent crashes on idle connection loss
 pool.on('error', (err) => {
