@@ -87,6 +87,13 @@ export default function AuthPage() {
                   value={loginUsername}
                   onChange={(e) => setLoginUsername(e.target.value)}
                 />
+                {isAdminLogin && (
+                  <p className="text-[10px] text-muted-foreground mt-1">
+                    {language === 'ar' 
+                      ? '* بالنسبة للمكاتب، يتم استخدام بيانات الدخول التي سجلتها الإدارة عند إضافة الشركة.' 
+                      : '* For offices, please use the credentials registered by the administration during company setup.'}
+                  </p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="password">{language === 'ar' ? 'كلمة المرور' : 'Password'}</Label>
