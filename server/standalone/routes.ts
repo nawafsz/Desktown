@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { type Server } from "http";
 import crypto from "crypto";
 import { storage } from "../storage";
-import { setupAuth, isAuthenticated } from "./auth";
+import { setupAuth, isAuthenticated, hashPassword } from "./auth";
 import {
   ObjectStorageService,
   ObjectNotFoundError,
@@ -3242,8 +3242,35 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
   // Create new office
   app.post('/api/offices', isAuthenticated, requireRole("manager", "admin"), async (req: any, res) => {
     try {
-      const userId = req.user.id;
-      const { name, slug, description, category, location, contactEmail, contactPhone, workingHours } = req.body;
+      const { name, slug, description, category, location, contactEmail, contactPhone, workingHours, username, password } = req.body;
+      let ownerId = req.user.id;
+
+      // If username and password are provided, create/get the renter user
+      if (username && password) {
+        const existingUser = await storage.getUserByUsername(username);
+        if (existingUser) {
+          ownerId = existingUser.id;
+          // Update password if provided
+          const hashedPassword = await hashPassword(password);
+          await storage.upsertUser({
+            ...existingUser,
+            password: hashedPassword,
+            role: "office_renter"
+          });
+        } else {
+          const hashedPassword = await hashPassword(password);
+          const newUser = await storage.upsertUser({
+            username,
+            email: contactEmail || `${username}@desktown.app`,
+            password: hashedPassword,
+            role: "office_renter",
+            firstName: name,
+            lastName: "Manager",
+            status: "offline"
+          });
+          ownerId = newUser.id;
+        }
+      }
 
       // Check if slug already exists
       const existingOffice = await storage.getOfficeBySlug(slug);
@@ -3257,7 +3284,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
         description: description || null,
         category: category || 'general',
         location: location || null,
-        ownerId: userId,
+        ownerId: ownerId,
         contactEmail: contactEmail || null,
         contactPhone: contactPhone || null,
         workingHours: workingHours || null,

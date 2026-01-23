@@ -59,17 +59,6 @@ export default function AuthPage() {
     }
   };
 
-  const handleAdminDirectLogin = async () => {
-    setLoginUsername("admin@desktown.app");
-    setLoginPassword("201667");
-    
-    // Auto-submit after setting
-    setTimeout(() => {
-      const form = document.querySelector('form');
-      if (form) form.requestSubmit();
-    }, 100);
-  };
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
@@ -89,21 +78,6 @@ export default function AuthPage() {
           
           <CardContent>
             <form onSubmit={handleLogin} className="space-y-4">
-              {isAdminLogin && (
-                <div className="p-4 bg-primary/10 rounded-lg border border-primary/20 mb-4 text-center">
-                  <p className="text-sm font-semibold text-primary mb-2">Admin Credentials</p>
-                  <p className="text-xs text-muted-foreground">Email: admin@desktown.app</p>
-                  <p className="text-xs text-muted-foreground">Password: 201667</p>
-                  <Button 
-                    type="button"
-                    variant="link" 
-                    className="text-xs mt-2 h-auto p-0"
-                    onClick={handleAdminDirectLogin}
-                  >
-                    Click to auto-fill and login
-                  </Button>
-                </div>
-              )}
               <div className="space-y-2">
                 <Label htmlFor="username">{language === 'ar' ? 'اسم المستخدم أو البريد' : 'Username or Email'}</Label>
                 <Input 

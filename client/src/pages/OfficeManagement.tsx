@@ -142,6 +142,8 @@ function OfficeForm({
     contactPhone: office?.contactPhone || '',
     workingHours: office?.workingHours || '',
     isPublished: office?.isPublished || false,
+    username: '',
+    password: '',
   });
 
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -376,6 +378,42 @@ function OfficeForm({
           />
         </div>
       </div>
+
+      {!office && (
+        <div className="p-4 bg-muted/50 rounded-lg border border-border space-y-4">
+          <h4 className="text-sm font-semibold">{language === 'ar' ? 'بيانات دخول مدير المكتب' : 'Office Manager Login Details'}</h4>
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="username">{language === 'ar' ? 'اسم المستخدم' : 'Username'} *</Label>
+              <Input
+                id="username"
+                value={formData.username}
+                onChange={(e) => setFormData((prev) => ({ ...prev, username: e.target.value }))}
+                placeholder="manager_username"
+                required={!office}
+                data-testid="input-office-manager-username"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">{language === 'ar' ? 'كلمة المرور' : 'Password'} *</Label>
+              <Input
+                id="password"
+                type="password"
+                value={formData.password}
+                onChange={(e) => setFormData((prev) => ({ ...prev, password: e.target.value }))}
+                placeholder="••••••••"
+                required={!office}
+                data-testid="input-office-manager-password"
+              />
+            </div>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            {language === 'ar' 
+              ? 'سيتم استخدام هذه البيانات لتسجيل دخول مدير المكتب والتحكم في لوحة المكاتب.' 
+              : 'These credentials will be used by the office manager to log in and manage the office.'}
+          </p>
+        </div>
+      )}
 
       <div className="space-y-2">
         <Label htmlFor="workingHours">{t.officeManagement?.workingHours || "Working Hours"}</Label>
