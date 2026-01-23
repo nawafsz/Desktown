@@ -24,10 +24,22 @@ export const pool = new Pool({
   },
 });
 
+// Force search path and log it
+pool.on('connect', async (client) => {
+  try {
+    // Force search path to public to ensure tables are found
+    await client.query("SET search_path TO public");
+    const res = await client.query('SHOW search_path');
+    console.log(`[DB] New client connected. Search path set to: ${res.rows[0].search_path}`);
+  } catch (err) {
+    console.error('[DB] Failed to set search path', err);
+  }
+});
+
 // Basic error handler for the pool to prevent crashes on idle connection loss
 pool.on('error', (err) => {
   console.error('Unexpected error on idle database client', err);
   // Don't exit process here, let the request handler fail if needed
 });
 
-export const db = drizzle(pool, { schema });
+export const db = drizzle(pool, { schema, logger: true });

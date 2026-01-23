@@ -106,6 +106,22 @@ app.use((req, res, next) => {
   // this serves both the API and the client.
   // It is the only port that is not firewalled.
   const port = parseInt(process.env.PORT || "5000", 10);
+  
+  // Log startup info
+  console.log("--- Server Starting ---");
+  console.log(`Environment: ${process.env.NODE_ENV}`);
+  console.log(`Port: ${port}`);
+  try {
+    const { pool } = await import("./db");
+    const client = await pool.connect();
+    const res = await client.query('SELECT current_database(), current_schema()');
+    console.log(`Initial DB Check: Connected to ${res.rows[0].current_database}, Schema: ${res.rows[0].current_schema}`);
+    client.release();
+  } catch (err) {
+    console.error("Initial DB Check Failed:", err);
+  }
+  console.log("-----------------------");
+
   httpServer.listen(
     {
       port,
