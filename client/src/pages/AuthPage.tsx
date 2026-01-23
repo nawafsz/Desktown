@@ -58,12 +58,12 @@ export default function AuthPage() {
   };
 
   const handleAdminDirectLogin = async () => {
-    // Check if we are on the correct port (5001)
-    if (window.location.port !== "5001" && window.location.hostname === "localhost") {
+    // Check if we are on the correct port (5001) ONLY when developing locally
+    if (window.location.hostname === "localhost" && window.location.port !== "5001") {
       toast({
         variant: "destructive",
         title: "خطأ في المنفذ",
-        description: `أنت تستخدم المنفذ ${window.location.port}. يرجى استخدام المنفذ 5001 (http://localhost:5001/auth?admin=true) لتعمل لوحة الإدارة بشكل صحيح.`,
+        description: `أنت تستخدم المنفذ ${window.location.port}. يرجى استخدام المنفذ 5001 (http://localhost:5001/auth?admin=true) لتعمل لوحة الإدارة بشكل صحيح أثناء التطوير المحلي.`,
       });
       return;
     }
@@ -92,7 +92,11 @@ export default function AuthPage() {
       let errorMessage = "حدث خطأ أثناء محاولة الدخول";
       
       if (error.message && (error.message.includes("<!DOCTYPE") || error.message.includes("Unexpected token '<'"))) {
-        errorMessage = "خطأ في الاتصال بالخادم. تأكد من أنك تستخدم المنفذ 5001 (Port 5001) وليس المنفذ الافتراضي.";
+        if (window.location.hostname === "localhost") {
+          errorMessage = "خطأ في الاتصال بالخادم. تأكد من أنك تستخدم المنفذ 5001 (Port 5001) وليس المنفذ الافتراضي.";
+        } else {
+          errorMessage = "حدث خطأ في استجابة الخادم. يرجى تحديث الصفحة والمحاولة مرة أخرى.";
+        }
       } else if (error.message && error.message.includes("{")) {
         try {
           const jsonStr = error.message.substring(error.message.indexOf("{"));
