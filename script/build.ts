@@ -41,7 +41,11 @@ async function buildAll() {
     configFile: path.resolve(process.cwd(), "vite.config.ts"),
   });
 
-  console.log("building server...");
+  const isStandalone = process.env.BUILD_STANDALONE === "true";
+  const entryPoint = isStandalone ? "server/standalone/index.ts" : "server/index.ts";
+  const outfile = isStandalone ? "dist/standalone.cjs" : "dist/index.cjs";
+
+  console.log(`building server (${isStandalone ? 'standalone' : 'default'})...`);
   const pkg = JSON.parse(await readFile("package.json", "utf-8"));
   const allDeps = [
     ...Object.keys(pkg.dependencies || {}),
@@ -50,11 +54,11 @@ async function buildAll() {
   const externals = allDeps.filter((dep) => !allowlist.includes(dep));
 
   await esbuild({
-    entryPoints: ["server/index.ts"],
+    entryPoints: [entryPoint],
     platform: "node",
     bundle: true,
     format: "cjs",
-    outfile: "dist/index.cjs",
+    outfile: outfile,
     define: {
       "process.env.NODE_ENV": '"production"',
     },
