@@ -8,7 +8,7 @@ import {
   canAccessObject,
   getObjectAclPolicy,
   setObjectAclPolicy,
-} from "../objectAcl";
+} from "./objectAcl";
 
 // Standalone Object Storage Service (No Replit sidecar dependency)
 // Requires standard Google Cloud environment variables:
