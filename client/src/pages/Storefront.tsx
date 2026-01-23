@@ -337,7 +337,7 @@ export default function Storefront() {
 
   const handleLogin = () => {
     localStorage.setItem("cloudoffice_redirect", "/");
-    window.location.href = "/api/login";
+    window.location.href = "/auth";
   };
 
   const formatNumber = (num: number) => {

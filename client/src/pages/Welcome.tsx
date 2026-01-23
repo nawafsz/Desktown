@@ -51,7 +51,7 @@ export default function Welcome() {
     { icon: Briefcase, label: language === 'ar' ? 'الوظائف' : 'Jobs', href: "/careers", color: "text-amber-500" },
     { icon: Eye, label: language === 'ar' ? 'دخول الزائر' : 'Visitor', href: "/visitor/offices", color: "text-amber-500" },
     { icon: User, label: language === 'ar' ? 'دخول المؤقت' : 'Temp Login', href: "/employee-portal", color: "text-amber-500" },
-    { icon: DoorOpen, label: language === 'ar' ? 'دخول المكتب' : 'Office Login', href: "/login", color: "text-amber-500" },
+    { icon: DoorOpen, label: language === 'ar' ? 'دخول المكتب' : 'Office Login', href: "/auth", color: "text-amber-500" },
   ];
 
   const featuredOffices = offices.slice(0, 2);

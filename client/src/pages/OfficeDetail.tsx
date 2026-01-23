@@ -710,8 +710,8 @@ export default function OfficeDetail() {
   });
 
   const handleLogin = () => {
-    localStorage.setItem("cloudoffice_redirect", "/");
-    window.location.href = "/api/login";
+    localStorage.setItem("cloudoffice_redirect", `/office/${slug}`);
+    window.location.href = "/auth";
   };
 
   if (officeLoading) {

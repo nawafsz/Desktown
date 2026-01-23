@@ -9,9 +9,11 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/lib/i18n";
 
 export default function AuthPage() {
   const [location, setLocation] = useLocation();
+  const { language } = useLanguage();
   // Check for admin query param
   const searchParams = new URLSearchParams(window.location.search);
   const isAdminLogin = searchParams.get('admin') === 'true';

@@ -1,4 +1,4 @@
-import { Switch, Route, useLocation } from "wouter";
+import { Switch, Route, useLocation, Redirect } from "wouter";
 import { queryClient, apiRequest } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -213,7 +213,7 @@ function AuthenticatedRouter({ userRole }: { userRole: string | null | undefined
           <PlatformManagement />
         </RoleGuard>
       </Route>
-
+      <Route path="/auth" component={AuthPage} />
       <Route component={NotFound} />
     </Switch>
   );
@@ -230,7 +230,10 @@ function VisitorRouter() {
       <Route path="/careers" component={Careers} />
       <Route path="/office/:slug" component={OfficeDetail} />
       <Route path="/profile" component={Profile} />
-      <Route component={Welcome} />
+      <Route path="/auth" component={AuthPage} />
+      <Route>
+        <Redirect to="/welcome" />
+      </Route>
     </Switch>
   );
 }
