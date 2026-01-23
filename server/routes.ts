@@ -39,6 +39,7 @@ import {
   insertServiceOrderSchema,
   insertCompanyDepartmentSchema,
   insertCompanySectionSchema,
+  insertClientSchema,
   type InsertTask,
 } from "@shared/schema";
 import { z } from "zod";
@@ -5311,6 +5312,54 @@ ${priority ? `الأولوية: ${priority}` : ''}
     } catch (error) {
       console.error("Error fetching financial reports:", error);
       res.status(500).json({ message: "Failed to fetch financial reports" });
+    }
+  });
+
+  // =====================
+  // Admin Client (Subscriber) Routes
+  // =====================
+  app.get('/api/admin/clients', isAuthenticated, requireRole("admin"), async (req, res) => {
+    try {
+      const clients = await storage.getClients();
+      res.json(clients);
+    } catch (error) {
+      console.error("Error fetching clients:", error);
+      res.status(500).json({ message: "Failed to fetch clients" });
+    }
+  });
+
+  app.post('/api/admin/clients', isAuthenticated, requireRole("admin"), async (req, res) => {
+    try {
+      const data = insertClientSchema.parse(req.body);
+      const client = await storage.createClient(data);
+      res.status(201).json(client);
+    } catch (error) {
+      console.error("Error creating client:", error);
+      res.status(500).json({ message: "Failed to create client" });
+    }
+  });
+
+  app.patch('/api/admin/clients/:id', isAuthenticated, requireRole("admin"), async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const data = insertClientSchema.partial().parse(req.body);
+      const client = await storage.updateClient(id, data);
+      if (!client) return res.status(404).json({ message: "Client not found" });
+      res.json(client);
+    } catch (error) {
+      console.error("Error updating client:", error);
+      res.status(500).json({ message: "Failed to update client" });
+    }
+  });
+
+  app.delete('/api/admin/clients/:id', isAuthenticated, requireRole("admin"), async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteClient(id);
+      res.sendStatus(204);
+    } catch (error) {
+      console.error("Error deleting client:", error);
+      res.status(500).json({ message: "Failed to delete client" });
     }
   });
 

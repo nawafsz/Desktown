@@ -48,7 +48,7 @@ export const users = pgTable("users", {
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
 
-export const validUserRoles = ['admin', 'manager', 'member', 'office_renter', 'visitor'] as const;
+export const validUserRoles = ['admin', 'manager', 'member', 'office_renter', 'visitor', 'super_admin', 'finance_manager', 'support_agent'] as const;
 export type UserRoleType = typeof validUserRoles[number];
 
 export const updateUserSchema = z.object({
@@ -57,6 +57,59 @@ export const updateUserSchema = z.object({
   status: z.enum(['online', 'offline', 'away', 'busy']).optional(),
 }).strict();
 export type UpdateUser = z.infer<typeof updateUserSchema>;
+
+// ============================================
+// Clients (Subscriber Management Module)
+// ============================================
+export const clients = pgTable("clients", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").references(() => users.id).notNull().unique(), // Link to auth user
+  companyName: varchar("company_name").notNull(),
+  companyManagerName: varchar("company_manager_name").notNull(),
+  crNumber: varchar("cr_number").unique(), // Commercial Registration Number
+  country: varchar("country").notNull(),
+  city: varchar("city").notNull(),
+  phone: varchar("phone").notNull(),
+  subscriptionStartDate: timestamp("subscription_start_date"),
+  subscriptionEndDate: timestamp("subscription_end_date"),
+  subscriptionDurationMonths: integer("subscription_duration_months"),
+  subscriptionAmount: integer("subscription_amount"),
+  status: varchar("status").default("active"), // Active / Suspended / Expired
+  storageQuotaGb: integer("storage_quota_gb").default(10),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const clientsRelations = relations(clients, ({ one }) => ({
+  user: one(users, { fields: [clients.userId], references: [users.id] }),
+}));
+
+export const insertClientSchema = createInsertSchema(clients).omit({ id: true, createdAt: true, updatedAt: true });
+export type InsertClient = z.infer<typeof insertClientSchema>;
+export type Client = typeof clients.$inferSelect;
+
+// ============================================
+// Admin Audit Logs
+// ============================================
+export const adminAuditLogs = pgTable("admin_audit_logs", {
+  id: serial("id").primaryKey(),
+  adminId: varchar("admin_id").references(() => users.id).notNull(),
+  action: varchar("action").notNull(),
+  entityType: varchar("entity_type"), // e.g., 'user', 'subscription', 'ticket'
+  entityId: varchar("entity_id"),
+  details: jsonb("details"),
+  ipAddress: varchar("ip_address"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const adminAuditLogsRelations = relations(adminAuditLogs, ({ one }) => ({
+  admin: one(users, { fields: [adminAuditLogs.adminId], references: [users.id] }),
+}));
+
+export const insertAdminAuditLogSchema = createInsertSchema(adminAuditLogs).omit({ id: true, createdAt: true });
+export type InsertAdminAuditLog = z.infer<typeof insertAdminAuditLogSchema>;
+export type AdminAuditLog = typeof adminAuditLogs.$inferSelect;
 
 // ============================================
 // Tasks

@@ -372,6 +372,16 @@ export default function Landing() {
           </div>
         </div>
 
+        {/* Site Administration Button (Public) */}
+        <div className="flex justify-center pt-8 pb-4">
+          <Link href="/auth?admin=true">
+            <Button variant="ghost" className="text-gray-500 hover:text-white hover:bg-white/5 text-xs gap-2">
+              <ShieldCheck className="h-4 w-4" />
+              {language === 'ar' ? "إدارة الموقع" : "Site Administration"}
+            </Button>
+          </Link>
+        </div>
+
       </div>
 
       {/* Bottom Navigation Bar */}

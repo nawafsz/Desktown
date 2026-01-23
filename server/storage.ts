@@ -2530,6 +2530,36 @@ export class DatabaseStorage implements IStorage {
       payoutsPending: revenue * (1 - commissionRate),
     };
   }
+
+  // =====================
+  // Client Operations
+  // =====================
+  async getClients(): Promise<Client[]> {
+    return await db.select().from(clients).orderBy(desc(clients.createdAt));
+  }
+
+  async getClient(id: number): Promise<Client | undefined> {
+    const [client] = await db.select().from(clients).where(eq(clients.id, id));
+    return client;
+  }
+
+  async createClient(client: InsertClient): Promise<Client> {
+    const [newClient] = await db.insert(clients).values(client).returning();
+    return newClient;
+  }
+
+  async updateClient(id: number, data: Partial<InsertClient>): Promise<Client | undefined> {
+    const [updated] = await db
+      .update(clients)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(clients.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteClient(id: number): Promise<void> {
+    await db.delete(clients).where(eq(clients.id, id));
+  }
 }
 
 export const storage = new DatabaseStorage();
