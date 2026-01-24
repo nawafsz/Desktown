@@ -67,11 +67,42 @@ npm start
 - تم حصر الدخول فقط للحسابات الإدارية المسجلة في قاعدة البيانات لضمان خصوصية العمل.
 - تم دعم النشر على Vercel و Render (للنسخة المستقلة).
 
-## النشر على Render (Standalone)
-لتشغيل النسخة المستقلة على Render:
-1. استخدم `npm run build:standalone` كأمر البناء (Build Command).
-2. استخدم `npm run start:standalone` كأمر التشغيل (Start Command).
-3. تأكد من إضافة `DATABASE_URL` و `SESSION_SECRET` في المتغيرات البيئية.
+## النشر على Render (التطبيق الكامل أو المستقل)
+
+لضمان الاتصال بقاعدة البيانات بشكل مستقر وتجنب أخطاء DNS/IPv6، يرجى اتباع الإعدادات التالية:
+
+### 1. إعدادات البناء والتشغيل (Build & Start)
+
+| الإعداد | للتطبيق الكامل (Frontend + Backend) | للنسخة المستقلة (Backend API Only) |
+| :--- | :--- | :--- |
+| **Build Command** | `npm run build` | `npm run build:standalone` |
+| **Start Command** | `npm run start` | `npm run start:standalone` |
+
+> **ملاحظة:** الأوامر `npm run start` و `npm run start:standalone` تم تحديثها تلقائياً لتستخدم `node --dns-result-order=ipv4first` لحل مشاكل الاتصال.
+
+### 2. المتغيرات البيئية (Environment Variables)
+
+تأكد من إضافة المتغيرات التالية في قسم **Environment**:
+
+- `DATABASE_URL`: `postgresql://postgres:201667%24@db.ngnbwllvwvblvylllvyr.supabase.co:6543/postgres?sslmode=disable`
+- `SUPABASE_URL`: `https://ngnbwllvwvblvylllvyr.supabase.co`
+- `SUPABASE_ANON_KEY`: (المفتاح العام من إعدادات Supabase)
+- `SUPABASE_SERVICE_ROLE_KEY`: (المفتاح السري `sb_secret_...`)
+- `NODE_OPTIONS`: `--max_old_space_size=4096` (لتجنب مشاكل الذاكرة أثناء البناء)
+- `NODE_VERSION`: `20` (أو أحدث)
+
+### 3. حل مشاكل الاتصال (اختياري)
+إذا واجهت مشاكل رغم استخدام `npm run start`، يمكنك استبدال **Start Command** بالأمر المباشر التالي:
+
+- للتطبيق الكامل:
+  ```bash
+  node --dns-result-order=ipv4first dist/index.cjs
+  ```
+
+- للنسخة المستقلة:
+  ```bash
+  node --dns-result-order=ipv4first dist/standalone.cjs
+  ```
 
 ## النشر على Vercel
 تم إضافة دعم Vercel. تأكد من إعداد متغيرات البيئة في لوحة تحكم Vercel.
