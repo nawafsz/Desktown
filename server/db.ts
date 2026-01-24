@@ -4,7 +4,7 @@ import * as schema from "@shared/schema";
 import { URL } from 'url';
 import dns from "dns";
 
-// Force IPv4 globally to resolve ENETUNREACH on IPv6 addresses
+// Ensure we use IPv4 first as Node 17+ defaults to IPv6 first
 dns.setDefaultResultOrder('ipv4first');
 
 if (!process.env.DATABASE_URL) {
@@ -13,47 +13,41 @@ if (!process.env.DATABASE_URL) {
   );
 }
 
-// Ensure we use the most stable connection settings for Supabase
-let connectionString = process.env.DATABASE_URL;
-const dbUrl = new URL(connectionString);
-
-try {
-  // For Supabase, we prefer port 5432 for direct connection with IPv4 force
-  if (dbUrl.hostname.includes('supabase.co')) {
-    dbUrl.port = '5432';
-    console.log(`[DB] Using Supabase direct port 5432`);
-  }
-  
-  // Remove problematic parameters for direct connections
-  dbUrl.searchParams.delete('options');
-  dbUrl.searchParams.delete('sslmode');
-  
-  connectionString = dbUrl.toString();
-  console.log(`[DB] Sanitized connection: ${dbUrl.hostname}:${dbUrl.port || 5432}`);
-} catch (e) {
-  console.log("[DB] Error parsing DATABASE_URL, using as provided");
-}
-
-export const pool = new Pool({
-  host: dbUrl.hostname,
-  port: parseInt(dbUrl.port || '5432'),
-  user: dbUrl.username,
-  password: decodeURIComponent(dbUrl.password),
-  database: dbUrl.pathname.split('/')[1] || 'postgres',
-  ssl: {
-    rejectUnauthorized: false,
-  },
+// Parse the connection string
+let connectionConfig: any = {
   max: 20,
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 15000,
-  keepAlive: true,
-  keepAliveInitialDelayMillis: 10000,
-  // Force IPv4 for the database connection to prevent ENETUNREACH on IPv6-only networks
-  // @ts-ignore - 'family' is supported by pg but might not be in the typings for all versions
-  family: 4
-});
+};
 
-console.log("[DB] Database pool initialized with family: 4 (IPv4 Only)");
+const dbUrl = new URL(process.env.DATABASE_URL);
+
+// Supabase Connection Logic
+// We specifically target the Transaction Pooler on port 6543
+// This avoids IPv6 issues and provides better connection management
+if (dbUrl.hostname.includes('supabase.co')) {
+  console.log(`[DB] Supabase detected. Configuring for Transaction Pooler (IPv4 compatible)...`);
+  
+  // Force port 6543 (Transaction Pooler)
+  dbUrl.port = '6543';
+  
+  // Ensure SSL is required
+  dbUrl.searchParams.set('sslmode', 'require');
+  
+  // Use connection string with updated port
+  connectionConfig.connectionString = dbUrl.toString();
+  
+  // Explicit SSL configuration for pg
+  connectionConfig.ssl = {
+    rejectUnauthorized: false, // Required for Supabase self-signed certs in some regions
+  };
+} else {
+  connectionConfig.connectionString = process.env.DATABASE_URL;
+}
+
+export const pool = new Pool(connectionConfig);
+
+console.log(`[DB] Database pool initialized. Target: ${dbUrl.hostname}:${dbUrl.port}`);
 
 // Monkey-patch pool.connect to enforce search_path on every connection
 // This is necessary because some connection poolers (like Supabase Transaction mode)

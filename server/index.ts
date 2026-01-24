@@ -5,6 +5,21 @@ import dns from "dns";
 // This resolves ENETUNREACH errors in environments with problematic IPv6 routing
 dns.setDefaultResultOrder('ipv4first');
 
+// Validate critical environment variables
+const requiredEnvVars = [
+  'DATABASE_URL',
+  'SUPABASE_URL', 
+  'SUPABASE_ANON_KEY', 
+  'SUPABASE_SERVICE_ROLE_KEY'
+];
+
+const missingEnvVars = requiredEnvVars.filter(key => !process.env[key]);
+if (missingEnvVars.length > 0) {
+  console.error('Missing required environment variables:', missingEnvVars.join(', '));
+  console.error('Please check your .env file or deployment configuration.');
+  process.exit(1);
+}
+
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
@@ -118,13 +133,13 @@ app.use((req, res, next) => {
   console.log(`Environment: ${process.env.NODE_ENV}`);
   console.log(`Port: ${port}`);
   try {
-    const { pool } = await import("./db");
-    const client = await pool.connect();
-    const res = await client.query('SELECT current_database(), current_schema()');
-    console.log(`Initial DB Check: Connected to ${res.rows[0].current_database}, Schema: ${res.rows[0].current_schema}`);
-    client.release();
+    const { sql } = await import("./db_postgres");
+    const res = await sql`SELECT current_database(), current_schema()`;
+    console.log(`Initial DB Check: Connected to ${res[0].current_database}, Schema: ${res[0].current_schema}`);
   } catch (err) {
     console.error("Initial DB Check Failed:", err);
+    // Don't exit process, let the app try to recover or run in degraded mode
+    // Sometimes the initial check fails due to temporary network issues but subsequent requests succeed
   }
   console.log("-----------------------");
 

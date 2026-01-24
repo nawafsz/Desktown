@@ -131,9 +131,12 @@ import {
   clients,
   type Client,
   type InsertClient,
+  platformSettings,
+  type PlatformSetting,
+  type InsertPlatformSetting,
 } from "@shared/schema";
-import { db } from "./db";
-import { eq, desc, and, or, like, sql, inArray } from "drizzle-orm";
+import { db } from "./db_postgres";
+import { eq, or, and, desc, sql, like, ilike } from "drizzle-orm";
 
 export interface IStorage {
   // User operations (Required for Replit Auth)
@@ -449,6 +452,11 @@ export interface IStorage {
   getOtpCode(userId: string, code: string, type: string): Promise<OtpCode | undefined>;
   markOtpAsUsed(id: number): Promise<void>;
   deleteExpiredOtps(): Promise<void>;
+
+  // Platform Settings operations
+  getPlatformSetting(key: string): Promise<PlatformSetting | undefined>;
+  upsertPlatformSetting(setting: InsertPlatformSetting): Promise<PlatformSetting>;
+  getAllPlatformSettings(): Promise<PlatformSetting[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -2610,6 +2618,35 @@ export class DatabaseStorage implements IStorage {
   async deleteExpiredOtps(): Promise<void> {
     const now = new Date();
     await db.delete(otpCodes).where(sql`${otpCodes.expiresAt} <= ${now}`);
+  }
+
+  // =====================
+  // Platform Settings
+  // =====================
+  async getPlatformSetting(key: string): Promise<PlatformSetting | undefined> {
+    const [setting] = await db.select().from(platformSettings).where(eq(platformSettings.configKey, key));
+    return setting;
+  }
+
+  async upsertPlatformSetting(setting: InsertPlatformSetting): Promise<PlatformSetting> {
+    const [upserted] = await db
+      .insert(platformSettings)
+      .values(setting)
+      .onConflictDoUpdate({
+        target: platformSettings.configKey,
+        set: {
+          configValue: setting.configValue,
+          description: setting.description,
+          updatedBy: setting.updatedBy,
+          updatedAt: new Date(),
+        },
+      })
+      .returning();
+    return upserted;
+  }
+
+  async getAllPlatformSettings(): Promise<PlatformSetting[]> {
+    return await db.select().from(platformSettings).orderBy(platformSettings.configKey);
   }
 }
 

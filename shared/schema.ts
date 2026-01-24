@@ -1185,6 +1185,26 @@ export type InsertServiceOrder = z.infer<typeof insertServiceOrderSchema>;
 export type ServiceOrder = typeof serviceOrders.$inferSelect;
 
 // ============================================
+// Platform Settings (Global Administration)
+// ============================================
+export const platformSettings = pgTable("platform_settings", {
+  id: serial("id").primaryKey(),
+  configKey: varchar("config_key").notNull().unique(),
+  configValue: jsonb("config_value").notNull(),
+  description: text("description"),
+  updatedBy: varchar("updated_by").references(() => users.id),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const platformSettingsRelations = relations(platformSettings, ({ one }) => ({
+  updater: one(users, { fields: [platformSettings.updatedBy], references: [users.id] }),
+}));
+
+export const insertPlatformSettingSchema = createInsertSchema(platformSettings).omit({ id: true, updatedAt: true });
+export type InsertPlatformSetting = z.infer<typeof insertPlatformSettingSchema>;
+export type PlatformSetting = typeof platformSettings.$inferSelect;
+
+// ============================================
 // OTP Codes (Authentication)
 // ============================================
 export const otpCodes = pgTable("otp_codes", {
