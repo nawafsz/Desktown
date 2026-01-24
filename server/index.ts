@@ -8,9 +8,7 @@ dns.setDefaultResultOrder('ipv4first');
 // Validate critical environment variables
 const requiredEnvVars = [
   'DATABASE_URL',
-  'SUPABASE_URL', 
-  'SUPABASE_ANON_KEY', 
-  'SUPABASE_SERVICE_ROLE_KEY'
+  // Supabase vars have fallbacks in server/supabase.ts
 ];
 
 const missingEnvVars = requiredEnvVars.filter(key => !process.env[key]);
