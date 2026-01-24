@@ -25,6 +25,13 @@ export default defineConfig({
       input: {
         main: path.resolve(__dirname, "client/index.html"),
       },
+      output: {
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            return 'vendor';
+          }
+        },
+      },
     },
   },
 });
