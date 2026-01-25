@@ -1,6 +1,10 @@
 import postgres from 'postgres';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import * as schema from "@shared/schema";
+import dns from 'dns';
+
+// Force IPv4
+dns.setDefaultResultOrder('ipv4first');
 
 if (!process.env.DATABASE_URL) {
   throw new Error("DATABASE_URL must be set. Did you forget to provision a database?");
@@ -17,7 +21,7 @@ export const sql = postgres(connectionString, {
   ssl: {
     rejectUnauthorized: false
   },
-  connect_timeout: 10,
+  connect_timeout: 30, // Increased timeout
   max: 20,
   idle_timeout: 20,
   onnotice: () => {} // Silence notice logs
