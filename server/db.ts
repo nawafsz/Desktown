@@ -29,7 +29,7 @@ if (dbUrl.hostname.includes('supabase.co')) {
   console.log(`[DB] Supabase detected. Configuring for Transaction Pooler (IPv4 compatible)...`);
   
   // Force port 6543 (Transaction Pooler)
-  dbUrl.port = '6543';
+  dbUrl.port = '5432';
   
   // Ensure SSL is required
   dbUrl.searchParams.set('sslmode', 'require');
