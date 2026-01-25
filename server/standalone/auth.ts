@@ -28,16 +28,18 @@ export function getSession() {
   const sessionTtl = 30 * 24 * 60 * 60 * 1000; // 30 days
   
   return session({
+    name: 'desktown_sid', // Unique name to avoid conflicts
     secret: process.env.SESSION_SECRET || "standalone_secret_key_change_me",
     store: sessionStore,
-    resave: true, // Set to true to ensure session is kept alive
+    resave: false, // Recommended to be false usually
     saveUninitialized: false,
-    rolling: true, // Refresh session on every request
+    rolling: true, 
     cookie: {
-      httpOnly: true,
-      secure: false, // Set to false for local dev stability
+      httpOnly: true, // Prevent JS access
+      secure: false, // Ensure this is false for localhost
       maxAge: sessionTtl,
-      sameSite: 'lax'
+      sameSite: 'lax', // 'lax' is better for navigation
+      path: '/'
     },
   });
 }
@@ -85,6 +87,7 @@ export async function setupAuth(app: Express) {
   );
 
   passport.serializeUser((user: any, done) => {
+    console.log(`[Auth] Serializing user: ${user.id}`);
     // Cache the user object on serialization too
     if (user && user.id) {
       userCache.set(user.id, user);
@@ -93,10 +96,12 @@ export async function setupAuth(app: Express) {
   });
 
   passport.deserializeUser(async (id: string, done) => {
+    console.log(`[Auth] Deserializing user: ${id}`);
     try {
       // Try to get user from DB
       const user = await storage.getUser(id);
       if (user) {
+        console.log(`[Auth] User found in DB: ${user.username}`);
         userCache.set(id, user); // Update cache
         return done(null, user);
       }
@@ -107,6 +112,7 @@ export async function setupAuth(app: Express) {
         return done(null, userCache.get(id));
       }
       
+      console.warn(`[Auth] User not found during deserialization: ${id}`);
       done(null, false);
     } catch (err) {
       console.error(`[Auth] Deserialize error for ${id}:`, err);
@@ -122,15 +128,48 @@ export async function setupAuth(app: Express) {
   });
 
   app.post("/api/login", (req, res, next) => {
+    console.log("[Auth] Login request received");
     passport.authenticate("local", (err: any, user: any, info: any) => {
-      if (err) return next(err);
-      if (!user) return res.status(401).json({ message: info?.message || "Login failed" });
+      if (err) {
+        console.error("[Auth] Login error:", err);
+        return next(err);
+      }
+      if (!user) {
+        console.warn("[Auth] Login failed:", info?.message);
+        return res.status(401).json({ message: info?.message || "Login failed" });
+      }
       
+      console.log(`[Auth] Logging in user: ${user.username} (${user.id})`);
       req.logIn(user, (err) => {
-        if (err) return next(err);
-        return res.json({ message: "Logged in successfully", user });
+        if (err) {
+          console.error("[Auth] req.logIn error:", err);
+          return next(err);
+        }
+        
+        // Force session save to ensure cookie is set
+        console.log("[Auth] Saving session...");
+        req.session.save((err) => {
+          if (err) {
+            console.error("[Auth] Session save error:", err);
+            return next(err);
+          }
+          console.log("[Auth] Session saved successfully");
+          return res.json({ message: "Logged in successfully", user });
+        });
       });
     })(req, res, next);
+  });
+
+  app.get("/api/auth/user", (req, res) => {
+    console.log("[Auth] /api/auth/user requested");
+    console.log("Session ID:", req.sessionID);
+    console.log("Is Authenticated:", req.isAuthenticated());
+    console.log("User in Request:", req.user ? (req.user as any).username : "None");
+    
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+    res.json(req.user);
   });
 
   app.post("/api/admin-direct-login", async (req, res, next) => {

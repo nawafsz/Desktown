@@ -33,16 +33,20 @@ export function getSession() {
   }
 
   return session({
+    name: 'desktown_sid',
     secret: process.env.SESSION_SECRET || "default_dev_secret_key_change_me",
     store: sessionStore,
-    resave: true, // Set to true to ensure session is kept alive
+    resave: false, // Recommended to be false usually
     saveUninitialized: false,
     rolling: true, // Refresh session on every request
     cookie: {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      // Only enable secure if explicitly requested OR we are not on localhost/dev
+      // But for this troubleshooting, let's force false to ensure it works on localhost
+      secure: false, 
       maxAge: sessionTtl,
-      sameSite: 'lax'
+      sameSite: 'lax',
+      path: '/'
     },
   });
 }
@@ -135,7 +139,11 @@ export async function setupAuth(app: Express) {
       
       req.logIn(user, (err) => {
         if (err) return next(err);
-        return res.json({ message: "Logged in successfully", user });
+        
+        req.session.save((err) => {
+          if (err) return next(err);
+          return res.json({ message: "Logged in successfully", user });
+        });
       });
     })(req, res, next);
   });
