@@ -13,10 +13,7 @@ export default function TopHeaderExample() {
     <ThemeProvider>
       <SidebarProvider>
         <div className="w-full">
-          <TopHeader
-            notifications={mockNotifications}
-            onNotificationClick={(id) => console.log("Clicked notification:", id)}
-          />
+          <TopHeader />
         </div>
       </SidebarProvider>
     </ThemeProvider>

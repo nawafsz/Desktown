@@ -123,7 +123,8 @@ export function TopHeader() {
                 {notifications.map((notification) => (
                   <NotificationItem
                     key={notification.id}
-                    id={String(notification.id)}
+                    id={notification.id}
+                    type={notification.type}
                     title={notification.title}
                     message={notification.message || ""}
                     time={notification.createdAt ? new Date(notification.createdAt).toLocaleString() : ""}

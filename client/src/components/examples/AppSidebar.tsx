@@ -6,7 +6,8 @@ export default function AppSidebarExample() {
     <SidebarProvider>
       <AppSidebar
         user={{
-          name: "Sarah Chen",
+          firstName: "Sarah",
+          lastName: "Chen",
           email: "sarah.chen@company.com",
           role: "admin",
         }}

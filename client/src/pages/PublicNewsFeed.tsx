@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { useLanguage } from "@/lib/i18n";
+import { useLanguage, translations } from "@/lib/i18n";
 import { Link } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,7 +9,8 @@ import { ArrowRight, Heart, MessageCircle, Share2, Image, Video, Building2 } fro
 import type { Post } from "@shared/schema";
 
 export default function PublicNewsFeed() {
-  const { language, t } = useLanguage();
+  const { language } = useLanguage();
+  const t = translations[language];
   const isRTL = language === 'ar';
 
   const { data: posts = [], isLoading } = useQuery<Post[]>({

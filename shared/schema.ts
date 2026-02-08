@@ -658,6 +658,7 @@ export const offices = pgTable("offices", {
   ownerId: varchar("owner_id").references(() => users.id).notNull(),
   receptionistId: varchar("receptionist_id").references(() => users.id), // Employee acting as receptionist
   isPublished: boolean("is_published").default(false),
+  approvalStatus: varchar("approval_status").default("pending"), // 'pending', 'approved', 'rejected'
   subscriptionStatus: varchar("subscription_status").default("inactive"), // 'active', 'inactive', 'expired'
   contactEmail: varchar("contact_email"),
   contactPhone: varchar("contact_phone"),
