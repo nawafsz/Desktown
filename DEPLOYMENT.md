@@ -14,7 +14,7 @@
 1. اذهب إلى Render Dashboard > Environment.
 2. عدل المتغير `DATABASE_URL` إلى:
 ```
-postgresql://postgres:Rayan201667%24@db.imzjapteeyxumnevnxmu.supabase.co:5432/postgres?sslmode=no-verify
+postgresql://postgres:Rayan201667$@db.ngnbwllvwvblvylllvyr.supabase.co:5432/postgres?sslmode=no-verify
 ```
 
 **الحل 2: إعادة تفعيل Neon**
@@ -78,50 +78,21 @@ npm start
 | **Build Command** | `npm run build` | `npm run build:standalone` |
 | **Start Command** | `npm run start` | `npm run start:standalone` |
 
+> **ملاحظة:** الأوامر `npm run start` و `npm run start:standalone` تم تحديثها تلقائياً لتستخدم `node --dns-result-order=ipv4first` لحل مشاكل الاتصال.
+
 ### 2. المتغيرات البيئية (Environment Variables)
 
-اذهب إلى **Render Dashboard** → اختر خدمتك → **Environment** → أضف المتغيرات التالية:
+تأكد من إضافة المتغيرات التالية في قسم **Environment**:
 
-#### ✅ متغيرات أساسية (مطلوبة)
-
-```bash
-# قاعدة البيانات - Supabase
-DATABASE_URL=postgresql://postgres:Rayan201667%24@db.imzjapteeyxumnevnxmu.supabase.co:5432/postgres?sslmode=no-verify
-
-# الجلسة والأمان
-SESSION_SECRET=JRtbJe0z9eXAwTAbTSoG0oyt0b7EvdoKlqX/bKbHK3dpsxlqkWYR1ONputW8n6AKFBP2EHpVKq5dJ1c/cQv93A==
-
-# إشعارات الدفع (Push Notifications)
-VAPID_PRIVATE_KEY=dUnwDkyAQndUc2l92-ZqkIPDL7DpJJquS5pn0BcQp6Y
-VAPID_PUBLIC_KEY=BEW6basvmbqUpZrQqjxnpAifjdl1-qdSFHk3yNIGK-_McXzEhWYOByvxpFfegYr7kT0zJ4TBaxjfFi_95q2aLSU
-
-# تخزين الكائنات (Object Storage) - قيم وهمية
-PUBLIC_OBJECT_SEARCH_PATHS=/dummy-bucket/public
-PRIVATE_OBJECT_DIR=/dummy-bucket/private
-
-# البيئة
-REPL_ID=render-deployment
-NODE_VERSION=20
-NODE_ENV=production
-```
-
-#### 📝 ملاحظات مهمة
-
-1. **كلمة المرور في DATABASE_URL**:
-   - استخدم `Rayan201667$` مباشرة (Render يتعامل مع `$` بشكل صحيح)
-   - إذا واجهت مشكلة، جرب: `Rayan201667%24` (حيث `%24` هو ترميز `$`)
-
-2. **لا تضف `NODE_OPTIONS`**: 
-   - حذف المتغير `NODE_OPTIONS=--max_old_space_size=4096` إذا كان موجودًا
-   - يسبب خطأ في Node.js v20
-
-3. **Object Storage**:
-   - القيم المذكورة "وهمية" لمنع أخطاء التشغيل
-   - لن يتم استخدامها إلا عند رفع/تحميل الملفات
+- `DATABASE_URL`: `postgresql://postgres:201667%24@db.ngnbwllvwvblvylllvyr.supabase.co:6543/postgres?sslmode=disable`
+- `SUPABASE_URL`: `https://ngnbwllvwvblvylllvyr.supabase.co`
+- `SUPABASE_ANON_KEY`: (المفتاح العام من إعدادات Supabase)
+- `SUPABASE_SERVICE_ROLE_KEY`: (المفتاح السري `sb_secret_...`)
+- `NODE_OPTIONS`: `--max_old_space_size=4096` (لتجنب مشاكل الذاكرة أثناء البناء)
+- `NODE_VERSION`: `20` (أو أحدث)
 
 ### 3. حل مشاكل الاتصال (اختياري)
-
-إذا واجهت مشاكل رغم الإعدادات أعلاه:
+إذا واجهت مشاكل رغم استخدام `npm run start`، يمكنك استبدال **Start Command** بالأمر المباشر التالي:
 
 - للتطبيق الكامل:
   ```bash
@@ -134,25 +105,10 @@ NODE_ENV=production
   ```
 
 ## النشر على Vercel
-
-اذهب إلى **Vercel Dashboard** → اختر مشروعك → **Settings** → **Environment Variables**
-
-### المتغيرات المطلوبة:
-
-```bash
-# قاعدة البيانات
-DATABASE_URL=postgresql://postgres:Rayan201667%24@db.imzjapteeyxumnevnxmu.supabase.co:5432/postgres?sslmode=no-verify
-
-# الأمان
-SESSION_SECRET=JRtbJe0z9eXAwTAbTSoG0oyt0b7EvdoKlqX/bKbHK3dpsxlqkWYR1ONputW8n6AKFBP2EHpVKq5dJ1c/cQv93A==
-
-# البيئة
-NODE_ENV=production
-
-# Push Notifications (اختياري)
-VAPID_PRIVATE_KEY=dUnwDkyAQndUc2l92-ZqkIPDL7DpJJquS5pn0BcQp6Y
-VAPID_PUBLIC_KEY=BEW6basvmbqUpZrQqjxnpAifjdl1-qdSFHk3yNIGK-_McXzEhWYOByvxpFfegYr7kT0zJ4TBaxjfFi_95q2aLSU
-```
+تم إضافة دعم Vercel. تأكد من إعداد متغيرات البيئة في لوحة تحكم Vercel.
+- `DATABASE_URL`: رابط قاعدة البيانات (Supabase).
+- `SESSION_SECRET`: مفتاح الجلسة.
+- `OPENROUTER_API_KEY`: مفتاح الذكاء الاصطناعي (اختياري).
 
 
 ---

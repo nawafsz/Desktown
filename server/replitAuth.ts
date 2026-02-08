@@ -137,59 +137,121 @@ export async function setupAuth(app: Express) {
     passport.deserializeUser((user: Express.User, cb) => cb(null, user));
 
     app.get("/api/login", async (req, res) => {
-      const requestedRole = (req.query.role as string) || "admin";
-      const profileType = (req.query.type as string) || "office";
-
-      const claims = {
-        sub: `dev-${requestedRole}-id`,
-        email: `${requestedRole}@example.com`,
-        first_name: requestedRole.charAt(0).toUpperCase() + requestedRole.slice(1),
-        last_name: "User",
-        profile_image_url: `https://ui-avatars.com/api/?name=${requestedRole}&background=random`,
-        exp: Math.floor(Date.now() / 1000) + (7 * 24 * 60 * 60), // 1 week
-        role: requestedRole // Add role to claims for mock auth
-      };
-
-      const user = {
-        claims,
-        access_token: "dummy_access_token",
-        refresh_token: "dummy_refresh_token",
-        expires_at: claims.exp
-      };
-
-      // Create/Update user with the specific role
       try {
+        const requestedRole = (req.query.role as string) || "admin";
+        const profileType = (req.query.type as string) || "office";
+
+        const claims = {
+          sub: `dev-${requestedRole}-id`,
+          email: `${requestedRole}@example.com`,
+          first_name: requestedRole.charAt(0).toUpperCase() + requestedRole.slice(1),
+          last_name: "User",
+          profile_image_url: `https://ui-avatars.com/api/?name=${requestedRole}&background=random`,
+          exp: Math.floor(Date.now() / 1000) + (7 * 24 * 60 * 60), // 1 week
+          role: requestedRole // Add role to claims for mock auth
+        };
+
+        const user = {
+          claims,
+          access_token: "dummy_access_token",
+          refresh_token: "dummy_refresh_token",
+          expires_at: claims.exp
+        };
+
+        // Create/Update user with the specific role
+        try {
+          await storage.upsertUser({
+            id: claims.sub,
+            email: claims.email,
+            username: requestedRole,
+            firstName: claims.first_name,
+            lastName: claims.last_name,
+            profileImageUrl: claims.profile_image_url,
+            role: requestedRole, // Set the requested role
+            status: "online",
+          });
+        } catch (err) {
+          console.warn(`[Auth] Failed to persist user to database (running in mock mode?):`, err);
+          // Continue to login anyway
+        }
+
+        req.logIn(user, (loginErr) => {
+          if (loginErr) {
+            console.error("Login error:", loginErr);
+            return res.redirect("/api/login");
+          }
+
+          // Handle redirect based on profile type
+          if (profileType === 'visitor') {
+            return res.redirect("/welcome");
+          } else if (profileType === 'employee') {
+            return res.redirect("/profile/employee");
+          } else if (profileType === 'office') {
+            return res.redirect("/profile/office");
+          }
+          return res.redirect("/");
+        });
+      } catch (err) {
+        console.error("Login route error:", err);
+        res.status(500).send("Login failed due to server error");
+      }
+    });
+
+    app.post("/api/login", async (req, res) => {
+      try {
+        const { username, password } = req.body;
+        // Mock login for form submission
+        // In a real app, verify password. Here we just mock it for dev/render without auth provider
+        const role = username === "admin" ? "admin" : "member"; 
+        
+        const claims = {
+          sub: `dev-${username}-id`,
+          email: `${username}@example.com`,
+          first_name: username,
+          last_name: "User",
+          profile_image_url: `https://ui-avatars.com/api/?name=${username}&background=random`,
+          exp: Math.floor(Date.now() / 1000) + (7 * 24 * 60 * 60)
+        };
+
+        const user = {
+          claims,
+          access_token: "dummy_token",
+          refresh_token: "dummy_refresh",
+          expires_at: claims.exp
+        };
+
         await storage.upsertUser({
           id: claims.sub,
           email: claims.email,
-          username: requestedRole,
-          firstName: claims.first_name,
-          lastName: claims.last_name,
-          profileImageUrl: claims.profile_image_url,
-          role: requestedRole, // Set the requested role
+          username: username,
+          firstName: username,
+          lastName: "User",
+          role: role,
           status: "online",
         });
+
+        req.logIn(user, async (err) => {
+          if (err) return res.status(500).json({ message: "Login failed" });
+          return res.json(await storage.getUser(claims.sub));
+        });
       } catch (err) {
-        console.warn(`[Auth] Failed to persist user to database (running in mock mode?):`, err);
-        // Continue to login anyway
+        console.error("Login POST error:", err);
+        res.status(500).json({ message: "Server error during login" });
       }
-
-      req.logIn(user, (loginErr) => {
-        if (loginErr) {
-          console.error("Login error:", loginErr);
-          return res.redirect("/api/login");
-        }
-
-        // Handle redirect based on profile type
-        if (profileType === 'visitor') {
-          return res.redirect("/welcome");
-        }
-        return res.redirect("/");
-      });
     });
 
+    app.post("/api/logout", (req, res) => {
+      req.logout((err) => {
+        if (err) {
+          console.error("Logout error:", err);
+          return res.sendStatus(500);
+        }
+        res.sendStatus(200);
+      });
+    });
     app.get("/api/logout", (req, res) => {
-      req.logout(() => {
+      req.logout((err) => {
+        if (err) console.error("Logout error:", err);
         res.redirect("/");
       });
     });
