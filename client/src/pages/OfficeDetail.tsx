@@ -40,7 +40,7 @@ import type {
   OfficeMessage,
   VideoCall,
 } from "@shared/schema";
-import { PhoneOff, VideoOff } from "lucide-react";
+import { AIReceptionist } from "@/components/AIReceptionist";
 
 function generateSessionId() {
   const stored = localStorage.getItem('office_chat_session');
@@ -1060,7 +1060,7 @@ export default function OfficeDetail() {
           </div>
 
           <div className="lg:sticky lg:top-24 lg:h-fit space-y-4">
-            <ChatPanel officeId={office.id} officeName={office.name} />
+            <AIReceptionist officeName={office.name} />
             <VideoChatPanel officeId={office.id} officeName={office.name} />
           </div>
         </div>
