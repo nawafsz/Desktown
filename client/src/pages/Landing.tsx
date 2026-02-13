@@ -349,26 +349,9 @@ export default function Landing() {
             <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-1 md:mb-2" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>
               {language === 'ar' ? 'افتح مكتبك السحابي الآن' : 'Open Your Cloud Office Now'}
             </h2>
-            <p className="text-amber-500 text-2xl md:text-3xl lg:text-4xl font-bold mb-4" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>
+            <p className="text-amber-500 text-2xl md:text-3xl lg:text-4xl font-bold" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>
               {language === 'ar' ? '- بدون إيجار تقليدي' : '- No Traditional Rent'}
             </p>
-            <div className="flex gap-3">
-              <Button 
-                onClick={() => setLocation('/careers')}
-                className="bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-full px-6 shadow-lg shadow-amber-500/20"
-              >
-                <Briefcase className="mr-2 h-4 w-4" />
-                {language === 'ar' ? 'ابحث عن وظيفة' : 'Find a Job'}
-              </Button>
-              <Button 
-                variant="outline"
-                onClick={() => setShowProfileModal(true)}
-                className="bg-white/10 border-white/20 text-white hover:bg-white/20 font-bold rounded-full px-6 backdrop-blur-sm"
-              >
-                <User className="mr-2 h-4 w-4" />
-                {language === 'ar' ? 'تسجيل جديد' : 'Register'}
-              </Button>
-            </div>
           </div>
         </div>
 
