@@ -268,21 +268,17 @@ export default function Tickets() {
         <aside className="hidden md:block w-52 shrink-0 rounded-xl bg-white border border-slate-200 py-4 px-3 space-y-2 shadow-sm">
           <div className="px-2 pb-2">
             <p className="text-xs uppercase tracking-wide text-slate-500">
-              {t.tickets?.dashboardSection || "لوحة التحكم"}
+              {t.tickets?.dashboardSection || "المتابعة"}
             </p>
           </div>
 
           <button
             type="button"
-            onClick={handleDashboardClick}
-            className={`flex items-center gap-3 w-full px-3 py-2 rounded-lg text-sm transition border border-transparent ${
-              activeNav === "dashboard"
-                ? "bg-slate-900 text-white font-medium"
-                : "text-slate-700 hover:bg-slate-100"
-            }`}
+            onClick={() => navigate("/follow-up")}
+            className="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-sm transition border border-transparent text-slate-700 hover:bg-slate-100"
           >
             <LayoutDashboard className="h-4 w-4" />
-            <span>{t.tickets?.menuDashboard || "لوحة التحكم"}</span>
+            <span>{t.sidebar?.followUp || "المتابعة"}</span>
           </button>
 
           <button
@@ -482,7 +478,7 @@ export default function Tickets() {
                       onChange={(e) =>
                         setNewTicket({ ...newTicket, title: e.target.value })
                       }
-                      className="bg-white border border-slate-200 focus:border-blue-500"
+                      className="bg-white border border-slate-200 focus:border-blue-500 text-blue-900"
                       data-testid="input-ticket-title"
                     />
                   </div>
@@ -564,7 +560,7 @@ export default function Tickets() {
                           description: e.target.value,
                         })
                       }
-                      className="bg-white border border-slate-200 focus:border-blue-500 min-h-[140px]"
+                      className="bg-white border border-slate-200 focus:border-blue-500 min-h-[140px] text-blue-900"
                       data-testid="input-ticket-description"
                     />
                   </div>

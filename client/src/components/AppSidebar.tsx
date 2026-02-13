@@ -74,7 +74,7 @@ const navigationItems: NavItem[] = [
   { titleKey: "officeManagement", url: "/office-management", icon: Store, categoryKey: "management", allowedRoles: ["manager", "admin"] },
   { titleKey: "servicesShowcase", url: "/services-showcase", icon: Package, categoryKey: "management", allowedRoles: ["manager", "admin"] },
   { titleKey: "jobPostings", url: "/jobs", icon: Briefcase, categoryKey: "management", allowedRoles: ["manager", "admin", "office_renter"] },
-  { titleKey: "humanResources", url: "/hr", icon: Users, categoryKey: "management", allowedRoles: ["manager", "admin", "office_renter"] },
+  // { titleKey: "humanResources", url: "/hr", icon: Users, categoryKey: "management", allowedRoles: ["manager", "admin", "office_renter"] },
   { titleKey: "finances", url: "/finances", icon: DollarSign, categoryKey: "admin", allowedRoles: ["admin"] },
   { titleKey: "advertising", url: "/advertising", icon: Newspaper, categoryKey: "admin", allowedRoles: ["admin"] },
   { titleKey: "accessControl", url: "/access", icon: Shield, categoryKey: "admin", allowedRoles: ["admin"] },

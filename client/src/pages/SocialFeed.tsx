@@ -363,7 +363,7 @@ export default function SocialFeed() {
                 <div className="mt-3 flex items-center gap-2">
                   <ObjectUploader
                     maxNumberOfFiles={1}
-                    maxFileSize={10485760}
+                    maxFileSize={5242880}
                     allowedFileTypes={["image/*"]}
                     onGetUploadParameters={getUploadParams}
                     onComplete={(result) =>

@@ -504,6 +504,35 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
     }
   });
 
+  // Get employee profile with department info
+  app.get('/api/employee/profile', validateEmployeeSession, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.employeeSession.userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      let employee = null;
+      let department = null;
+
+      if (user.email) {
+        employee = await storage.getRemoteEmployeeByEmail(user.email);
+        if (employee) {
+          department = await storage.getDepartment(employee.departmentId);
+        }
+      }
+
+      res.json({
+        user,
+        employee,
+        department
+      });
+    } catch (error) {
+      console.error("Error fetching employee profile:", error);
+      res.status(500).json({ message: "Failed to fetch profile" });
+    }
+  });
+
   // Logout endpoint
   app.post('/api/employee/logout', validateEmployeeSession, async (req: any, res) => {
     try {

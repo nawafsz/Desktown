@@ -47,6 +47,21 @@ import {
   Home,
   Building2,
   Briefcase,
+  Calculator,
+  Receipt,
+  TrendingUp,
+  CreditCard,
+  Award,
+  Shield,
+  FileSearch,
+  Target,
+  Share2,
+  BarChart3,
+  Package,
+  ListChecks,
+  BookOpen,
+  Truck,
+  Wrench,
 } from "lucide-react";
 import { Link } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
@@ -100,6 +115,14 @@ interface EmployeeDocument {
   createdAt: string;
 }
 
+interface Tool {
+  id: string;
+  name: string;
+  description: string;
+  icon: any;
+  color: string;
+}
+
 export default function EmployeePortal() {
   const { language } = useLanguage();
   const { toast } = useToast();
@@ -119,6 +142,93 @@ export default function EmployeePortal() {
   const [isUploading, setIsUploading] = useState(false);
   const [isUploadingDoc, setIsUploadingDoc] = useState(false);
   const [docDescription, setDocDescription] = useState("");
+  const [selectedTool, setSelectedTool] = useState<Tool | null>(null);
+
+  const { data: profile } = useQuery({
+    queryKey: ['/api/employee/profile', session?.token],
+    queryFn: async () => {
+      const response = await fetch('/api/employee/profile', {
+        headers: getAuthHeaders(),
+      });
+      if (!response.ok) return null;
+      return response.json();
+    },
+    enabled: !!session,
+  });
+
+  const normalizeIconKey = (icon: string): string => {
+    const iconMap: Record<string, string> = {
+      "dollar-sign": "dollarSign",
+      "dollarsign": "dollarSign",
+      "heart-handshake": "hearthandshake",
+    };
+    return iconMap[icon.toLowerCase()] || icon;
+  };
+
+  const departmentTools: Record<string, Tool[]> = {
+    calculator: [
+      { id: "financial-accounting", name: language === 'ar' ? "النظام المالي" : "Financial System", description: language === 'ar' ? "الوصول للنظام المحاسبي" : "Access Financial Accounting Module", icon: Calculator, color: "text-blue-600" },
+      { id: "budget", name: language === 'ar' ? "تخطيط الميزانية" : "Budget Planner", description: language === 'ar' ? "تخطيط وتتبع الميزانية" : "Plan and track departmental budgets", icon: Calculator, color: "text-blue-500" },
+      { id: "expenses", name: language === 'ar' ? "متتبع المصروفات" : "Expense Tracker", description: language === 'ar' ? "تسجيل وتصنيف المصروفات" : "Log and categorize expenses", icon: Receipt, color: "text-green-500" },
+      { id: "invoices", name: language === 'ar' ? "إدارة الفواتير" : "Invoice Manager", description: language === 'ar' ? "إنشاء وإدارة الفواتير" : "Create and manage invoices", icon: FileText, color: "text-purple-500" },
+      { id: "reports", name: language === 'ar' ? "التقارير المالية" : "Financial Reports", description: language === 'ar' ? "إنشاء ملخصات مالية" : "Generate financial summaries", icon: TrendingUp, color: "text-orange-500" },
+      { id: "payroll", name: language === 'ar' ? "حاسبة الرواتب" : "Payroll Calculator", description: language === 'ar' ? "حساب مدفوعات الموظفين" : "Calculate employee payments", icon: CreditCard, color: "text-pink-500" },
+    ],
+    hearthandshake: [
+      { id: "hr-system", name: language === 'ar' ? "نظام الموارد البشرية" : "HR Management System", description: language === 'ar' ? "إدارة الموظفين والرواتب والعمليات" : "Full HR Suite", icon: Users, color: "text-rose-600" },
+      { id: "leave", name: language === 'ar' ? "متتبع الإجازات" : "Leave Tracker", description: language === 'ar' ? "إدارة طلبات الإجازة" : "Manage employee leave requests", icon: Clock, color: "text-blue-500" },
+      { id: "performance", name: language === 'ar' ? "تقييم الأداء" : "Performance Reviews", description: language === 'ar' ? "تتبع تقييمات الموظفين" : "Track employee evaluations", icon: Award, color: "text-yellow-500" },
+      { id: "directory", name: language === 'ar' ? "دليل الموظفين" : "Employee Directory", description: language === 'ar' ? "قاعدة بيانات الموظفين" : "Searchable employee database", icon: Users, color: "text-green-500" },
+      { id: "recruitment", name: language === 'ar' ? "التوظيف" : "Recruitment Pipeline", description: language === 'ar' ? "تتبع عملية التوظيف" : "Track hiring progress", icon: Users, color: "text-purple-500" },
+      { id: "onboarding", name: language === 'ar' ? "التهيئة" : "Onboarding Checklist", description: language === 'ar' ? "مهام الموظفين الجدد" : "New hire onboarding tasks", icon: ClipboardList, color: "text-pink-500" },
+    ],
+    scale: [
+      { id: "contracts", name: language === 'ar' ? "نماذج العقود" : "Contract Templates", description: "Legal document templates", icon: FileText, color: "text-blue-500" },
+      { id: "compliance", name: language === 'ar' ? "الامتثال" : "Compliance Checklist", description: "Regulatory requirements tracker", icon: Shield, color: "text-green-500" },
+      { id: "cases", name: language === 'ar' ? "القضايا" : "Case Tracker", description: "Manage legal cases and matters", icon: FileSearch, color: "text-purple-500" },
+      { id: "documents", name: language === 'ar' ? "مستودع الوثائق" : "Document Repository", description: "Secure legal document storage", icon: FolderOpen, color: "text-orange-500" },
+    ],
+    megaphone: [
+      { id: "campaigns", name: language === 'ar' ? "الحملات" : "Campaign Tracker", description: "Monitor marketing campaigns", icon: Target, color: "text-blue-500" },
+      { id: "content", name: language === 'ar' ? "جدول المحتوى" : "Content Calendar", description: "Plan content schedule", icon: Calendar, color: "text-green-500" },
+      { id: "analytics", name: language === 'ar' ? "التحليلات" : "Analytics Dashboard", description: "Track marketing metrics", icon: BarChart3, color: "text-purple-500" },
+      { id: "social", name: language === 'ar' ? "إدارة التواصل" : "Social Media Manager", description: "Manage social accounts", icon: Share2, color: "text-pink-500" },
+    ],
+    settings: [
+      { id: "inventory-management", name: language === 'ar' ? "نظام المخزون" : "Inventory System", description: language === 'ar' ? "الوصول لنظام إدارة المخزون" : "Access Inventory Management Module", icon: Package, color: "text-green-600" },
+      { id: "projects", name: language === 'ar' ? "تتبع المشاريع" : "Project Tracker", description: "Monitor project progress", icon: ListChecks, color: "text-blue-500" },
+      { id: "inventory", name: language === 'ar' ? "مدير المخزون" : "Inventory Manager", description: "Track stock and supplies", icon: Package, color: "text-green-500" },
+      { id: "processes", name: language === 'ar' ? "التوثيق" : "Process Documentation", description: "Document workflows", icon: BookOpen, color: "text-purple-500" },
+    ],
+    package: [
+      { id: "inventory-management", name: language === 'ar' ? "نظام المخزون" : "Inventory System", description: language === 'ar' ? "الوصول لنظام إدارة المخزون" : "Access Inventory Management Module", icon: Package, color: "text-green-600" },
+      { id: "logistics", name: language === 'ar' ? "اللوجستيات" : "Logistics", description: "Manage shipping and receiving", icon: Truck, color: "text-orange-500" },
+    ],
+    dollarSign: [
+      { id: "pipeline", name: language === 'ar' ? "خط المبيعات" : "Sales Pipeline", description: "Track deals and opportunities", icon: TrendingUp, color: "text-blue-500" },
+      { id: "leads", name: language === 'ar' ? "العملاء المحتملين" : "Lead Tracker", description: "Manage sales leads", icon: Target, color: "text-green-500" },
+      { id: "quotes", name: language === 'ar' ? "عروض الأسعار" : "Quote Generator", description: "Create sales proposals", icon: FileText, color: "text-purple-500" },
+      { id: "clients", name: language === 'ar' ? "قاعدة العملاء" : "Client Database", description: "Customer relationship manager", icon: Users, color: "text-orange-500" },
+    ],
+    users: [
+      { id: "calendar", name: language === 'ar' ? "تقويم الفريق" : "Team Calendar", description: "Shared team schedule", icon: Calendar, color: "text-blue-500" },
+      { id: "meetings", name: language === 'ar' ? "الاجتماعات" : "Meeting Scheduler", description: "Plan team meetings", icon: Clock, color: "text-purple-500" },
+      { id: "board", name: language === 'ar' ? "لوحة المهام" : "Collaboration Board", description: "Team task board", icon: ListChecks, color: "text-orange-500" },
+    ],
+    briefcase: [
+      { id: "tasks", name: language === 'ar' ? "المهام" : "Task Board", description: "Manage team tasks", icon: ListChecks, color: "text-blue-500" },
+      { id: "notes", name: language === 'ar' ? "الملاحظات" : "Team Notes", description: "Shared documentation", icon: FileText, color: "text-green-500" },
+      { id: "files", name: language === 'ar' ? "الملفات" : "File Manager", description: "Organize team files", icon: FolderOpen, color: "text-purple-500" },
+    ],
+  };
+
+  const getEmployeeTools = () => {
+    if (!profile?.department) return [];
+    const normalizedIcon = normalizeIconKey(profile.department.icon || "briefcase");
+    return departmentTools[normalizedIcon] || departmentTools.briefcase;
+  };
+
+  const employeeTools = getEmployeeTools();
 
   const getAuthHeaders = () => ({
     'Content-Type': 'application/json',
@@ -959,6 +1069,10 @@ export default function EmployeePortal() {
 
         <Tabs value={mainTab} onValueChange={setMainTab} className="w-full">
           <TabsList className="mb-6">
+            <TabsTrigger value="tools" className="gap-2" data-testid="tab-main-tools">
+              <Wrench className="h-4 w-4" />
+              {language === 'ar' ? 'الأدوات' : 'Tools'}
+            </TabsTrigger>
             <TabsTrigger value="tasks" className="gap-2" data-testid="tab-main-tasks">
               <ClipboardList className="h-4 w-4" />
               {language === 'ar' ? 'المهام' : 'Tasks'}
@@ -981,6 +1095,42 @@ export default function EmployeePortal() {
               {documents.length > 0 && <Badge variant="secondary" className="ml-1">{documents.length}</Badge>}
             </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="tools" className="mt-0">
+             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {employeeTools.map((tool) => (
+                <Card 
+                  key={tool.id} 
+                  className="cursor-pointer hover:shadow-lg transition-all hover:border-primary/50"
+                  onClick={() => {
+                    if (tool.id === 'hr-system') window.location.href = '/hr';
+                    else if (tool.id === 'financial-accounting') window.location.href = '/financial-accounting';
+                    else {
+                      toast({
+                        title: tool.name,
+                        description: language === 'ar' ? 'جاري العمل على هذه الأداة' : 'This tool is under development',
+                      });
+                    }
+                  }}
+                >
+                  <CardContent className="p-6 flex items-center gap-4">
+                    <div className={`p-3 rounded-xl bg-slate-100 dark:bg-slate-800 ${tool.color}`}>
+                      <tool.icon className="w-8 h-8" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-lg">{tool.name}</h3>
+                      <p className="text-sm text-muted-foreground">{tool.description}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+              {employeeTools.length === 0 && (
+                 <div className="col-span-full text-center py-12 text-muted-foreground">
+                   {language === 'ar' ? 'لا توجد أدوات متاحة لقسمك حالياً' : 'No tools available for your department yet'}
+                 </div>
+              )}
+            </div>
+          </TabsContent>
 
           <TabsContent value="tasks" className="mt-0">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">

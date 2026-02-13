@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useParams, Link } from "wouter";
@@ -28,6 +29,7 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useLanguage } from "@/lib/i18n";
 import {
   ArrowLeft,
   Plus,
@@ -83,91 +85,12 @@ interface Tool {
   color: string;
 }
 
-interface ToolCategory {
-  specialty: string;
-  tools: Tool[];
-}
-
-const departmentTools: Record<string, Tool[]> = {
-  calculator: [
-    { id: "financial-accounting", name: "Financial System", description: "Access Financial Accounting Module", icon: Calculator, color: "text-blue-600" },
-    { id: "budget", name: "Budget Planner", description: "Plan and track departmental budgets", icon: Calculator, color: "text-blue-500" },
-    { id: "expenses", name: "Expense Tracker", description: "Log and categorize expenses", icon: Receipt, color: "text-green-500" },
-    { id: "invoices", name: "Invoice Manager", description: "Create and manage invoices", icon: FileText, color: "text-purple-500" },
-    { id: "reports", name: "Financial Reports", description: "Generate financial summaries", icon: TrendingUp, color: "text-orange-500" },
-    { id: "payroll", name: "Payroll Calculator", description: "Calculate employee payments", icon: CreditCard, color: "text-pink-500" },
-    { id: "forecast", name: "Cash Flow Forecast", description: "Project future cash flows", icon: PieChart, color: "text-cyan-500" },
-  ],
-  hearthandshake: [
-    { id: "leave", name: "Leave Tracker", description: "Manage employee leave requests", icon: Clock, color: "text-blue-500" },
-    { id: "performance", name: "Performance Reviews", description: "Track employee evaluations", icon: Award, color: "text-yellow-500" },
-    { id: "directory", name: "Employee Directory", description: "Searchable employee database", icon: Users, color: "text-green-500" },
-    { id: "recruitment", name: "Recruitment Pipeline", description: "Track hiring progress", icon: UserCheck, color: "text-purple-500" },
-    { id: "training", name: "Training Manager", description: "Organize training programs", icon: GraduationCap, color: "text-orange-500" },
-    { id: "onboarding", name: "Onboarding Checklist", description: "New hire onboarding tasks", icon: ClipboardList, color: "text-pink-500" },
-  ],
-  scale: [
-    { id: "contracts", name: "Contract Templates", description: "Legal document templates", icon: FileText, color: "text-blue-500" },
-    { id: "compliance", name: "Compliance Checklist", description: "Regulatory requirements tracker", icon: Shield, color: "text-green-500" },
-    { id: "cases", name: "Case Tracker", description: "Manage legal cases and matters", icon: FileSearch, color: "text-purple-500" },
-    { id: "documents", name: "Document Repository", description: "Secure legal document storage", icon: FolderOpen, color: "text-orange-500" },
-    { id: "policies", name: "Policy Manager", description: "Company policy management", icon: BookOpen, color: "text-cyan-500" },
-    { id: "disputes", name: "Dispute Resolution", description: "Track and resolve disputes", icon: Gavel, color: "text-red-500" },
-  ],
-  megaphone: [
-    { id: "campaigns", name: "Campaign Tracker", description: "Monitor marketing campaigns", icon: Target, color: "text-blue-500" },
-    { id: "content", name: "Content Calendar", description: "Plan content schedule", icon: Calendar, color: "text-green-500" },
-    { id: "analytics", name: "Analytics Dashboard", description: "Track marketing metrics", icon: BarChart3, color: "text-purple-500" },
-    { id: "social", name: "Social Media Manager", description: "Manage social accounts", icon: Share2, color: "text-pink-500" },
-    { id: "brand", name: "Brand Assets", description: "Brand guidelines and assets", icon: Palette, color: "text-orange-500" },
-    { id: "leads", name: "Lead Generation", description: "Track marketing leads", icon: TrendingUp, color: "text-cyan-500" },
-  ],
-  settings: [
-    { id: "inventory-management", name: "Inventory System", description: "Access Inventory Management Module", icon: Package, color: "text-green-600" },
-    { id: "projects", name: "Project Tracker", description: "Monitor project progress", icon: ListChecks, color: "text-blue-500" },
-    { id: "inventory", name: "Inventory Manager", description: "Track stock and supplies", icon: Package, color: "text-green-500" },
-    { id: "processes", name: "Process Documentation", description: "Document workflows", icon: BookOpen, color: "text-purple-500" },
-    { id: "quality", name: "Quality Metrics", description: "Track quality standards", icon: Gauge, color: "text-orange-500" },
-    { id: "vendors", name: "Vendor Management", description: "Manage supplier relationships", icon: Truck, color: "text-cyan-500" },
-    { id: "maintenance", name: "Maintenance Scheduler", description: "Schedule equipment maintenance", icon: Wrench, color: "text-red-500" },
-  ],
-  package: [
-    { id: "inventory-management", name: "Inventory System", description: "Access Inventory Management Module", icon: Package, color: "text-green-600" },
-    { id: "projects", name: "Project Tracker", description: "Monitor project progress", icon: ListChecks, color: "text-blue-500" },
-    { id: "inventory", name: "Inventory Manager", description: "Track stock and supplies", icon: Package, color: "text-green-500" },
-    { id: "vendors", name: "Vendor Management", description: "Manage supplier relationships", icon: Truck, color: "text-cyan-500" },
-    { id: "logistics", name: "Logistics", description: "Manage shipping and receiving", icon: Truck, color: "text-orange-500" },
-  ],
-  dollarSign: [
-    { id: "pipeline", name: "Sales Pipeline", description: "Track deals and opportunities", icon: TrendingUp, color: "text-blue-500" },
-    { id: "leads", name: "Lead Tracker", description: "Manage sales leads", icon: Target, color: "text-green-500" },
-    { id: "quotes", name: "Quote Generator", description: "Create sales proposals", icon: FileText, color: "text-purple-500" },
-    { id: "clients", name: "Client Database", description: "Customer relationship manager", icon: Users, color: "text-orange-500" },
-    { id: "commission", name: "Commission Calculator", description: "Calculate sales commissions", icon: Calculator, color: "text-pink-500" },
-    { id: "forecasts", name: "Sales Forecasts", description: "Project future sales", icon: PieChart, color: "text-cyan-500" },
-  ],
-  users: [
-    { id: "calendar", name: "Team Calendar", description: "Shared team schedule", icon: Calendar, color: "text-blue-500" },
-    { id: "resources", name: "Resource Allocation", description: "Assign team resources", icon: Users, color: "text-green-500" },
-    { id: "meetings", name: "Meeting Scheduler", description: "Plan team meetings", icon: Clock, color: "text-purple-500" },
-    { id: "board", name: "Collaboration Board", description: "Team task board", icon: ListChecks, color: "text-orange-500" },
-    { id: "analytics", name: "Team Analytics", description: "Team performance metrics", icon: BarChart3, color: "text-pink-500" },
-    { id: "chat", name: "Team Chat", description: "Internal messaging", icon: MessageSquare, color: "text-cyan-500" },
-  ],
-  briefcase: [
-    { id: "tasks", name: "Task Board", description: "Manage team tasks", icon: ListChecks, color: "text-blue-500" },
-    { id: "notes", name: "Team Notes", description: "Shared documentation", icon: FileText, color: "text-green-500" },
-    { id: "files", name: "File Manager", description: "Organize team files", icon: FolderOpen, color: "text-purple-500" },
-    { id: "calendar", name: "Department Calendar", description: "Schedule and events", icon: Calendar, color: "text-orange-500" },
-    { id: "announcements", name: "Announcements", description: "Team updates and news", icon: Bell, color: "text-pink-500" },
-    { id: "directory", name: "Contact Directory", description: "Quick contact lookup", icon: Users, color: "text-cyan-500" },
-  ],
-};
-
 export default function Department() {
   const { id } = useParams<{ id: string }>();
   const departmentId = parseInt(id || "0");
   const { toast } = useToast();
+  const { language, isRTL } = useLanguage();
+  
   const [newEmployeeOpen, setNewEmployeeOpen] = useState(false);
   const [editEmployee, setEditEmployee] = useState<RemoteEmployee | null>(null);
   const [selectedTool, setSelectedTool] = useState<Tool | null>(null);
@@ -208,12 +131,15 @@ export default function Department() {
       queryClient.invalidateQueries({ queryKey: ["/api/departments", departmentId, "employees"] });
       resetForm();
       setNewEmployeeOpen(false);
-      toast({ title: "Employee Added", description: "Remote employee has been added to the department." });
+      toast({ 
+        title: language === 'ar' ? "تم إضافة الموظف" : "Employee Added", 
+        description: language === 'ar' ? "تم إضافة الموظف للقسم بنجاح" : "Remote employee has been added to the department." 
+      });
     },
     onError: (error: any) => {
       toast({
-        title: "Error",
-        description: error?.message || "Failed to add employee. Username may already exist.",
+        title: language === 'ar' ? "خطأ" : "Error",
+        description: error?.message || (language === 'ar' ? "فشل إضافة الموظف. قد يكون اسم المستخدم موجوداً مسبقاً." : "Failed to add employee. Username may already exist."),
         variant: "destructive",
       });
     },
@@ -228,10 +154,17 @@ export default function Department() {
       queryClient.invalidateQueries({ queryKey: ["/api/departments", departmentId, "employees"] });
       setEditEmployee(null);
       resetForm();
-      toast({ title: "Employee Updated", description: "Employee information has been updated." });
+      toast({ 
+        title: language === 'ar' ? "تم تحديث الموظف" : "Employee Updated", 
+        description: language === 'ar' ? "تم تحديث بيانات الموظف بنجاح" : "Employee information has been updated." 
+      });
     },
     onError: () => {
-      toast({ title: "Error", description: "Failed to update employee.", variant: "destructive" });
+      toast({ 
+        title: language === 'ar' ? "خطأ" : "Error", 
+        description: language === 'ar' ? "فشل تحديث البيانات" : "Failed to update employee.", 
+        variant: "destructive" 
+      });
     },
   });
 
@@ -241,7 +174,10 @@ export default function Department() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/departments", departmentId, "employees"] });
-      toast({ title: "Employee Removed", description: "Employee has been removed from the department." });
+      toast({ 
+        title: language === 'ar' ? "تم حذف الموظف" : "Employee Removed", 
+        description: language === 'ar' ? "تم إزالة الموظف من القسم" : "Employee has been removed from the department." 
+      });
     },
   });
 
@@ -296,6 +232,64 @@ export default function Department() {
     return iconMap[icon.toLowerCase()] || icon;
   };
 
+  // Tools Configuration with Translations
+  const departmentTools: Record<string, Tool[]> = {
+    calculator: [
+      { id: "financial-accounting", name: language === 'ar' ? "النظام المالي" : "Financial System", description: language === 'ar' ? "الوصول للنظام المحاسبي" : "Access Financial Accounting Module", icon: Calculator, color: "text-blue-600" },
+      { id: "budget", name: language === 'ar' ? "تخطيط الميزانية" : "Budget Planner", description: language === 'ar' ? "تخطيط وتتبع الميزانية" : "Plan and track departmental budgets", icon: Calculator, color: "text-blue-500" },
+      { id: "expenses", name: language === 'ar' ? "متتبع المصروفات" : "Expense Tracker", description: language === 'ar' ? "تسجيل وتصنيف المصروفات" : "Log and categorize expenses", icon: Receipt, color: "text-green-500" },
+      { id: "invoices", name: language === 'ar' ? "إدارة الفواتير" : "Invoice Manager", description: language === 'ar' ? "إنشاء وإدارة الفواتير" : "Create and manage invoices", icon: FileText, color: "text-purple-500" },
+      { id: "reports", name: language === 'ar' ? "التقارير المالية" : "Financial Reports", description: language === 'ar' ? "إنشاء ملخصات مالية" : "Generate financial summaries", icon: TrendingUp, color: "text-orange-500" },
+      { id: "payroll", name: language === 'ar' ? "حاسبة الرواتب" : "Payroll Calculator", description: language === 'ar' ? "حساب مدفوعات الموظفين" : "Calculate employee payments", icon: CreditCard, color: "text-pink-500" },
+    ],
+    hearthandshake: [
+      { id: "hr-system", name: language === 'ar' ? "نظام الموارد البشرية" : "HR Management System", description: language === 'ar' ? "إدارة الموظفين والرواتب والعمليات" : "Full HR Suite", icon: Users, color: "text-rose-600" },
+      { id: "leave", name: language === 'ar' ? "متتبع الإجازات" : "Leave Tracker", description: language === 'ar' ? "إدارة طلبات الإجازة" : "Manage employee leave requests", icon: Clock, color: "text-blue-500" },
+      { id: "performance", name: language === 'ar' ? "تقييم الأداء" : "Performance Reviews", description: language === 'ar' ? "تتبع تقييمات الموظفين" : "Track employee evaluations", icon: Award, color: "text-yellow-500" },
+      { id: "directory", name: language === 'ar' ? "دليل الموظفين" : "Employee Directory", description: language === 'ar' ? "قاعدة بيانات الموظفين" : "Searchable employee database", icon: Users, color: "text-green-500" },
+      { id: "recruitment", name: language === 'ar' ? "التوظيف" : "Recruitment Pipeline", description: language === 'ar' ? "تتبع عملية التوظيف" : "Track hiring progress", icon: UserCheck, color: "text-purple-500" },
+      { id: "onboarding", name: language === 'ar' ? "التهيئة" : "Onboarding Checklist", description: language === 'ar' ? "مهام الموظفين الجدد" : "New hire onboarding tasks", icon: ClipboardList, color: "text-pink-500" },
+    ],
+    scale: [
+      { id: "contracts", name: language === 'ar' ? "نماذج العقود" : "Contract Templates", description: "Legal document templates", icon: FileText, color: "text-blue-500" },
+      { id: "compliance", name: language === 'ar' ? "الامتثال" : "Compliance Checklist", description: "Regulatory requirements tracker", icon: Shield, color: "text-green-500" },
+      { id: "cases", name: language === 'ar' ? "القضايا" : "Case Tracker", description: "Manage legal cases and matters", icon: FileSearch, color: "text-purple-500" },
+      { id: "documents", name: language === 'ar' ? "مستودع الوثائق" : "Document Repository", description: "Secure legal document storage", icon: FolderOpen, color: "text-orange-500" },
+    ],
+    megaphone: [
+      { id: "campaigns", name: language === 'ar' ? "الحملات" : "Campaign Tracker", description: "Monitor marketing campaigns", icon: Target, color: "text-blue-500" },
+      { id: "content", name: language === 'ar' ? "جدول المحتوى" : "Content Calendar", description: "Plan content schedule", icon: Calendar, color: "text-green-500" },
+      { id: "analytics", name: language === 'ar' ? "التحليلات" : "Analytics Dashboard", description: "Track marketing metrics", icon: BarChart3, color: "text-purple-500" },
+      { id: "social", name: language === 'ar' ? "إدارة التواصل" : "Social Media Manager", description: "Manage social accounts", icon: Share2, color: "text-pink-500" },
+    ],
+    settings: [
+      { id: "inventory-management", name: language === 'ar' ? "نظام المخزون" : "Inventory System", description: language === 'ar' ? "الوصول لنظام إدارة المخزون" : "Access Inventory Management Module", icon: Package, color: "text-green-600" },
+      { id: "projects", name: language === 'ar' ? "تتبع المشاريع" : "Project Tracker", description: "Monitor project progress", icon: ListChecks, color: "text-blue-500" },
+      { id: "inventory", name: language === 'ar' ? "مدير المخزون" : "Inventory Manager", description: "Track stock and supplies", icon: Package, color: "text-green-500" },
+      { id: "processes", name: language === 'ar' ? "التوثيق" : "Process Documentation", description: "Document workflows", icon: BookOpen, color: "text-purple-500" },
+    ],
+    package: [
+      { id: "inventory-management", name: language === 'ar' ? "نظام المخزون" : "Inventory System", description: language === 'ar' ? "الوصول لنظام إدارة المخزون" : "Access Inventory Management Module", icon: Package, color: "text-green-600" },
+      { id: "logistics", name: language === 'ar' ? "اللوجستيات" : "Logistics", description: "Manage shipping and receiving", icon: Truck, color: "text-orange-500" },
+    ],
+    dollarSign: [
+      { id: "pipeline", name: language === 'ar' ? "خط المبيعات" : "Sales Pipeline", description: "Track deals and opportunities", icon: TrendingUp, color: "text-blue-500" },
+      { id: "leads", name: language === 'ar' ? "العملاء المحتملين" : "Lead Tracker", description: "Manage sales leads", icon: Target, color: "text-green-500" },
+      { id: "quotes", name: language === 'ar' ? "عروض الأسعار" : "Quote Generator", description: "Create sales proposals", icon: FileText, color: "text-purple-500" },
+      { id: "clients", name: language === 'ar' ? "قاعدة العملاء" : "Client Database", description: "Customer relationship manager", icon: Users, color: "text-orange-500" },
+    ],
+    users: [
+      { id: "calendar", name: language === 'ar' ? "تقويم الفريق" : "Team Calendar", description: "Shared team schedule", icon: Calendar, color: "text-blue-500" },
+      { id: "meetings", name: language === 'ar' ? "الاجتماعات" : "Meeting Scheduler", description: "Plan team meetings", icon: Clock, color: "text-purple-500" },
+      { id: "board", name: language === 'ar' ? "لوحة المهام" : "Collaboration Board", description: "Team task board", icon: ListChecks, color: "text-orange-500" },
+    ],
+    briefcase: [
+      { id: "tasks", name: language === 'ar' ? "المهام" : "Task Board", description: "Manage team tasks", icon: ListChecks, color: "text-blue-500" },
+      { id: "notes", name: language === 'ar' ? "الملاحظات" : "Team Notes", description: "Shared documentation", icon: FileText, color: "text-green-500" },
+      { id: "files", name: language === 'ar' ? "الملفات" : "File Manager", description: "Organize team files", icon: FolderOpen, color: "text-purple-500" },
+    ],
+  };
+
   const getDepartmentTools = () => {
     if (!department) return [];
     const normalizedIcon = normalizeIconKey(department.icon || "briefcase");
@@ -305,22 +299,22 @@ export default function Department() {
   const getSpecialtyLabel = (icon: string) => {
     const normalizedIcon = normalizeIconKey(icon);
     const labels: Record<string, string> = {
-      calculator: "Finance",
-      hearthandshake: "Human Resources",
-      scale: "Legal",
-      megaphone: "Marketing",
-      settings: "Operations",
-      dollarSign: "Sales",
-      users: "Team",
-      briefcase: "General",
-      package: "Warehouse",
+      calculator: language === 'ar' ? "المالية" : "Finance",
+      hearthandshake: language === 'ar' ? "الموارد البشرية" : "Human Resources",
+      scale: language === 'ar' ? "القانونية" : "Legal",
+      megaphone: language === 'ar' ? "التسويق" : "Marketing",
+      settings: language === 'ar' ? "العمليات" : "Operations",
+      dollarSign: language === 'ar' ? "المبيعات" : "Sales",
+      users: language === 'ar' ? "الفريق" : "Team",
+      briefcase: language === 'ar' ? "عام" : "General",
+      package: language === 'ar' ? "المستودع" : "Warehouse",
     };
-    return labels[normalizedIcon] || "General";
+    return labels[normalizedIcon] || (language === 'ar' ? "عام" : "General");
   };
 
   if (departmentLoading) {
     return (
-      <div className="p-4 md:p-6 space-y-6 max-w-6xl mx-auto">
+      <div className="p-4 md:p-6 space-y-6 max-w-6xl mx-auto" dir={isRTL ? 'rtl' : 'ltr'}>
         <Skeleton className="h-8 w-64" />
         <Skeleton className="h-4 w-48" />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -332,13 +326,13 @@ export default function Department() {
 
   if (!department) {
     return (
-      <div className="p-4 md:p-6 max-w-6xl mx-auto">
+      <div className="p-4 md:p-6 max-w-6xl mx-auto" dir={isRTL ? 'rtl' : 'ltr'}>
         <Card className="p-8 text-center">
-          <p className="text-muted-foreground">Department not found</p>
+          <p className="text-muted-foreground">{language === 'ar' ? "القسم غير موجود" : "Department not found"}</p>
           <Link href="/departments">
             <Button variant="outline" className="mt-4">
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Departments
+              {language === 'ar' ? "العودة للأقسام" : "Back to Departments"}
             </Button>
           </Link>
         </Card>
@@ -359,18 +353,18 @@ export default function Department() {
         }
       }}
     >
-      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto" dir={isRTL ? 'rtl' : 'ltr'}>
         <DialogHeader>
-          <DialogTitle>{editEmployee ? "Edit Employee" : "Add Remote Employee"}</DialogTitle>
+          <DialogTitle>{editEmployee ? (language === 'ar' ? "تعديل موظف" : "Edit Employee") : (language === 'ar' ? "إضافة موظف جديد" : "Add Remote Employee")}</DialogTitle>
           <DialogDescription>
             {editEmployee
-              ? "Update employee information."
-              : "Add a new remote employee with a unique username."}
+              ? (language === 'ar' ? "تحديث بيانات الموظف." : "Update employee information.")
+              : (language === 'ar' ? "إضافة موظف جديد باسم مستخدم فريد." : "Add a new remote employee with a unique username.")}
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">
           <div className="space-y-2">
-            <Label htmlFor="username">Username *</Label>
+            <Label htmlFor="username">{language === 'ar' ? "اسم المستخدم *" : "Username *"}</Label>
             <Input
               id="username"
               placeholder="e.g., john.doe"
@@ -378,14 +372,16 @@ export default function Department() {
               onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/\s/g, "."))}
               disabled={!!editEmployee}
               data-testid="input-employee-username"
+              className="text-left"
+              dir="ltr"
             />
             <p className="text-xs text-muted-foreground">
-              Unique identifier for the employee. Cannot be changed after creation.
+              {language === 'ar' ? "معرف فريد للموظف. لا يمكن تغييره لاحقاً." : "Unique identifier for the employee. Cannot be changed after creation."}
             </p>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="firstName">First Name *</Label>
+              <Label htmlFor="firstName">{language === 'ar' ? "الاسم الأول *" : "First Name *"}</Label>
               <Input
                 id="firstName"
                 placeholder="John"
@@ -395,7 +391,7 @@ export default function Department() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="lastName">Last Name *</Label>
+              <Label htmlFor="lastName">{language === 'ar' ? "اسم العائلة *" : "Last Name *"}</Label>
               <Input
                 id="lastName"
                 placeholder="Doe"
@@ -406,10 +402,10 @@ export default function Department() {
             </div>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="jobTitle">Job Title</Label>
+            <Label htmlFor="jobTitle">{language === 'ar' ? "المسمى الوظيفي" : "Job Title"}</Label>
             <Input
               id="jobTitle"
-              placeholder="e.g., Senior Accountant"
+              placeholder={language === 'ar' ? "مثال: محاسب أول" : "e.g., Senior Accountant"}
               value={jobTitle}
               onChange={(e) => setJobTitle(e.target.value)}
               data-testid="input-employee-jobtitle"
@@ -417,7 +413,7 @@ export default function Department() {
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">{language === 'ar' ? "البريد الإلكتروني" : "Email"}</Label>
               <Input
                 id="email"
                 type="email"
@@ -425,34 +421,38 @@ export default function Department() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 data-testid="input-employee-email"
+                className="text-left"
+                dir="ltr"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="phone">Phone</Label>
+              <Label htmlFor="phone">{language === 'ar' ? "الجوال" : "Phone"}</Label>
               <Input
                 id="phone"
                 placeholder="+1 234 567 890"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 data-testid="input-employee-phone"
+                className="text-left"
+                dir="ltr"
               />
             </div>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="bio">Bio</Label>
+            <Label htmlFor="bio">{language === 'ar' ? "نبذة" : "Bio"}</Label>
             <Textarea
               id="bio"
-              placeholder="Brief description..."
+              placeholder={language === 'ar' ? "وصف مختصر..." : "Brief description..."}
               value={bio}
               onChange={(e) => setBio(e.target.value)}
               data-testid="input-employee-bio"
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="skills">Skills</Label>
+            <Label htmlFor="skills">{language === 'ar' ? "المهارات" : "Skills"}</Label>
             <Input
               id="skills"
-              placeholder="e.g., Excel, QuickBooks, Financial Analysis"
+              placeholder={language === 'ar' ? "مثال: اكسل، تحليل مالي" : "e.g., Excel, QuickBooks, Financial Analysis"}
               value={skills}
               onChange={(e) => setSkills(e.target.value)}
               data-testid="input-employee-skills"
@@ -472,10 +472,10 @@ export default function Department() {
             data-testid="button-save-employee"
           >
             {createEmployeeMutation.isPending || updateEmployeeMutation.isPending
-              ? "Saving..."
+              ? (language === 'ar' ? "جاري الحفظ..." : "Saving...")
               : editEmployee
-              ? "Update Employee"
-              : "Add Employee"}
+              ? (language === 'ar' ? "تحديث" : "Update Employee")
+              : (language === 'ar' ? "إضافة" : "Add Employee")}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -484,7 +484,7 @@ export default function Department() {
 
   const ToolDialog = (
     <Dialog open={!!selectedTool} onOpenChange={(open) => !open && setSelectedTool(null)}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-2xl" dir={isRTL ? 'rtl' : 'ltr'}>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             {selectedTool && <selectedTool.icon className={`h-5 w-5 ${selectedTool.color}`} />}
@@ -493,14 +493,28 @@ export default function Department() {
           <DialogDescription>{selectedTool?.description}</DialogDescription>
         </DialogHeader>
         <div className="py-6">
+          {/* HR System Link */}
+          {selectedTool?.id === "hr-system" && (
+            <div className="flex flex-col gap-4 items-center py-8">
+              <p className="text-center text-muted-foreground">
+                {language === 'ar' ? "الوصول إلى نظام الموارد البشرية الشامل لإدارة الموظفين والرواتب." : "Access the comprehensive HR Management System."}
+              </p>
+              <Link href="/hr">
+                <Button size="lg" className="w-full sm:w-auto">
+                  {language === 'ar' ? "الذهاب للنظام" : "Go to HR System"}
+                </Button>
+              </Link>
+            </div>
+          )}
+
           {selectedTool?.id === "financial-accounting" && (
             <div className="flex flex-col gap-4 items-center py-8">
               <p className="text-center text-muted-foreground">
-                Access the comprehensive Financial Accounting module to manage your finances.
+                {language === 'ar' ? "الوصول إلى النظام المحاسبي المالي الشامل." : "Access the comprehensive Financial Accounting module to manage your finances."}
               </p>
               <Link href="/financial-accounting">
                 <Button size="lg" className="w-full sm:w-auto">
-                  Go to Financial System
+                  {language === 'ar' ? "الذهاب للنظام المالي" : "Go to Financial System"}
                 </Button>
               </Link>
             </div>
@@ -508,224 +522,31 @@ export default function Department() {
           {selectedTool?.id === "inventory-management" && (
             <div className="flex flex-col gap-4 items-center py-8">
               <p className="text-center text-muted-foreground">
-                Access the Inventory Management module to track stock and supplies.
+                {language === 'ar' ? "الوصول إلى نظام إدارة المخزون." : "Access the Inventory Management module to track stock and supplies."}
               </p>
               <Link href="/inventory-management">
                 <Button size="lg" className="w-full sm:w-auto">
-                  Go to Inventory System
+                  {language === 'ar' ? "الذهاب لنظام المخزون" : "Go to Inventory System"}
                 </Button>
               </Link>
             </div>
           )}
-          {selectedTool?.id === "budget" && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <Card>
-                  <CardContent className="pt-4">
-                    <p className="text-sm text-muted-foreground">Total Budget</p>
-                    <p className="text-2xl font-bold">$150,000</p>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardContent className="pt-4">
-                    <p className="text-sm text-muted-foreground">Spent</p>
-                    <p className="text-2xl font-bold text-orange-500">$87,500</p>
-                  </CardContent>
-                </Card>
-              </div>
-              <div>
-                <div className="flex justify-between text-sm mb-2">
-                  <span>Budget Usage</span>
-                  <span>58%</span>
-                </div>
-                <Progress value={58} />
-              </div>
-              <div className="space-y-2">
-                <Label>Add Budget Item</Label>
-                <div className="flex gap-2">
-                  <Input placeholder="Description" className="flex-1" />
-                  <Input placeholder="Amount" type="number" className="w-32" />
-                  <Button>Add</Button>
-                </div>
-              </div>
-            </div>
-          )}
-          {selectedTool?.id === "expenses" && (
-            <div className="space-y-4">
-              <div className="flex gap-2 mb-4">
-                <Input placeholder="Expense description" className="flex-1" />
-                <Input placeholder="Amount" type="number" className="w-32" />
-                <Select defaultValue="office">
-                  <SelectTrigger className="w-40">
-                    <SelectValue placeholder="Category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="office">Office</SelectItem>
-                    <SelectItem value="travel">Travel</SelectItem>
-                    <SelectItem value="supplies">Supplies</SelectItem>
-                    <SelectItem value="software">Software</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Button>Log</Button>
-              </div>
-              <div className="border rounded-lg divide-y">
-                {[
-                  { desc: "Office supplies", amount: 250, cat: "Supplies", date: "Dec 1" },
-                  { desc: "Software license", amount: 1200, cat: "Software", date: "Nov 28" },
-                  { desc: "Team lunch", amount: 180, cat: "Office", date: "Nov 25" },
-                ].map((exp, i) => (
-                  <div key={i} className="flex items-center justify-between p-3">
-                    <div>
-                      <p className="font-medium">{exp.desc}</p>
-                      <p className="text-xs text-muted-foreground">{exp.cat} - {exp.date}</p>
-                    </div>
-                    <p className="font-semibold">${exp.amount}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-          {selectedTool?.id === "leave" && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-3 gap-4">
-                <Card>
-                  <CardContent className="pt-4 text-center">
-                    <p className="text-2xl font-bold text-green-500">12</p>
-                    <p className="text-xs text-muted-foreground">Available Days</p>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardContent className="pt-4 text-center">
-                    <p className="text-2xl font-bold text-orange-500">3</p>
-                    <p className="text-xs text-muted-foreground">Pending Requests</p>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardContent className="pt-4 text-center">
-                    <p className="text-2xl font-bold">8</p>
-                    <p className="text-xs text-muted-foreground">Days Used</p>
-                  </CardContent>
-                </Card>
-              </div>
-              <div className="space-y-2">
-                <Label>Request Leave</Label>
-                <div className="flex gap-2">
-                  <Input type="date" className="flex-1" />
-                  <Input type="date" className="flex-1" />
-                  <Select defaultValue="vacation">
-                    <SelectTrigger className="w-40">
-                      <SelectValue placeholder="Type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="vacation">Vacation</SelectItem>
-                      <SelectItem value="sick">Sick Leave</SelectItem>
-                      <SelectItem value="personal">Personal</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <Button>Submit</Button>
-                </div>
-              </div>
-            </div>
-          )}
-          {selectedTool?.id === "performance" && (
-            <div className="space-y-4">
-              <div className="border rounded-lg divide-y">
-                {employees.slice(0, 3).map((emp) => (
-                  <div key={emp.id} className="flex items-center justify-between p-3">
-                    <div className="flex items-center gap-3">
-                      <Avatar className="h-8 w-8">
-                        <AvatarFallback>{emp.firstName[0]}{emp.lastName[0]}</AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <p className="font-medium">{emp.firstName} {emp.lastName}</p>
-                        <p className="text-xs text-muted-foreground">{emp.jobTitle || "Team Member"}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="flex">
-                        {[1,2,3,4,5].map((star) => (
-                          <Star key={star} className={`h-4 w-4 ${star <= 4 ? 'text-yellow-500 fill-yellow-500' : 'text-muted'}`} />
-                        ))}
-                      </div>
-                      <Button size="sm" variant="outline">Review</Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-          {selectedTool?.id === "pipeline" && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-4 gap-3">
-                {["Lead", "Qualified", "Proposal", "Closed"].map((stage, i) => (
-                  <div key={stage} className="text-center">
-                    <div className="bg-muted rounded-lg p-3 mb-2">
-                      <p className="text-2xl font-bold">{[12, 8, 5, 3][i]}</p>
-                    </div>
-                    <p className="text-sm font-medium">{stage}</p>
-                  </div>
-                ))}
-              </div>
-              <div className="space-y-2">
-                <Label>Add New Deal</Label>
-                <div className="flex gap-2">
-                  <Input placeholder="Deal name" className="flex-1" />
-                  <Input placeholder="Value" type="number" className="w-32" />
-                  <Button>Add</Button>
-                </div>
-              </div>
-            </div>
-          )}
-          {selectedTool?.id === "campaigns" && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-3 gap-4">
-                <Card>
-                  <CardContent className="pt-4 text-center">
-                    <p className="text-2xl font-bold text-blue-500">5</p>
-                    <p className="text-xs text-muted-foreground">Active Campaigns</p>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardContent className="pt-4 text-center">
-                    <p className="text-2xl font-bold text-green-500">24.5K</p>
-                    <p className="text-xs text-muted-foreground">Total Reach</p>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardContent className="pt-4 text-center">
-                    <p className="text-2xl font-bold text-purple-500">3.2%</p>
-                    <p className="text-xs text-muted-foreground">Conversion Rate</p>
-                  </CardContent>
-                </Card>
-              </div>
-              <div className="border rounded-lg divide-y">
-                {["Q4 Product Launch", "Holiday Sale", "Newsletter Campaign"].map((name, i) => (
-                  <div key={i} className="flex items-center justify-between p-3">
-                    <div>
-                      <p className="font-medium">{name}</p>
-                      <p className="text-xs text-muted-foreground">Active</p>
-                    </div>
-                    <Button size="sm" variant="outline">View</Button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-          {!["budget", "expenses", "leave", "performance", "pipeline", "campaigns"].includes(selectedTool?.id || "") && (
+          
+          {!["financial-accounting", "inventory-management", "hr-system"].includes(selectedTool?.id || "") && (
             <div className="text-center py-8">
               <div className={`h-16 w-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-4`}>
                 {selectedTool && <selectedTool.icon className={`h-8 w-8 ${selectedTool.color}`} />}
               </div>
               <p className="text-muted-foreground mb-4">
-                This tool is ready to be configured for your team.
+                {language === 'ar' ? "هذه الأداة جاهزة للإعداد لفريقك." : "This tool is ready to be configured for your team."}
               </p>
-              <Button data-testid="button-tool-get-started">Get Started</Button>
+              <Button data-testid="button-tool-get-started">{language === 'ar' ? "ابدأ الآن" : "Get Started"}</Button>
             </div>
           )}
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => setSelectedTool(null)} data-testid="button-tool-close">
-            Close
+            {language === 'ar' ? "إغلاق" : "Close"}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -733,7 +554,7 @@ export default function Department() {
   );
 
   return (
-    <div className="p-4 md:p-6 space-y-6 max-w-6xl mx-auto">
+    <div className="p-4 md:p-6 space-y-6 max-w-6xl mx-auto" dir={isRTL ? 'rtl' : 'ltr'}>
       {EmployeeDialog}
       {ToolDialog}
 
@@ -756,7 +577,7 @@ export default function Department() {
         </div>
         <Button onClick={() => setNewEmployeeOpen(true)} data-testid="button-add-employee">
           <Plus className="h-4 w-4 mr-2" />
-          Add Employee
+          {language === 'ar' ? "إضافة موظف" : "Add Employee"}
         </Button>
       </div>
 
@@ -764,11 +585,11 @@ export default function Department() {
         <TabsList>
           <TabsTrigger value="employees" className="gap-2" data-testid="tab-employees">
             <Users className="h-4 w-4" />
-            Employees ({employees.length})
+            {language === 'ar' ? "الموظفين" : "Employees"} ({employees.length})
           </TabsTrigger>
           <TabsTrigger value="tools" className="gap-2" data-testid="tab-tools">
             <Wrench className="h-4 w-4" />
-            Tools ({tools.length})
+            {language === 'ar' ? "الأدوات" : "Tools"} ({tools.length})
           </TabsTrigger>
         </TabsList>
 
@@ -779,13 +600,13 @@ export default function Department() {
             ) : employees.length === 0 ? (
               <Card className="col-span-full p-8 text-center">
                 <Users className="h-12 w-12 mx-auto text-muted-foreground opacity-50 mb-2" />
-                <p className="text-muted-foreground">No employees in this department</p>
+                <p className="text-muted-foreground">{language === 'ar' ? "لا يوجد موظفين في هذا القسم" : "No employees in this department"}</p>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Add remote employees to start building your team
+                  {language === 'ar' ? "أضف موظفين لبدء بناء فريقك" : "Add remote employees to start building your team"}
                 </p>
                 <Button onClick={() => setNewEmployeeOpen(true)} className="mt-4" data-testid="button-add-first-employee">
                   <Plus className="h-4 w-4 mr-2" />
-                  Add First Employee
+                  {language === 'ar' ? "إضافة أول موظف" : "Add First Employee"}
                 </Button>
               </Card>
             ) : (
@@ -860,7 +681,7 @@ export default function Department() {
                       <Link href={`/employees/${employee.username}`}>
                         <Button size="sm" variant="ghost" data-testid={`button-view-profile-${employee.id}`}>
                           <User className="h-4 w-4 mr-1" />
-                          View Profile
+                          {language === 'ar' ? "عرض الملف" : "View Profile"}
                         </Button>
                       </Link>
                       <div className="flex gap-1">
@@ -893,9 +714,13 @@ export default function Department() {
 
         <TabsContent value="tools" className="mt-6">
           <div className="mb-4">
-            <h2 className="text-lg font-semibold">{getSpecialtyLabel(department.icon || "briefcase")} Tools</h2>
+            <h2 className="text-lg font-semibold">
+              {language === 'ar' ? `أدوات ${getSpecialtyLabel(department.icon || "briefcase")}` : `${getSpecialtyLabel(department.icon || "briefcase")} Tools`}
+            </h2>
             <p className="text-sm text-muted-foreground">
-              Specialty tools designed for your {getSpecialtyLabel(department.icon || "briefcase").toLowerCase()} team
+              {language === 'ar' 
+                ? "أدوات متخصصة مصممة لفريقك" 
+                : `Specialty tools designed for your ${getSpecialtyLabel(department.icon || "briefcase").toLowerCase()} team`}
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
