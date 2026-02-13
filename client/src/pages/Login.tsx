@@ -25,14 +25,8 @@ export default function Login() {
   
   // loading state comes from mutation
   const loading = loginMutation.isPending; 
-
-  useEffect(() => {
-    // Pre-fill username based on role for convenience
-    if (role === "office_renter") setUsername("office_admin");
-    else if (role === "admin") setUsername("admin");
-    else if (role === "manager") setUsername("manager");
-    // Removed employee auto-fill as requested
-  }, [role, type]);
+  
+  // Auto-fill removed as requested
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -157,9 +151,6 @@ export default function Login() {
               {loading ? (language === 'ar' ? 'جاري الدخول...' : 'Logging in...') : (language === 'ar' ? 'دخول' : 'Login')}
             </Button>
             
-            <div className="text-center text-xs text-gray-500 mt-4">
-              <p>{language === 'ar' ? 'للتجربة: استخدم أي كلمة مرور' : 'For demo: use any password'}</p>
-            </div>
           </form>
         </CardContent>
       </Card>

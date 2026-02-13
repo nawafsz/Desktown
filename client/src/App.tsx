@@ -3,7 +3,7 @@ import { queryClient, apiRequest } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { SidebarProvider } from "@/components/ui/sidebar";
+import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { AppSidebar } from "@/components/AppSidebar";
 import { VisitorSidebar } from "@/components/VisitorSidebar";
@@ -415,15 +415,15 @@ function AuthenticatedApp() {
   if (isVisitorRole) {
     return (
       <SidebarProvider style={sidebarStyle as React.CSSProperties}>
-        <div className="flex h-screen w-full">
-          <VisitorSidebar user={user} />
-          <div className="flex flex-col flex-1 overflow-hidden">
+        <VisitorSidebar user={user} />
+        <SidebarInset>
+          <div className="flex flex-col h-full overflow-hidden">
             <TopHeader />
             <main className="flex-1 overflow-auto bg-background">
               <VisitorRouter />
             </main>
           </div>
-        </div>
+        </SidebarInset>
       </SidebarProvider>
     );
   }
@@ -431,15 +431,15 @@ function AuthenticatedApp() {
   if (isOfficeRenterRole) {
     return (
       <SidebarProvider style={sidebarStyle as React.CSSProperties}>
-        <div className="flex h-screen w-full">
-          <AppSidebar user={user} />
-          <div className="flex flex-col flex-1 overflow-hidden">
+        <AppSidebar user={user} />
+        <SidebarInset>
+          <div className="flex flex-col h-full overflow-hidden">
             <TopHeader />
             <main className="flex-1 overflow-auto bg-background">
               <OfficeRenterRouter />
             </main>
           </div>
-        </div>
+        </SidebarInset>
       </SidebarProvider>
     );
   }
@@ -448,30 +448,30 @@ function AuthenticatedApp() {
   if (user?.role === 'office_renter' || user?.username === 'office_admin') {
     return (
       <SidebarProvider style={sidebarStyle as React.CSSProperties}>
-        <div className="flex h-screen w-full">
-          <AppSidebar user={user} />
-          <div className="flex flex-col flex-1 overflow-hidden">
+        <AppSidebar user={user} />
+        <SidebarInset>
+          <div className="flex flex-col h-full overflow-hidden">
             <TopHeader />
             <main className="flex-1 overflow-auto bg-background">
               <OfficeRenterRouter />
             </main>
           </div>
-        </div>
+        </SidebarInset>
       </SidebarProvider>
     );
   }
 
   return (
     <SidebarProvider style={sidebarStyle as React.CSSProperties}>
-      <div className="flex h-screen w-full">
-        <AppSidebar user={user} />
-        <div className="flex flex-col flex-1 overflow-hidden">
+      <AppSidebar user={user} />
+      <SidebarInset>
+        <div className="flex flex-col h-full overflow-hidden">
           <TopHeader />
           <main className="flex-1 overflow-auto bg-background">
             <AuthenticatedRouter userRole={user?.role} />
           </main>
         </div>
-      </div>
+      </SidebarInset>
     </SidebarProvider>
   );
 }
