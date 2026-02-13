@@ -40,6 +40,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
+import AISecurityReceptionist from "@/components/AISecurityReceptionist";
+
 const partners = [
   { id: 1, name: "Somira", avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop" },
   { id: 2, name: "Legal Hub", avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop" },
@@ -345,7 +347,7 @@ export default function Landing() {
               backgroundImage: `linear-gradient(to right, rgba(11,15,25,0.95) 0%, rgba(11,15,25,0.8) 50%, rgba(11,15,25,0.6) 100%)`
             }}
           />
-          <div className="absolute inset-0 flex flex-col justify-center px-6 md:px-10 items-start text-left max-w-xl">
+          <div className="absolute inset-0 flex flex-col justify-center px-6 md:px-10 items-start text-left max-w-xl z-10">
             <Badge variant="outline" className="mb-3 border-amber-500/50 text-amber-400 bg-amber-500/10 backdrop-blur-sm">
               {language === 'ar' ? 'مستقبل العمل هنا' : 'The Future of Work is Here'}
             </Badge>
@@ -361,6 +363,13 @@ export default function Landing() {
             >
               {language === 'ar' ? 'ابدأ الآن' : 'Get Started'}
             </Button>
+          </div>
+
+          {/* AI Receptionist Overlay */}
+          <div className="absolute inset-y-0 right-0 w-full md:w-1/2 flex items-center justify-center z-0 opacity-80 pointer-events-none md:pointer-events-auto">
+             <div className="scale-75 md:scale-90 origin-right">
+                <AISecurityReceptionist defaultLanguage={language === 'ar' ? 'ar-SA' : 'en-US'} />
+             </div>
           </div>
         </div>
 
