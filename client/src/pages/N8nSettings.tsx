@@ -19,6 +19,10 @@ export default function N8nServicePage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  
+  // Dashboard states
+  const [activeWorkflows, setActiveWorkflows] = useState(24);
+  const [showEditor, setShowEditor] = useState(false);
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,6 +45,45 @@ export default function N8nServicePage() {
         });
       }
     }, 1000);
+  };
+
+  const handleLogout = () => {
+    setIsServiceLoggedIn(false);
+    setShowEditor(false);
+    setUsername("");
+    setPassword("");
+    toast({
+      title: language === 'ar' ? "تم تسجيل الخروج" : "Logged Out",
+      description: language === 'ar' ? "تم تسجيل الخروج بنجاح" : "Successfully logged out",
+    });
+  };
+
+  const handleCreateWorkflow = () => {
+    toast({
+      title: language === 'ar' ? "جاري الإنشاء" : "Creating...",
+      description: language === 'ar' ? "يتم إعداد مساحة عمل جديدة" : "Setting up new workspace",
+    });
+    setTimeout(() => {
+        setActiveWorkflows(prev => prev + 1);
+        setShowEditor(true);
+        toast({
+            title: language === 'ar' ? "تم الإنشاء" : "Created",
+            description: language === 'ar' ? "تم إنشاء سير عمل جديد بنجاح" : "New workflow created successfully",
+            variant: "default" // "success" if available, else default
+        });
+    }, 800);
+  };
+
+  const handleLaunchEditor = () => {
+      setIsLoading(true);
+      setTimeout(() => {
+          setIsLoading(false);
+          setShowEditor(true);
+          toast({
+              title: language === 'ar' ? "المحرر جاهز" : "Editor Ready",
+              description: language === 'ar' ? "تم تشغيل بيئة العمل بنجاح" : "Workspace launched successfully",
+          });
+      }, 500);
   };
 
   const isRTL = language === 'ar';
@@ -125,7 +168,7 @@ export default function N8nServicePage() {
              <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
              {language === 'ar' ? "النظام يعمل" : "System Operational"}
            </div>
-           <Button variant="outline" className="border-white/10 hover:bg-white/5" onClick={() => setIsServiceLoggedIn(false)}>
+           <Button variant="outline" className="border-white/10 hover:bg-white/5" onClick={handleLogout}>
              {language === 'ar' ? "تسجيل خروج" : "Logout"}
            </Button>
         </div>
@@ -139,7 +182,7 @@ export default function N8nServicePage() {
                <h3 className="text-gray-400 font-medium">{language === 'ar' ? "سير العمل النشط" : "Active Workflows"}</h3>
                <Activity className="h-5 w-5 text-pink-500" />
              </div>
-             <p className="text-3xl font-bold text-white">24</p>
+             <p className="text-3xl font-bold text-white">{activeWorkflows}</p>
              <p className="text-xs text-green-400 mt-2 flex items-center gap-1">
                <ArrowRight className="h-3 w-3 rotate-[-45deg]" />
                +12% {language === 'ar' ? "هذا الأسبوع" : "this week"}
@@ -173,33 +216,69 @@ export default function N8nServicePage() {
         </Card>
       </div>
 
-      {/* Main Content / Iframe Placeholder */}
+      {/* Main Content / Editor */}
       <Card className="bg-[#1a1f2e] border-white/10 flex-1 min-h-[500px] flex flex-col">
         <CardHeader>
            <div className="flex items-center justify-between">
              <CardTitle className="text-white">{language === 'ar' ? "محرر سير العمل" : "Workflow Editor"}</CardTitle>
-             <Button className="bg-pink-600 hover:bg-pink-700 text-white gap-2">
+             <Button 
+                className="bg-pink-600 hover:bg-pink-700 text-white gap-2"
+                onClick={handleCreateWorkflow}
+             >
                <PlayCircle className="h-4 w-4" />
                {language === 'ar' ? "إنشاء سير عمل جديد" : "Create New Workflow"}
              </Button>
            </div>
         </CardHeader>
-        <CardContent className="flex-1 bg-[#0B0F19] m-6 rounded-xl border border-white/5 flex items-center justify-center relative overflow-hidden group">
-           <div className="absolute inset-0 bg-[url('https://n8n.io/_nuxt/img/workflow.5d12267.png')] bg-cover bg-center opacity-30 group-hover:opacity-40 transition-opacity"></div>
-           <div className="text-center z-10 p-8 bg-black/60 backdrop-blur-sm rounded-2xl border border-white/10">
-             <Zap className="h-12 w-12 text-pink-500 mx-auto mb-4" />
-             <h3 className="text-xl font-bold text-white mb-2">
-               {language === 'ar' ? "مساحة عمل n8n" : "n8n Workspace"}
-             </h3>
-             <p className="text-gray-400 mb-6 max-w-md mx-auto">
-               {language === 'ar' 
-                 ? "قم بتوصيل تطبيقاتك وأتمتة سير العمل الخاص بك باستخدام محرر n8n القوي." 
-                 : "Connect your apps and automate your workflows using the powerful n8n editor."}
-             </p>
-             <Button size="lg" className="bg-white text-black hover:bg-gray-200">
-               {language === 'ar' ? "تشغيل المحرر" : "Launch Editor"}
-             </Button>
-           </div>
+        <CardContent className="flex-1 bg-[#0B0F19] m-6 rounded-xl border border-white/5 flex relative overflow-hidden group">
+           {showEditor ? (
+             <div className="w-full h-full relative bg-[#151515] flex">
+                {/* Mock Sidebar */}
+                <div className="w-16 border-r border-white/10 flex flex-col items-center py-4 gap-4">
+                    <div className="w-8 h-8 rounded bg-pink-500/20 text-pink-500 flex items-center justify-center"><Zap className="h-4 w-4" /></div>
+                    <div className="w-8 h-8 rounded hover:bg-white/5 text-gray-400 flex items-center justify-center"><User className="h-4 w-4" /></div>
+                    <div className="w-8 h-8 rounded hover:bg-white/5 text-gray-400 flex items-center justify-center"><Activity className="h-4 w-4" /></div>
+                </div>
+                {/* Mock Canvas */}
+                <div className="flex-1 relative bg-[radial-gradient(#333_1px,transparent_1px)] [background-size:16px_16px]">
+                    <div className="absolute top-4 left-4 right-4 h-12 bg-[#1e1e1e] rounded-lg border border-white/10 flex items-center px-4 justify-between">
+                        <span className="text-white text-sm font-medium">My Workflow 1</span>
+                        <div className="flex gap-2">
+                             <div className="h-2 w-2 rounded-full bg-green-500"></div>
+                             <span className="text-xs text-gray-400">Active</span>
+                        </div>
+                    </div>
+                    {/* Fake Nodes */}
+                    <div className="absolute top-1/3 left-1/4 w-32 h-20 bg-[#2d2d2d] border border-green-500/50 rounded-lg p-3 shadow-lg flex flex-col justify-between">
+                         <div className="flex items-center gap-2"><div className="w-2 h-2 bg-green-500 rounded-full"></div><span className="text-xs text-white">Webhook</span></div>
+                         <div className="text-[10px] text-gray-500">Waiting...</div>
+                    </div>
+                    <ArrowRight className="absolute top-[40%] left-[calc(25%+8rem)] text-gray-600 h-6 w-6" />
+                    <div className="absolute top-1/3 left-1/2 w-32 h-20 bg-[#2d2d2d] border border-blue-500/50 rounded-lg p-3 shadow-lg flex flex-col justify-between">
+                         <div className="flex items-center gap-2"><div className="w-2 h-2 bg-blue-500 rounded-full"></div><span className="text-xs text-white">Filter</span></div>
+                         <div className="text-[10px] text-gray-500">Processing</div>
+                    </div>
+                </div>
+             </div>
+           ) : (
+             <>
+               <div className="absolute inset-0 bg-[url('https://n8n.io/_nuxt/img/workflow.5d12267.png')] bg-cover bg-center opacity-30 group-hover:opacity-40 transition-opacity"></div>
+               <div className="text-center z-10 p-8 bg-black/60 backdrop-blur-sm rounded-2xl border border-white/10">
+                 <Zap className="h-12 w-12 text-pink-500 mx-auto mb-4" />
+                 <h3 className="text-xl font-bold text-white mb-2">
+                   {language === 'ar' ? "مساحة عمل n8n" : "n8n Workspace"}
+                 </h3>
+                 <p className="text-gray-400 mb-6 max-w-md mx-auto">
+                   {language === 'ar' 
+                     ? "قم بتوصيل تطبيقاتك وأتمتة سير العمل الخاص بك باستخدام محرر n8n القوي." 
+                     : "Connect your apps and automate your workflows using the powerful n8n editor."}
+                 </p>
+                 <Button size="lg" className="bg-white text-black hover:bg-gray-200" onClick={handleLaunchEditor} disabled={isLoading}>
+                   {isLoading ? (language === 'ar' ? "جاري التشغيل..." : "Launching...") : (language === 'ar' ? "تشغيل المحرر" : "Launch Editor")}
+                 </Button>
+               </div>
+             </>
+           )}
         </CardContent>
       </Card>
     </div>
