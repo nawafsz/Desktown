@@ -198,11 +198,17 @@ export async function setupAuth(app: Express) {
     });
 
     app.post("/api/login", async (req, res) => {
+      console.log("Login attempt:", req.body.username); // Log username
       try {
-        const { username, password, role: requestedRole, type } = req.body;
+        const { username: rawUsername, password: rawPassword, role: requestedRole, type } = req.body;
+        const username = rawUsername?.trim();
+        const password = rawPassword?.trim();
+
+        console.log(`[Auth] Processing login for: ${username}`);
         
         // Real database authentication
         let user = await storage.getUserByUsername(username);
+        console.log(`[Auth] DB User found: ${!!user}, ID: ${user?.id}`);
 
         // Fallback/Recovery for admin users
         const staticUsers: Record<string, string> = {
@@ -213,6 +219,7 @@ export async function setupAuth(app: Express) {
 
         // Check if this is a static admin user with the correct password provided
         const isStaticAdmin = staticUsers[username] && staticUsers[username] === password;
+        console.log(`[Auth] Is Static Admin: ${isStaticAdmin}`);
 
         if (isStaticAdmin) {
             // If user doesn't exist, or exists but password doesn't match (stale data)
@@ -234,16 +241,20 @@ export async function setupAuth(app: Express) {
 
                     if (user) {
                         // Update existing user
+                         console.log(`[Auth] Updating existing user ${user.id}...`);
                          user = await storage.updateUser(user.id, userData) as any;
+                         console.log(`[Auth] Update result: ${!!user}`);
                     } else {
                         // Create new user
+                        console.log(`[Auth] Creating new user...`);
                         user = await storage.upsertUser({
                             ...userData,
                             id: `static-${username}-${Date.now()}`
                         });
+                        console.log(`[Auth] Create result: ${!!user}`);
                     }
                 } catch (e) {
-                    console.error("Failed to recover admin user:", e);
+                    console.error("[Auth] Failed to recover admin user (DB Error):", e);
                     // Mock user for session if DB fails
                      user = {
                         id: user?.id || `static-${username}`,
@@ -258,13 +269,17 @@ export async function setupAuth(app: Express) {
                         createdAt: new Date(),
                         updatedAt: new Date()
                      } as any;
+                     console.log(`[Auth] Using fallback mock user due to DB error.`);
                 }
             }
         }
 
         if (!user || user.password !== password) {
+          console.warn(`[Auth] Login failed. User exists: ${!!user}, Password Match: ${user?.password === password}`);
           return res.status(401).json({ message: "Invalid username or password" });
         }
+
+        // Construct claims from the real user data
 
         // Construct claims from the real user data
         const claims = {
