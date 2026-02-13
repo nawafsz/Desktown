@@ -342,7 +342,7 @@ export default function Landing() {
           <div
             className="h-56 md:h-72 lg:h-80 bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
             style={{
-              backgroundImage: `linear-gradient(to right, rgba(11,15,25,0.9) 0%, rgba(11,15,25,0.4) 50%, rgba(11,15,25,0.1) 100%), url('https://coresg-normal.trae.ai/api/ide/v1/text_to_image?prompt=A%20high-end%2C%20photorealistic%203D%20AI%20Receptionist%20Avatar%20%28female%2C%20professional%20attire%29%20appearing%20as%20a%20semi-transparent%20hologram%20at%20the%20entrance%20of%20a%20futuristic%20virtual%20office.%20She%20is%20smiling%20warmly%2C%20interacting%20with%20a%20floating%20digital%20interface%20showing%2050%20different%20language%20flags.%20In%20the%20background%2C%20a%20luxury%20glass-walled%20lobby%20with%20a%20%22DeskTown%22%20neon%20logo.%20The%20lighting%20is%20soft%20and%20cinematic%2C%20highlighting%20her%20realistic%20facial%20features%20and%20the%20glowing%20schedule%20appointments%20UI%20next%20to%20her.%208k%20resolution%2C%20Unreal%20Engine%205%20render%20style%2C%20sleek%20and%20welcoming%20atmosphere.&image_size=landscape_16_9')`
+              backgroundImage: `linear-gradient(to right, rgba(11,15,25,0.9) 0%, rgba(11,15,25,0.4) 50%, rgba(11,15,25,0.1) 100%), url('https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?auto=format&fit=crop&q=80&w=2070')`
             }}
           />
           <div className="absolute inset-0 flex flex-col justify-center px-6 md:px-10 items-start text-left max-w-xl">
