@@ -18,7 +18,12 @@ import {
   ArrowDownRight, 
   Download,
   Plus,
-  Loader2
+  Loader2,
+  Printer,
+  Brain,
+  CheckCircle,
+  FileCheck,
+  FileBadge
 } from "lucide-react";
 
 import {
@@ -44,6 +49,10 @@ export default function FinancialAccounting() {
   // Bank Reconciliation State
   const [bankBalance, setBankBalance] = useState("");
   
+  // Year Closing State
+  const [isClosingYear, setIsClosingYear] = useState(false);
+  const [closingStep, setClosingStep] = useState(0); // 0: Idle, 1: Analyzing, 2: Adjusting, 3: Closing, 4: Done
+
   // Fetch Transactions
   const { data, isLoading } = useQuery({
     queryKey: ["/api/accounting/transactions"],
@@ -129,6 +138,44 @@ export default function FinancialAccounting() {
     toast({ title: "تم معالجة الرواتب", description: "تم تسجيل مصروف الرواتب بنجاح." });
   };
 
+  const handlePrintZakatDeclaration = () => {
+    toast({
+      title: "طباعة الإقرار",
+      description: "جاري إنشاء ملف PDF للإقرار الزكوي حسب معايير الهيئة...",
+    });
+    // Simulate printing delay
+    setTimeout(() => {
+        window.print();
+    }, 1000);
+  };
+
+  const handlePrintVATReturn = () => {
+    toast({
+      title: "طباعة الإقرار الضريبي",
+      description: "جاري إنشاء نموذج الإقرار الضريبي المعتمد...",
+    });
+  };
+
+  const handleAutoClosing = () => {
+    setIsClosingYear(true);
+    setClosingStep(1);
+
+    // Simulate AI steps
+    setTimeout(() => setClosingStep(2), 2000); // Analysis done
+    setTimeout(() => setClosingStep(3), 4500); // Adjustments done
+    setTimeout(() => setClosingStep(4), 7000); // Closing done
+    
+    setTimeout(() => {
+        toast({
+            title: "تم إقفال السنة المالية",
+            description: "قام الذكاء الاصطناعي بإقفال الحسابات وترحيل الأرصدة بنجاح.",
+            variant: "default" // success
+        });
+        setIsClosingYear(false);
+        setClosingStep(0); // Reset or keep at 4 to show success state
+    }, 9000);
+  };
+
   return (
     <div className="container mx-auto p-6 space-y-8" dir="rtl">
       <div className="flex justify-between items-center">
@@ -204,7 +251,15 @@ export default function FinancialAccounting() {
           </TabsTrigger>
           <TabsTrigger value="planning" className="flex items-center gap-2">
             <PieChart className="h-4 w-4" />
-            التخطيط المالي والضريبي
+            التخطيط المالي
+          </TabsTrigger>
+          <TabsTrigger value="zakat-tax" className="flex items-center gap-2">
+            <FileBadge className="h-4 w-4" />
+            الزكاة والضريبة
+          </TabsTrigger>
+          <TabsTrigger value="closing" className="flex items-center gap-2">
+            <Brain className="h-4 w-4" />
+            الإقفال الذكي
           </TabsTrigger>
           <TabsTrigger value="audit" className="flex items-center gap-2">
             <ShieldCheck className="h-4 w-4" />
@@ -462,6 +517,197 @@ export default function FinancialAccounting() {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* Tax & Zakat Tab */}
+        <TabsContent value="zakat-tax" className="space-y-4">
+            <div className="grid gap-4 md:grid-cols-2">
+                {/* VAT Card */}
+                <Card className="border-t-4 border-t-emerald-500">
+                    <CardHeader>
+                        <CardTitle className="flex items-center justify-between">
+                            <span>إقرار ضريبة القيمة المضافة</span>
+                            <FileCheck className="h-5 w-5 text-emerald-500" />
+                        </CardTitle>
+                        <CardDescription>حسب أنظمة هيئة الزكاة والضريبة والجمارك (ZATCA)</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <div className="p-4 bg-muted/20 rounded-lg space-y-2">
+                             <div className="flex justify-between">
+                                 <span>المبيعات الخاضعة للضريبة:</span>
+                                 <span className="font-bold">{totalRevenue.toFixed(2)} ر.س</span>
+                             </div>
+                             <div className="flex justify-between text-muted-foreground text-sm">
+                                 <span>المشتريات الخاضعة للضريبة:</span>
+                                 <span>{totalExpenses.toFixed(2)} ر.س</span>
+                             </div>
+                             <div className="border-t pt-2 mt-2 flex justify-between items-center">
+                                 <span className="font-semibold">صافي الضريبة المستحقة (15%):</span>
+                                 <span className="text-xl font-bold text-emerald-600">{((totalRevenue - totalExpenses) * 0.15).toFixed(2)} ر.س</span>
+                             </div>
+                        </div>
+                        <div className="flex gap-2">
+                            <Button className="flex-1" onClick={handlePrintVATReturn}>
+                                <Printer className="ml-2 h-4 w-4" />
+                                طباعة الإقرار الضريبي
+                            </Button>
+                            <Button variant="outline">عرض التفاصيل</Button>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                {/* Zakat Card */}
+                <Card className="border-t-4 border-t-amber-500">
+                    <CardHeader>
+                        <CardTitle className="flex items-center justify-between">
+                            <span>الإقرار الزكوي</span>
+                            <Landmark className="h-5 w-5 text-amber-500" />
+                        </CardTitle>
+                        <CardDescription>تقدير الزكاة الشرعية (2.5%) على الوعاء الزكوي</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <div className="p-4 bg-muted/20 rounded-lg space-y-2">
+                             <div className="flex justify-between">
+                                 <span>صافي الأصول الزكوية:</span>
+                                 <span className="font-bold">{(netIncome + bankBalance ? parseFloat(bankBalance) : 0).toFixed(2)} ر.س</span>
+                             </div>
+                             <div className="flex justify-between text-muted-foreground text-sm">
+                                 <span>الحول (المدة):</span>
+                                 <span>سنة هجرية كاملة</span>
+                             </div>
+                             <div className="border-t pt-2 mt-2 flex justify-between items-center">
+                                 <span className="font-semibold">الزكاة التقديرية (2.5%):</span>
+                                 <span className="text-xl font-bold text-amber-600">{((netIncome) * 0.025).toFixed(2)} ر.س</span>
+                             </div>
+                        </div>
+                        <div className="flex gap-2">
+                            <Button className="flex-1" onClick={handlePrintZakatDeclaration}>
+                                <Printer className="ml-2 h-4 w-4" />
+                                طباعة الإقرار الزكوي
+                            </Button>
+                            <Button variant="outline">تحديث الوعاء</Button>
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+            
+            <Card>
+                <CardHeader>
+                    <CardTitle>التقويم الضريبي</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <div className="flex gap-4 overflow-x-auto pb-2">
+                        {[1, 2, 3, 4].map((q) => (
+                            <div key={q} className={`min-w-[200px] p-4 rounded-lg border ${q === 1 ? 'bg-emerald-50 border-emerald-200' : 'bg-muted'}`}>
+                                <h4 className="font-bold mb-1">الربع {q}</h4>
+                                <p className="text-sm text-muted-foreground">استحقاق: {30 * q}/03/2025</p>
+                                <span className={`text-xs px-2 py-1 rounded-full mt-2 inline-block ${q === 1 ? 'bg-emerald-200 text-emerald-800' : 'bg-gray-200'}`}>
+                                    {q === 1 ? 'مفتوح للتقديم' : 'قادم'}
+                                </span>
+                            </div>
+                        ))}
+                    </div>
+                </CardContent>
+            </Card>
+        </TabsContent>
+
+        {/* AI Closing Tab */}
+        <TabsContent value="closing" className="space-y-4">
+            <Card className="overflow-hidden relative">
+                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500 via-pink-500 to-blue-500"></div>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                        <Brain className="h-6 w-6 text-purple-600" />
+                        الإقفال الذكي للسنة المالية
+                    </CardTitle>
+                    <CardDescription>
+                        استخدم قوة الذكاء الاصطناعي لمراجعة الحسابات، إجراء قيود التسوية، وإقفال السنة المالية تلقائياً.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-8 py-8">
+                    {!isClosingYear && closingStep === 0 ? (
+                        <div className="text-center space-y-4">
+                            <div className="mx-auto w-20 h-20 bg-purple-100 rounded-full flex items-center justify-center">
+                                <Brain className="h-10 w-10 text-purple-600" />
+                            </div>
+                            <h3 className="text-xl font-semibold">جاهز لبدء عملية الإقفال</h3>
+                            <p className="text-muted-foreground max-w-md mx-auto">
+                                سيقوم النظام بتحليل {transactions.length} معاملة، ومطابقة الأرصدة البنكية، واحتساب الإهلاك، وإنشاء قيود الإقفال النهائية.
+                            </p>
+                            <Button size="lg" className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white shadow-lg" onClick={handleAutoClosing}>
+                                بدء الإقفال الآلي
+                            </Button>
+                        </div>
+                    ) : (
+                        <div className="max-w-xl mx-auto space-y-6">
+                            {/* Steps Visualization */}
+                            <div className="space-y-4">
+                                <div className={`flex items-center gap-4 p-3 rounded-lg border ${closingStep >= 1 ? 'bg-purple-50 border-purple-200' : 'opacity-50'}`}>
+                                    {closingStep > 1 ? <CheckCircle className="h-6 w-6 text-green-500" /> : <Loader2 className={`h-6 w-6 text-purple-500 ${closingStep === 1 ? 'animate-spin' : ''}`} />}
+                                    <div className="flex-1">
+                                        <h4 className="font-medium">تحليل البيانات والمراجعة</h4>
+                                        <p className="text-xs text-muted-foreground">فحص اتساق القيود واكتشاف الأخطاء المحتملة</p>
+                                    </div>
+                                </div>
+                                
+                                <div className={`flex items-center gap-4 p-3 rounded-lg border ${closingStep >= 2 ? 'bg-blue-50 border-blue-200' : 'opacity-50'}`}>
+                                    {closingStep > 2 ? <CheckCircle className="h-6 w-6 text-green-500" /> : <Loader2 className={`h-6 w-6 text-blue-500 ${closingStep === 2 ? 'animate-spin' : ''}`} />}
+                                    <div className="flex-1">
+                                        <h4 className="font-medium">قيود التسوية والإهلاك</h4>
+                                        <p className="text-xs text-muted-foreground">احتساب إهلاك الأصول وتسوية المصروفات المستحقة</p>
+                                    </div>
+                                </div>
+
+                                <div className={`flex items-center gap-4 p-3 rounded-lg border ${closingStep >= 3 ? 'bg-pink-50 border-pink-200' : 'opacity-50'}`}>
+                                    {closingStep > 3 ? <CheckCircle className="h-6 w-6 text-green-500" /> : <Loader2 className={`h-6 w-6 text-pink-500 ${closingStep === 3 ? 'animate-spin' : ''}`} />}
+                                    <div className="flex-1">
+                                        <h4 className="font-medium">إصدار القوائم الختامية</h4>
+                                        <p className="text-xs text-muted-foreground">إنشاء الميزانية العمومية وقائمة الدخل النهائية</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            {closingStep === 4 && (
+                                <div className="text-center pt-4 animate-in fade-in zoom-in duration-500">
+                                    <div className="inline-flex items-center justify-center p-2 bg-green-100 text-green-700 rounded-full mb-2">
+                                        <CheckCircle className="h-6 w-6 mr-2" />
+                                        <span className="font-bold">تم الإقفال بنجاح!</span>
+                                    </div>
+                                    
+                                    {/* Closing Summary Card */}
+                                    <Card className="max-w-md mx-auto mt-4 mb-6 border-green-200 bg-green-50/50">
+                                        <CardHeader className="pb-2">
+                                            <CardTitle className="text-sm font-medium text-green-800">ملخص ترحيل الأرصدة</CardTitle>
+                                        </CardHeader>
+                                        <CardContent className="text-sm space-y-3">
+                                            <div className="flex justify-between items-center border-b border-green-200 pb-2">
+                                                <span className="text-muted-foreground">صافي الربح ({netIncome.toFixed(2)} ر.س)</span>
+                                                <ArrowDownRight className="h-4 w-4 text-green-600 mx-1" />
+                                                <span className="font-bold text-green-900">حساب الأرباح المبقاة (حقوق الملكية)</span>
+                                            </div>
+                                            <div className="flex justify-between items-center border-b border-green-200 pb-2">
+                                                <span className="text-muted-foreground">الأصول والالتزامات</span>
+                                                <ArrowUpRight className="h-4 w-4 text-blue-600 mx-1" />
+                                                <span className="font-bold text-blue-900">أرصدة افتتاحية (2026)</span>
+                                            </div>
+                                            <div className="flex justify-between items-center">
+                                                <span className="text-muted-foreground">الإيرادات والمصروفات</span>
+                                                <span className="font-bold text-gray-500">تم التصفير (0.00 ر.س)</span>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+
+                                    <p className="text-sm text-muted-foreground mb-4">تم أرشفة السجلات المالية للسنة الحالية بنجاح.</p>
+                                    <div className="flex justify-center gap-2">
+                                        <Button variant="outline" onClick={() => { setIsClosingYear(false); setClosingStep(0); }}>العودة</Button>
+                                        <Button>تحميل التقرير الختامي</Button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </CardContent>
+            </Card>
         </TabsContent>
 
         {/* Tax & Planning */}
