@@ -20,5 +20,16 @@
     "description": "مبيعات مخزون - طلب #34216 - ريان الزهراني",
     "date": "2026-02-13",
     "submitterId": "system"
+  },
+  {
+    "id": 65610,
+    "amount": 24000,
+    "type": "مصروف رواتب",
+    "date": "2026-02-13",
+    "description": "رواتب شهر 11",
+    "category": "payroll",
+    "submitterId": "dev-office_admin-id",
+    "createdAt": "2026-02-13T06:26:02.936Z",
+    "status": "pending"
   }
 ]

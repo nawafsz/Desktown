@@ -200,88 +200,47 @@ export async function setupAuth(app: Express) {
     app.post("/api/login", async (req, res) => {
       try {
         const { username, password, role: requestedRole, type } = req.body;
-        // Mock login for form submission
-        // In a real app, verify password. Here we just mock it for dev/render without auth provider
         
-        // Determine role: use requestedRole if provided, otherwise infer from username or default to member
-        let role = requestedRole;
-        if (!role) {
-          if (username === "admin") role = "admin";
-          else if (username === "manager") role = "manager";
-          else if (username?.includes("office")) role = "office_renter";
-          else role = "member";
+        // Real database authentication
+        const user = await storage.getUserByUsername(username);
+
+        if (!user || user.password !== password) {
+          return res.status(401).json({ message: "Invalid username or password" });
         }
-        
+
+        // Construct claims from the real user data
         const claims = {
-          sub: `dev-${username}-id`,
-          email: `${username}@example.com`,
-          first_name: username,
-          last_name: "User",
-          profile_image_url: `https://ui-avatars.com/api/?name=${username}&background=random`,
+          sub: user.id,
+          email: user.email || `${username}@example.com`,
+          first_name: user.firstName || username,
+          last_name: user.lastName || "",
+          profile_image_url: user.profileImageUrl,
           exp: Math.floor(Date.now() / 1000) + (7 * 24 * 60 * 60),
-          role: role // Include role in claims
+          role: user.role // Use the actual role from DB
         };
 
-        const user = {
+        const sessionUser = {
           claims,
-          access_token: "dummy_token",
-          refresh_token: "dummy_refresh",
+          access_token: "db_verified_token",
+          refresh_token: "db_verified_refresh",
           expires_at: claims.exp
         };
 
-        try {
-          await storage.upsertUser({
-            id: claims.sub,
-            email: claims.email,
-            username: username,
-            firstName: username,
-            lastName: "User",
-            profileImageUrl: claims.profile_image_url,
-            role: role,
-            status: "online",
-          });
-        } catch (dbError) {
-          console.warn("[Auth] Failed to persist user to DB, continuing with mock session:", dbError);
-        }
+        // Update last seen
+        await storage.updateUserStatus(user.id, "online");
 
-        req.logIn(user, async (err) => {
+        req.logIn(sessionUser, async (err) => {
           if (err) {
             console.error("Login req.logIn error:", err);
             return res.status(500).json({ message: "Login session failed" });
           }
           
-          try {
-            return res.json(await storage.getUser(claims.sub));
-          } catch (dbError) {
-            console.warn("[Auth] Failed to fetch user from DB, returning mock user:", dbError);
-            // Return mock user structure matching schema
-            return res.json({
-              id: claims.sub,
-              username: username,
-              email: claims.email,
-              firstName: username,
-              lastName: "User",
-              role: role,
-              profileImageUrl: claims.profile_image_url,
-              status: "online",
-              createdAt: new Date().toISOString()
-            });
-          }
+          // Return the actual user data
+          return res.json(user);
         });
       } catch (err) {
         console.error("Login POST error:", err);
-        // If everything fails, return a mock success response so the user can at least log in
-        const mockUser = {
-          id: `dev-${req.body.username || 'user'}-id`,
-          username: req.body.username || 'user',
-          firstName: req.body.username || 'User',
-          lastName: "User",
-          role: req.body.role || 'member',
-          status: "online",
-          createdAt: new Date().toISOString()
-        };
-        console.warn("[Auth] Critical login error, returning emergency mock user:", mockUser);
-        return res.json(mockUser);
+        return res.status(500).json({ message: "Login failed due to server error" });
       }
     });
 

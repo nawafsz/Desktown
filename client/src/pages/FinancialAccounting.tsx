@@ -73,12 +73,40 @@ export default function FinancialAccounting() {
   const estimatedTax = totalRevenue * 0.15; // 15% VAT assumption
 
   // Mock Payroll Data
-  const employees = [
-    { id: 1, name: "أحمد محمد", role: "محاسب", salary: 5000 },
-    { id: 2, name: "سارة علي", role: "مدير مالي", salary: 12000 },
-    { id: 3, name: "خالد عمر", role: "مدقق", salary: 7000 },
-  ];
-  const totalSalaries = employees.reduce((sum, emp) => sum + emp.salary, 0);
+  const [employees, setEmployees] = useState([
+    { id: 1, name: "أحمد محمد", role: "محاسب", salary: 5000, allowances: 500 },
+    { id: 2, name: "سارة علي", role: "مدير مالي", salary: 12000, allowances: 2000 },
+    { id: 3, name: "خالد عمر", role: "مدقق", salary: 7000, allowances: 1000 },
+  ]);
+  const totalSalaries = employees.reduce((sum, emp) => sum + emp.salary + (emp.allowances || 0), 0);
+  
+  const [isPayrollOpen, setIsPayrollOpen] = useState(false);
+  const [newEmployee, setNewEmployee] = useState({ name: "", role: "", salary: "", allowances: "" });
+
+  const handleAddEmployee = () => {
+    if (!newEmployee.name || !newEmployee.salary) return;
+    
+    setEmployees([...employees, {
+        id: employees.length + 1,
+        name: newEmployee.name,
+        role: newEmployee.role,
+        salary: parseFloat(newEmployee.salary),
+        allowances: parseFloat(newEmployee.allowances) || 0
+    }]);
+    setNewEmployee({ name: "", role: "", salary: "", allowances: "" });
+    setIsPayrollOpen(false);
+    toast({ title: "تم الإضافة", description: "تم إضافة مسير الموظف بنجاح" });
+  };
+  
+  const handleExportPayroll = () => {
+     toast({ title: "جاري التصدير", description: "يتم الآن إنشاء ملف PDF لكشف الرواتب..." });
+     setTimeout(() => window.print(), 1000);
+  };
+  
+  const handleExportClosingReport = () => {
+     toast({ title: "تحميل التقرير", description: "يتم الآن حفظ التقرير الختامي بصيغة PDF..." });
+     setTimeout(() => window.print(), 1000);
+  };
 
   // Create Transaction Mutation
   const createTransactionMutation = useMutation({
@@ -471,11 +499,50 @@ export default function FinancialAccounting() {
         {/* Payroll */}
         <TabsContent value="payroll" className="space-y-4">
           <Card>
-            <CardHeader>
-              <CardTitle>مسيرات الرواتب</CardTitle>
-              <CardDescription>
-                إدارة رواتب الموظفين والمستحقات الشهرية.
-              </CardDescription>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle>مسيرات الرواتب</CardTitle>
+                <CardDescription>
+                  إدارة رواتب الموظفين والمستحقات الشهرية.
+                </CardDescription>
+              </div>
+              <Dialog open={isPayrollOpen} onOpenChange={setIsPayrollOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" className="gap-2">
+                    <Plus className="h-4 w-4" />
+                    إعداد مسير جديد
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>إضافة موظف للمسير</DialogTitle>
+                    <DialogDescription>أدخل بيانات الموظف والراتب والبدلات.</DialogDescription>
+                  </DialogHeader>
+                  <div className="grid gap-4 py-4">
+                    <div className="space-y-2">
+                      <Label>اسم الموظف</Label>
+                      <Input value={newEmployee.name} onChange={(e) => setNewEmployee({...newEmployee, name: e.target.value})} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>الدور الوظيفي</Label>
+                      <Input value={newEmployee.role} onChange={(e) => setNewEmployee({...newEmployee, role: e.target.value})} />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label>الراتب الأساسي</Label>
+                        <Input type="number" value={newEmployee.salary} onChange={(e) => setNewEmployee({...newEmployee, salary: e.target.value})} />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>البدلات</Label>
+                        <Input type="number" value={newEmployee.allowances} onChange={(e) => setNewEmployee({...newEmployee, allowances: e.target.value})} />
+                      </div>
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button onClick={handleAddEmployee}>حفظ وإضافة</Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -486,6 +553,8 @@ export default function FinancialAccounting() {
                         <th className="p-3">الموظف</th>
                         <th className="p-3">الدور الوظيفي</th>
                         <th className="p-3">الراتب الأساسي</th>
+                        <th className="p-3">البدلات</th>
+                        <th className="p-3">الإجمالي</th>
                         <th className="p-3">الحالة</th>
                       </tr>
                     </thead>
@@ -495,13 +564,15 @@ export default function FinancialAccounting() {
                           <td className="p-3 font-medium">{emp.name}</td>
                           <td className="p-3 text-muted-foreground">{emp.role}</td>
                           <td className="p-3">{emp.salary.toLocaleString()} ر.س</td>
+                          <td className="p-3">{(emp.allowances || 0).toLocaleString()} ر.س</td>
+                          <td className="p-3 font-bold">{(emp.salary + (emp.allowances || 0)).toLocaleString()} ر.س</td>
                           <td className="p-3 text-green-600">نشط</td>
                         </tr>
                       ))}
                     </tbody>
                     <tfoot className="bg-muted/50 font-semibold">
                       <tr>
-                        <td className="p-3" colSpan={2}>الإجمالي الشهري</td>
+                        <td className="p-3" colSpan={4}>الإجمالي الشهري</td>
                         <td className="p-3 text-primary">{totalSalaries.toLocaleString()} ر.س</td>
                         <td></td>
                       </tr>
@@ -509,7 +580,13 @@ export default function FinancialAccounting() {
                   </table>
                 </div>
                 <div className="flex justify-end gap-2">
-                  <Button variant="outline">تصدير كشوفات</Button>
+                  <Button variant="outline" onClick={handleExportPayroll}>
+                    <Printer className="mr-2 h-4 w-4" />
+                    تصدير كشوفات (PDF)
+                  </Button>
+                  <Button variant="outline" onClick={() => toast({title: "تصدير", description: "جاري تحميل التقرير الشامل..."})}>
+                    تصدير التقارير
+                  </Button>
                   <Button onClick={handleRunPayroll} disabled={createTransactionMutation.isPending}>
                     {createTransactionMutation.isPending ? "جاري المعالجة..." : "اعتماد الرواتب"}
                   </Button>
@@ -700,7 +777,10 @@ export default function FinancialAccounting() {
                                     <p className="text-sm text-muted-foreground mb-4">تم أرشفة السجلات المالية للسنة الحالية بنجاح.</p>
                                     <div className="flex justify-center gap-2">
                                         <Button variant="outline" onClick={() => { setIsClosingYear(false); setClosingStep(0); }}>العودة</Button>
-                                        <Button>تحميل التقرير الختامي</Button>
+                                        <Button onClick={handleExportClosingReport}>
+                                            <Download className="mr-2 h-4 w-4" />
+                                            تحميل التقرير الختامي (PDF)
+                                        </Button>
                                     </div>
                                 </div>
                             )}
