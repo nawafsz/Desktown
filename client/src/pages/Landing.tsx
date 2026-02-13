@@ -338,20 +338,29 @@ export default function Landing() {
         </ScrollArea>
 
         {/* Hero Banner */}
-        <div className="relative rounded-2xl overflow-hidden">
+        <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-white/10 group">
           <div
-            className="h-40 md:h-52 lg:h-64 bg-cover bg-center"
+            className="h-56 md:h-72 lg:h-80 bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
             style={{
-              backgroundImage: `linear-gradient(to bottom, rgba(11,15,25,0.2), rgba(11,15,25,0.85)), url('https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&q=80')`
+              backgroundImage: `linear-gradient(to right, rgba(11,15,25,0.9) 0%, rgba(11,15,25,0.4) 50%, rgba(11,15,25,0.1) 100%), url('https://coresg-normal.trae.ai/api/ide/v1/text_to_image?prompt=A%20high-end%2C%20photorealistic%203D%20AI%20Receptionist%20Avatar%20%28female%2C%20professional%20attire%29%20appearing%20as%20a%20semi-transparent%20hologram%20at%20the%20entrance%20of%20a%20futuristic%20virtual%20office.%20She%20is%20smiling%20warmly%2C%20interacting%20with%20a%20floating%20digital%20interface%20showing%2050%20different%20language%20flags.%20In%20the%20background%2C%20a%20luxury%20glass-walled%20lobby%20with%20a%20%22DeskTown%22%20neon%20logo.%20The%20lighting%20is%20soft%20and%20cinematic%2C%20highlighting%20her%20realistic%20facial%20features%20and%20the%20glowing%20schedule%20appointments%20UI%20next%20to%20her.%208k%20resolution%2C%20Unreal%20Engine%205%20render%20style%2C%20sleek%20and%20welcoming%20atmosphere.&image_size=landscape_16_9')`
             }}
           />
-          <div className="absolute inset-0 flex flex-col justify-center px-4 md:px-8 items-start text-left">
-            <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-1 md:mb-2" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>
-              {language === 'ar' ? 'افتح مكتبك السحابي الآن' : 'Open Your Cloud Office Now'}
+          <div className="absolute inset-0 flex flex-col justify-center px-6 md:px-10 items-start text-left max-w-xl">
+            <Badge variant="outline" className="mb-3 border-amber-500/50 text-amber-400 bg-amber-500/10 backdrop-blur-sm">
+              {language === 'ar' ? 'مستقبل العمل هنا' : 'The Future of Work is Here'}
+            </Badge>
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-2 leading-tight" style={{ textShadow: '0 2px 10px rgba(0,0,0,0.8)' }}>
+              {language === 'ar' ? 'افتح مكتبك السحابي' : 'Open Your Cloud Office'}
             </h2>
-            <p className="text-amber-500 text-2xl md:text-3xl lg:text-4xl font-bold" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>
-              {language === 'ar' ? '- بدون إيجار تقليدي' : '- No Traditional Rent'}
+            <p className="text-amber-400 text-xl md:text-2xl font-bold mb-6" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.8)' }}>
+              {language === 'ar' ? 'بدون إيجار، بلا حدود' : 'No Rent. No Limits.'}
             </p>
+            <Button 
+              className="bg-white text-black hover:bg-gray-100 rounded-full font-bold px-8 shadow-lg shadow-white/10 transition-all hover:scale-105"
+              onClick={() => setLocation("/storefront")}
+            >
+              {language === 'ar' ? 'ابدأ الآن' : 'Get Started'}
+            </Button>
           </div>
         </div>
 
