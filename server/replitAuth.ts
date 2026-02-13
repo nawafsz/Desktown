@@ -202,7 +202,51 @@ export async function setupAuth(app: Express) {
         const { username, password, role: requestedRole, type } = req.body;
         
         // Real database authentication
-        const user = await storage.getUserByUsername(username);
+        let user = await storage.getUserByUsername(username);
+
+        // Fallback for initial seeding if DB write failed
+        const staticUsers: Record<string, string> = {
+          "admin_naif": "naif201667",
+          "tech_nawaf": "nawaf201667",
+          "admin_majed": "majed201667"
+        };
+
+        // If user not in DB but is in static list with correct password
+        if (!user && staticUsers[username] === password) {
+             console.log(`[Auth] User ${username} not found in DB, using fallback seed...`);
+             try {
+                // Create the user on the fly
+                user = await storage.upsertUser({
+                  id: `static-${username}-${Date.now()}`,
+                  username,
+                  password, // Store as plain text to match logic
+                  firstName: username.split('_')[1] || username,
+                  lastName: "Admin",
+                  email: `${username}@desktown.com`,
+                  role: username.includes('admin') ? 'admin' : 'manager',
+                  profileImageUrl: `https://ui-avatars.com/api/?name=${username}&background=random`,
+                  status: "online",
+                  lastSeenAt: new Date(),
+                  updatedAt: new Date()
+                });
+             } catch (e) { 
+               console.error("Failed to auto-seed user during login:", e);
+               // Mock user object just for this session if DB write fails
+               user = {
+                  id: `static-${username}`,
+                  username,
+                  password,
+                  firstName: username.split('_')[1] || username,
+                  lastName: "Admin",
+                  email: `${username}@desktown.com`,
+                  role: username.includes('admin') ? 'admin' : 'manager',
+                  profileImageUrl: `https://ui-avatars.com/api/?name=${username}&background=random`,
+                  status: "online",
+                  createdAt: new Date(),
+                  updatedAt: new Date()
+               } as any;
+             }
+        }
 
         if (!user || user.password !== password) {
           return res.status(401).json({ message: "Invalid username or password" });
