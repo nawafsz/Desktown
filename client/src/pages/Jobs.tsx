@@ -80,8 +80,23 @@ export default function Jobs() {
       setDialogOpen(false);
       toast({ title: t.jobs.jobCreated, description: t.jobs.jobCreatedDesc });
     },
-    onError: () => {
-      toast({ title: t.jobs.error, description: t.jobs.failedCreate, variant: "destructive" });
+    onError: (error) => {
+      console.error("Create job error:", error);
+      let description = t.jobs.failedCreate;
+      try {
+        // Extract JSON from "Status: JSON" format
+        const jsonString = error.message.substring(error.message.indexOf('{'));
+        if (jsonString) {
+             const data = JSON.parse(jsonString);
+             if (data.message) description = data.message;
+             if (data.errors) {
+                 description += ": " + data.errors.map((e: any) => e.message || e.path?.join('.')).join(', ');
+             }
+        }
+      } catch (e) {
+        // ignore parse error
+      }
+      toast({ title: t.jobs.error, description, variant: "destructive" });
     },
   });
 

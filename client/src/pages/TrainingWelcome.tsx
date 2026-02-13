@@ -109,9 +109,6 @@ export default function TrainingWelcome() {
                                 مرحباً بك في قسم التدريب والتطوير. منصتك المتكاملة لتطوير المهارات القيادية والتقنية، سواء عبر البث المباشر أو من خلال مكتبتنا الغنية بالمعلومات.
                             </p>
                         </div>
-                        <div className="w-64 h-64 lg:w-80 lg:h-80 bg-white/5 rounded-full border border-white/10 flex items-center justify-center backdrop-blur-3xl relative animate-pulse">
-                            <GraduationCap className="w-32 h-32 lg:w-40 lg:h-40 text-teal-500 drop-shadow-[0_0_30px_rgba(20,184,166,0.3)]" />
-                        </div>
                     </div>
                 </div>
 

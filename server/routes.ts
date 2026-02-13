@@ -62,7 +62,7 @@ const officeIdParamSchema = z.coerce.number().int().positive("Office ID must be 
 const callIdParamSchema = z.coerce.number().int().positive("Call ID must be a positive integer");
 
 // Role-based access control middleware
-type UserRole = "member" | "manager" | "admin";
+type UserRole = "member" | "manager" | "admin" | "office_renter";
 
 function requireRole(...allowedRoles: UserRole[]) {
   return async (req: any, res: any, next: any) => {
@@ -1915,8 +1915,11 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
     }
   });
 
-  app.post('/api/jobs', isAuthenticated, requireRole("manager", "admin"), async (req: any, res) => {
+  app.post('/api/jobs', isAuthenticated, requireRole("manager", "admin", "office_renter"), async (req: any, res) => {
     try {
+      console.log("Creating job posting. User:", req.user?.claims?.sub);
+      console.log("Body:", req.body);
+
       const data = insertJobPostingSchema.parse({
         ...req.body,
         creatorId: req.user.claims.sub,
@@ -1925,11 +1928,15 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
       res.status(201).json(job);
     } catch (error) {
       console.error("Error creating job:", error);
-      res.status(400).json({ message: "Failed to create job" });
+      if (error instanceof z.ZodError) {
+        console.error("Validation details:", JSON.stringify(error.errors, null, 2));
+        return res.status(400).json({ message: "Validation failed", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create job: " + (error instanceof Error ? error.message : String(error)) });
     }
   });
 
-  app.patch('/api/jobs/:id', isAuthenticated, requireRole("manager", "admin"), async (req, res) => {
+  app.patch('/api/jobs/:id', isAuthenticated, requireRole("manager", "admin", "office_renter"), async (req, res) => {
     try {
       const job = await storage.updateJobPosting(parseInt(req.params.id), req.body);
       if (!job) {
@@ -1942,7 +1949,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
     }
   });
 
-  app.delete('/api/jobs/:id', isAuthenticated, requireRole("manager", "admin"), async (req, res) => {
+  app.delete('/api/jobs/:id', isAuthenticated, requireRole("manager", "admin", "office_renter"), async (req, res) => {
     try {
       await storage.deleteJobPosting(parseInt(req.params.id));
       res.status(204).send();
@@ -3694,10 +3701,56 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
         return res.status(404).json({ message: "Job posting not found" });
       }
 
+      // Try to find office for this creator to link the service request
+      let officeId = 0;
+      try {
+        // This is a best-effort to link to an office. 
+        // We assume the creator is an office owner or manager.
+        // We'll search for offices owned by this user.
+        const offices = await storage.getOffices(); // Optimization: should have getOfficeByOwner
+        const creatorOffice = offices.find(o => o.ownerId === job.creatorId);
+        if (creatorOffice) {
+            officeId = creatorOffice.id;
+        }
+      } catch (e) {
+        console.log("Could not find office for job creator", e);
+      }
+
+      // Create internal email to the job creator
+      try {
+        await storage.createInternalEmail({
+            senderId: job.creatorId, // System/Self sent or from a specific system bot if available
+            recipientId: job.creatorId,
+            subject: `New Job Application: ${jobTitle || job.title}`,
+            body: `
+New Job Application Received
+
+Position: ${jobTitle || job.title}
+Department: ${department || job.department}
+
+Applicant Details:
+Name: ${fullName}
+Email: ${email}
+Phone: ${phone || 'N/A'}
+Experience: ${experience || 'N/A'}
+
+Resume Link: ${resume || 'Not provided'}
+
+Cover Letter:
+${coverLetter || 'No cover letter provided'}
+            `,
+            read: false,
+            sentAt: new Date(),
+        } as any);
+      } catch (emailError) {
+        console.error("Failed to send internal email notification", emailError);
+        // Continue, as we still want to record the service request
+      }
+
       // Create a service request entry for the job application
       await storage.createServiceRequest({
-        officeId: 0,
-        serviceId: 0,
+        officeId: officeId,
+        serviceId: 0, // 0 for general/job application
         visitorName: fullName,
         visitorEmail: email,
         visitorPhone: phone || null,
@@ -5996,6 +6049,123 @@ ${priority ? `الأولوية: ${priority}` : ''}
       console.error("Error generating share link:", error);
       res.status(500).json({ message: "Failed to generate share link" });
     }
+  });
+
+  // --- Admin / Platform Management Routes ---
+
+  // Create User (Admin/Manager only)
+  app.post('/api/admin/users', requireRole("admin", "manager"), async (req: any, res) => {
+    try {
+      const { username, email, password, role, firstName, lastName, department } = req.body;
+      
+      if (!username || !email || !password) {
+          return res.status(400).json({ message: "Username, email and password are required" });
+      }
+
+      const existingUser = await storage.getUserByUsername(username);
+      if (existingUser) {
+          return res.status(400).json({ message: "Username already exists" });
+      }
+      
+      const existingEmail = await storage.getUserByEmail(email);
+      if (existingEmail) {
+          return res.status(400).json({ message: "Email already exists" });
+      }
+
+      const user = await storage.upsertUser({
+          username,
+          email,
+          password, 
+          role: role || 'member',
+          firstName,
+          lastName,
+          department,
+          status: 'offline',
+          createdAt: new Date(),
+          updatedAt: new Date()
+      } as any);
+
+      res.status(201).json(user);
+    } catch (error) {
+      console.error("Error creating user:", error);
+      res.status(500).json({ message: "Failed to create user" });
+    }
+  });
+
+  // Internal Emails
+  app.post('/api/admin/internal-emails', requireRole("admin", "manager"), async (req: any, res) => {
+     try {
+        const validatedData = insertInternalEmailSchema.parse({
+            ...req.body,
+            senderId: req.user.claims.sub,
+            sentAt: new Date(),
+            read: false
+        });
+        
+        const email = await storage.createInternalEmail(validatedData);
+        res.status(201).json(email);
+     } catch (error) {
+         console.error("Error sending internal email:", error);
+         res.status(500).json({ message: "Failed to send email" });
+     }
+  });
+
+  // Support Tickets (Admin view)
+  app.get('/api/admin/tickets', requireRole("admin", "manager"), async (req, res) => {
+      try {
+          const tickets = await storage.getTickets();
+          res.json(tickets);
+      } catch (error) {
+          console.error("Error fetching tickets:", error);
+          res.status(500).json({ message: "Failed to fetch tickets" });
+      }
+  });
+  
+  // Reply to ticket
+  app.post('/api/admin/tickets/:id/reply', requireRole("admin", "manager"), async (req: any, res) => {
+      try {
+          const ticketId = parseInt(req.params.id);
+          const { status } = req.body;
+          
+          const updated = await storage.updateTicket(ticketId, { 
+              status: status || 'resolved',
+          });
+          
+          res.json(updated);
+      } catch (error) {
+           console.error("Error replying to ticket:", error);
+           res.status(500).json({ message: "Failed to reply" });
+      }
+  });
+
+  // Stats (Overwrite or Add)
+  app.get('/api/admin/stats', requireRole("admin", "manager"), async (req, res) => {
+      try {
+          const users = await storage.getAllUsers();
+          const offices = await storage.getOffices();
+          const subscriptions = await storage.getAllSubscriptions();
+          
+          const totalRevenue = subscriptions.reduce((sum, sub) => {
+              // Only count paid/active/expired (assuming expired was paid)
+              if (['active', 'expired', 'paid'].includes(sub.status || '')) {
+                  return sum + (sub.totalPrice || 0);
+              }
+              return sum;
+          }, 0);
+
+          res.json({
+              activeSubscriptions: users.filter(u => u.role === 'office_renter').length, 
+              totalOffices: offices.length,
+              totalUsers: users.length,
+              pendingRequests: offices.filter(o => o.approvalStatus === 'pending').length,
+              totalRevenue,
+              // Just return the count of active subscriptions as "months rented" proxy or total active contracts
+              totalActiveContracts: subscriptions.filter(s => s.status === 'active').length 
+          });
+      } catch (error) {
+          console.error("Error getting stats:", error);
+          res.status(500).json({ message: "Failed to fetch stats" });
+      }
   });
 
   // Stripe publishable key endpoint

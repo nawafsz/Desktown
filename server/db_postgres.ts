@@ -4,7 +4,7 @@ import * as schema from "../shared/schema.ts";
 import dns from 'dns';
 
 // Let Node decide DNS order automatically for IPv6 support
-// dns.setDefaultResultOrder('ipv4first'); 
+dns.setDefaultResultOrder('ipv4first'); 
 
 
 const connectionString = process.env.DATABASE_URL!;

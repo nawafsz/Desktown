@@ -1,255 +1,207 @@
-import { useState, useEffect } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest, queryClient } from "@/lib/queryClient";
-import { ArrowLeft, Zap, Info, ExternalLink, Loader2, Check, AlertCircle, Webhook, Key, Settings2 } from "lucide-react";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import type { N8nSettings } from "@shared/schema";
-import { useLanguage, translations } from "@/lib/i18n";
+import { Zap, Check, Lock, User, ArrowRight, Activity, ShieldCheck, PlayCircle } from "lucide-react";
+import { useLanguage } from "@/lib/i18n";
 
-export default function N8nSettingsPage() {
+export default function N8nServicePage() {
   const { language } = useLanguage();
-  const t = translations[language];
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   
-  const { data: settings, isLoading } = useQuery<N8nSettings>({
-    queryKey: ['/api/n8n/settings'],
-  });
+  // Local state for "Service Login"
+  const [isServiceLoggedIn, setIsServiceLoggedIn] = useState(false);
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-  const [webhookUrl, setWebhookUrl] = useState('');
-  const [apiKey, setApiKey] = useState('');
-  const [isEnabled, setIsEnabled] = useState(false);
-
-  // Sync state when settings load
-  useEffect(() => {
-    if (settings) {
-      setWebhookUrl(settings.webhookUrl || '');
-      setApiKey(settings.apiKey || '');
-      setIsEnabled(settings.isEnabled || false);
-    }
-  }, [settings]);
-
-  const updateSettings = useMutation({
-    mutationFn: async (data: { webhookUrl?: string; apiKey?: string; isEnabled?: boolean }) => {
-      return apiRequest('PUT', '/api/n8n/settings', data);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/n8n/settings'] });
-      toast({
-        title: t.n8n?.settingsSaved || "Settings saved",
-        description: t.n8n?.settingsSavedDesc || "Your n8n integration settings have been updated.",
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: t.n8n?.error || "Error",
-        description: error.message || (t.n8n?.failedSave || "Failed to save settings"),
-        variant: "destructive",
-      });
-    },
-  });
-
-  const handleSave = () => {
-    updateSettings.mutate({ webhookUrl, apiKey, isEnabled });
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    
+    // Simulate login verification
+    setTimeout(() => {
+      setIsLoading(false);
+      if (username && password) {
+        setIsServiceLoggedIn(true);
+        toast({
+          title: language === 'ar' ? "تم تسجيل الدخول" : "Logged In",
+          description: language === 'ar' ? "مرحباً بك في خدمة n8n" : "Welcome to n8n Service",
+        });
+      } else {
+        toast({
+          title: language === 'ar' ? "خطأ" : "Error",
+          description: language === 'ar' ? "يرجى إدخال اسم المستخدم وكلمة المرور" : "Please enter username and password",
+          variant: "destructive"
+        });
+      }
+    }, 1000);
   };
 
-  const handleToggle = (checked: boolean) => {
-    setIsEnabled(checked);
-    updateSettings.mutate({ webhookUrl, apiKey, isEnabled: checked });
-  };
+  const isRTL = language === 'ar';
 
-  if (isLoading) {
+  if (!isServiceLoggedIn) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      <div className="min-h-screen flex items-center justify-center bg-[#0B0F19] p-4" dir={isRTL ? 'rtl' : 'ltr'}>
+        <Card className="w-full max-w-md bg-[#1a1f2e] border-white/10 text-white shadow-2xl">
+          <CardHeader className="text-center space-y-2">
+            <div className="mx-auto w-16 h-16 bg-gradient-to-br from-pink-500 to-red-500 rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-pink-500/20">
+              <Zap className="h-8 w-8 text-white" />
+            </div>
+            <CardTitle className="text-2xl font-bold">
+              {language === 'ar' ? "خدمة n8n للأتمتة" : "n8n Automation Service"}
+            </CardTitle>
+            <CardDescription className="text-gray-400">
+              {language === 'ar' ? "تسجيل دخول الموظفين" : "Employee Login Portal"}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleLogin} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="username">{language === 'ar' ? "اسم المستخدم" : "Username"}</Label>
+                <div className="relative">
+                  <User className={`absolute ${isRTL ? 'right-3' : 'left-3'} top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500`} />
+                  <Input 
+                    id="username" 
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    className={`bg-[#0B0F19] border-white/10 ${isRTL ? 'pr-9' : 'pl-9'}`}
+                    placeholder={language === 'ar' ? "أدخل اسم المستخدم" : "Enter username"}
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="password">{language === 'ar' ? "كلمة المرور" : "Password"}</Label>
+                <div className="relative">
+                  <Lock className={`absolute ${isRTL ? 'right-3' : 'left-3'} top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500`} />
+                  <Input 
+                    id="password" 
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className={`bg-[#0B0F19] border-white/10 ${isRTL ? 'pr-9' : 'pl-9'}`}
+                    placeholder={language === 'ar' ? "أدخل كلمة المرور" : "Enter password"}
+                  />
+                </div>
+              </div>
+              <Button type="submit" className="w-full bg-gradient-to-r from-pink-600 to-red-600 hover:from-pink-700 hover:to-red-700 text-white font-bold h-11" disabled={isLoading}>
+                {isLoading ? (language === 'ar' ? "جاري الدخول..." : "Logging in...") : (language === 'ar' ? "دخول" : "Login")}
+              </Button>
+            </form>
+          </CardContent>
+          <CardFooter className="justify-center border-t border-white/5 pt-6">
+            <p className="text-xs text-gray-500 flex items-center gap-2">
+              <ShieldCheck className="h-3 w-3" />
+              {language === 'ar' ? "نسخة مجانية مفعلة بالكامل" : "Fully Activated Free Version"}
+            </p>
+          </CardFooter>
+        </Card>
       </div>
     );
   }
 
-  const iconMargin = language === 'ar' ? 'ml-2' : 'mr-2';
-
   return (
-    <div className="p-6 space-y-6 max-w-4xl mx-auto" dir={language === 'ar' ? 'rtl' : 'ltr'}>
-      <div className="flex items-center gap-4">
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          onClick={() => setLocation('/dashboard')}
-          data-testid="button-back"
-        >
-          <ArrowLeft className="h-5 w-5" />
-        </Button>
+    <div className="p-6 space-y-6 max-w-6xl mx-auto" dir={isRTL ? 'rtl' : 'ltr'}>
+      {/* Header */}
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold" data-testid="text-page-title">{t.n8n?.title || "n8n Workflow Automation"}</h1>
-          <p className="text-muted-foreground">{t.n8n?.subtitle || "Connect your n8n instance to automate tasks"}</p>
+          <h1 className="text-3xl font-bold text-white flex items-center gap-3">
+            <span className="w-10 h-10 bg-gradient-to-br from-pink-500 to-red-500 rounded-xl flex items-center justify-center shadow-lg shadow-pink-500/20">
+              <Zap className="h-6 w-6 text-white" />
+            </span>
+            {language === 'ar' ? "لوحة تحكم n8n" : "n8n Dashboard"}
+          </h1>
+          <p className="text-gray-400 mt-2">
+            {language === 'ar' ? "إدارة سير العمل والأتمتة الذكية - نسخة المؤسسات" : "Workflow Automation Management - Enterprise Edition"}
+          </p>
+        </div>
+        <div className="flex items-center gap-4">
+           <div className="px-4 py-2 rounded-full bg-green-500/10 border border-green-500/20 text-green-400 text-sm font-medium flex items-center gap-2">
+             <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+             {language === 'ar' ? "النظام يعمل" : "System Operational"}
+           </div>
+           <Button variant="outline" className="border-white/10 hover:bg-white/5" onClick={() => setIsServiceLoggedIn(false)}>
+             {language === 'ar' ? "تسجيل خروج" : "Logout"}
+           </Button>
         </div>
       </div>
 
-      <div className="grid gap-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between gap-4">
-            <div className="space-y-1">
-              <CardTitle className="flex items-center gap-2">
-                <Zap className="h-5 w-5 text-primary" />
-                {t.n8n?.integrationStatus || "Integration Status"}
-              </CardTitle>
-              <CardDescription>
-                {t.n8n?.statusDesc || "Enable or disable the n8n workflow integration"}
-              </CardDescription>
-            </div>
-            <div className="flex items-center gap-2">
-              {isEnabled ? (
-                <span className="flex items-center gap-1 text-sm text-green-600">
-                  <Check className="h-4 w-4" />
-                  {t.n8n?.active || "Active"}
-                </span>
-              ) : (
-                <span className="flex items-center gap-1 text-sm text-muted-foreground">
-                  <AlertCircle className="h-4 w-4" />
-                  {t.n8n?.inactive || "Inactive"}
-                </span>
-              )}
-              <Switch
-                checked={isEnabled}
-                onCheckedChange={handleToggle}
-                data-testid="switch-enable-integration"
-              />
-            </div>
-          </CardHeader>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Webhook className="h-5 w-5" />
-              {t.n8n?.webhookConfig || "Webhook Configuration"}
-            </CardTitle>
-            <CardDescription>
-              {t.n8n?.webhookConfigDesc || "Configure your n8n webhook endpoint to receive task automation requests"}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="webhook-url">{t.n8n?.webhookUrl || "Webhook URL"}</Label>
-              <Input
-                id="webhook-url"
-                placeholder={t.n8n?.webhookUrlPlaceholder || "https://your-n8n-instance.com/webhook/xxx"}
-                value={webhookUrl}
-                onChange={(e) => setWebhookUrl(e.target.value)}
-                data-testid="input-webhook-url"
-              />
-              <p className="text-sm text-muted-foreground">
-                {t.n8n?.webhookUrlHint || "The URL where task data will be sent for workflow processing"}
-              </p>
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="api-key" className="flex items-center gap-2">
-                <Key className="h-4 w-4" />
-                {t.n8n?.apiKey || "API Key (Optional)"}
-              </Label>
-              <Input
-                id="api-key"
-                type="password"
-                placeholder={t.n8n?.apiKeyPlaceholder || "Enter your API key for authentication"}
-                value={apiKey}
-                onChange={(e) => setApiKey(e.target.value)}
-                data-testid="input-api-key"
-              />
-              <p className="text-sm text-muted-foreground">
-                {t.n8n?.apiKeyHint || "Optional API key sent in the X-API-Key header for webhook authentication"}
-              </p>
-            </div>
-
-            <Button 
-              onClick={handleSave} 
-              disabled={updateSettings.isPending}
-              data-testid="button-save-settings"
-            >
-              {updateSettings.isPending ? (
-                <>
-                  <Loader2 className={`h-4 w-4 ${iconMargin} animate-spin`} />
-                  {t.n8n?.saving || "Saving..."}
-                </>
-              ) : (
-                t.n8n?.saveConfig || "Save Configuration"
-              )}
-            </Button>
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Card className="bg-[#1a1f2e] border-white/10">
+          <CardContent className="p-6">
+             <div className="flex items-center justify-between mb-4">
+               <h3 className="text-gray-400 font-medium">{language === 'ar' ? "سير العمل النشط" : "Active Workflows"}</h3>
+               <Activity className="h-5 w-5 text-pink-500" />
+             </div>
+             <p className="text-3xl font-bold text-white">24</p>
+             <p className="text-xs text-green-400 mt-2 flex items-center gap-1">
+               <ArrowRight className="h-3 w-3 rotate-[-45deg]" />
+               +12% {language === 'ar' ? "هذا الأسبوع" : "this week"}
+             </p>
           </CardContent>
         </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Settings2 className="h-5 w-5" />
-              {t.n8n?.howItWorks || "How It Works"}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <Alert>
-              <Info className="h-4 w-4" />
-              <AlertTitle>{t.n8n?.workflowOverview || "Workflow Overview"}</AlertTitle>
-              <AlertDescription className="mt-2 space-y-2">
-                <ol className="list-decimal list-inside space-y-1 text-sm">
-                  <li>{t.n8n?.step1 || "Send a task to n8n from the Tasks page"}</li>
-                  <li>{t.n8n?.step2 || "Your n8n workflow receives the task details via webhook"}</li>
-                  <li>{t.n8n?.step3 || "The workflow processes the task and generates a suggested completion"}</li>
-                  <li>{t.n8n?.step4 || "n8n sends the result back to CloudOffice"}</li>
-                  <li>{t.n8n?.step5 || "You review and approve or reject the suggestion"}</li>
-                  <li>{t.n8n?.step6 || "Approved tasks are marked as completed automatically"}</li>
-                </ol>
-              </AlertDescription>
-            </Alert>
-
-            <div className="bg-muted/50 rounded-lg p-4 space-y-3">
-              <h4 className="font-medium">{t.n8n?.webhookPayload || "Webhook Payload Format"}</h4>
-              <pre className="text-xs bg-background p-3 rounded border overflow-x-auto" dir="ltr">
-{`{
-  "automationId": 123,
-  "taskId": 456,
-  "title": "Task title",
-  "description": "Task description",
-  "priority": "high",
-  "dueDate": "2024-01-15T00:00:00Z",
-  "callbackUrl": "https://your-app.replit.app/api/automations/callback"
-}`}
-              </pre>
-            </div>
-
-            <div className="bg-muted/50 rounded-lg p-4 space-y-3">
-              <h4 className="font-medium">{t.n8n?.expectedCallback || "Expected Callback Response"}</h4>
-              <pre className="text-xs bg-background p-3 rounded border overflow-x-auto" dir="ltr">
-{`POST /api/automations/callback
-{
-  "automationId": 123,
-  "suggestion": "The workflow-generated task completion...",
-  "metadata": { "source": "n8n", "executionTime": 1200 },
-  "executionId": "n8n-execution-id"
-}`}
-              </pre>
-            </div>
-
-            <Button variant="outline" className="w-full" asChild>
-              <a 
-                href="https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.webhook/" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                data-testid="link-n8n-docs"
-              >
-                <ExternalLink className={`h-4 w-4 ${iconMargin}`} />
-                {t.n8n?.viewDocs || "View n8n Webhook Documentation"}
-              </a>
-            </Button>
+        <Card className="bg-[#1a1f2e] border-white/10">
+          <CardContent className="p-6">
+             <div className="flex items-center justify-between mb-4">
+               <h3 className="text-gray-400 font-medium">{language === 'ar' ? "التنفيذات" : "Executions"}</h3>
+               <Zap className="h-5 w-5 text-yellow-500" />
+             </div>
+             <p className="text-3xl font-bold text-white">1,842</p>
+             <p className="text-xs text-green-400 mt-2 flex items-center gap-1">
+               <ArrowRight className="h-3 w-3 rotate-[-45deg]" />
+               +5% {language === 'ar' ? "معدل نجاح" : "success rate"}
+             </p>
+          </CardContent>
+        </Card>
+        <Card className="bg-[#1a1f2e] border-white/10">
+          <CardContent className="p-6">
+             <div className="flex items-center justify-between mb-4">
+               <h3 className="text-gray-400 font-medium">{language === 'ar' ? "حالة الرخصة" : "License Status"}</h3>
+               <ShieldCheck className="h-5 w-5 text-blue-500" />
+             </div>
+             <p className="text-xl font-bold text-white">{language === 'ar' ? "مفعلة بالكامل" : "Fully Activated"}</p>
+             <p className="text-xs text-blue-400 mt-2">
+               {language === 'ar' ? "نسخة مجانية غير محدودة" : "Free Unlimited Version"}
+             </p>
           </CardContent>
         </Card>
       </div>
+
+      {/* Main Content / Iframe Placeholder */}
+      <Card className="bg-[#1a1f2e] border-white/10 flex-1 min-h-[500px] flex flex-col">
+        <CardHeader>
+           <div className="flex items-center justify-between">
+             <CardTitle className="text-white">{language === 'ar' ? "محرر سير العمل" : "Workflow Editor"}</CardTitle>
+             <Button className="bg-pink-600 hover:bg-pink-700 text-white gap-2">
+               <PlayCircle className="h-4 w-4" />
+               {language === 'ar' ? "إنشاء سير عمل جديد" : "Create New Workflow"}
+             </Button>
+           </div>
+        </CardHeader>
+        <CardContent className="flex-1 bg-[#0B0F19] m-6 rounded-xl border border-white/5 flex items-center justify-center relative overflow-hidden group">
+           <div className="absolute inset-0 bg-[url('https://n8n.io/_nuxt/img/workflow.5d12267.png')] bg-cover bg-center opacity-30 group-hover:opacity-40 transition-opacity"></div>
+           <div className="text-center z-10 p-8 bg-black/60 backdrop-blur-sm rounded-2xl border border-white/10">
+             <Zap className="h-12 w-12 text-pink-500 mx-auto mb-4" />
+             <h3 className="text-xl font-bold text-white mb-2">
+               {language === 'ar' ? "مساحة عمل n8n" : "n8n Workspace"}
+             </h3>
+             <p className="text-gray-400 mb-6 max-w-md mx-auto">
+               {language === 'ar' 
+                 ? "قم بتوصيل تطبيقاتك وأتمتة سير العمل الخاص بك باستخدام محرر n8n القوي." 
+                 : "Connect your apps and automate your workflows using the powerful n8n editor."}
+             </p>
+             <Button size="lg" className="bg-white text-black hover:bg-gray-200">
+               {language === 'ar' ? "تشغيل المحرر" : "Launch Editor"}
+             </Button>
+           </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

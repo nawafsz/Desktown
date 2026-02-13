@@ -1414,6 +1414,10 @@ export class DatabaseStorage implements IStorage {
     return subscription;
   }
 
+  async getAllSubscriptions(): Promise<Subscription[]> {
+    return await db.select().from(subscriptions);
+  }
+
   // =====================
   // Advertisement Operations
   // =====================

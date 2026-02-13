@@ -33,6 +33,7 @@ async function start() {
         }
 
         // If no IPv4, try IPv6
+        /* 
         if (!ipAddress) {
             try {
                 const ipv6 = await resolve6(hostname);
@@ -44,6 +45,7 @@ async function start() {
                 console.log(`[Local Launcher] IPv6 resolution failed: ${e.message}`);
             }
         }
+        */
 
         if (ipAddress) {
             // Manually handle IPv6 brackets if needed

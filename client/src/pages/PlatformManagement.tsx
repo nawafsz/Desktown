@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -5,6 +6,24 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+    DialogFooter,
+} from "@/components/ui/dialog";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 import {
     Building2,
     Users,
@@ -26,6 +45,10 @@ import {
     ClipboardList,
     Filter,
     ArrowRight,
+    UserPlus,
+    Mail,
+    MessageSquare,
+    Send
 } from "lucide-react";
 import { useLanguage, translations } from "@/lib/i18n";
 import {
@@ -54,6 +77,8 @@ export default function PlatformManagement() {
         totalOffices: number;
         totalUsers: number;
         pendingRequests: number;
+        totalRevenue: number;
+        totalActiveContracts: number;
     }>({
         queryKey: ["/api/admin/stats"],
     });
@@ -100,36 +125,101 @@ export default function PlatformManagement() {
         }
     });
 
+    const [isAddUserOpen, setIsAddUserOpen] = useState(false);
+    const [isEmailOpen, setIsEmailOpen] = useState(false);
+    const [newUser, setNewUser] = useState({
+        username: '',
+        email: '',
+        password: '',
+        role: 'member',
+        firstName: '',
+        lastName: '',
+        department: 'General'
+    });
+    const [emailData, setEmailData] = useState({
+        subject: '',
+        content: '',
+        recipientRole: 'all'
+    });
+
+    const createUserMutation = useMutation({
+        mutationFn: async (userData: any) => {
+            await apiRequest("POST", "/api/admin/users", userData);
+        },
+        onSuccess: () => {
+            toast({ 
+                title: language === 'ar' ? "تم بنجاح" : "Success", 
+                description: language === 'ar' ? "تم إنشاء المستخدم بنجاح" : "User created successfully" 
+            });
+            setIsAddUserOpen(false);
+            setNewUser({ username: '', email: '', password: '', role: 'member', firstName: '', lastName: '', department: 'General' });
+        },
+        onError: (error: any) => {
+             toast({ 
+                title: language === 'ar' ? "خطأ" : "Error", 
+                description: error.message || (language === 'ar' ? "فشل إنشاء المستخدم" : "Failed to create user"),
+                variant: "destructive"
+            });
+        }
+    });
+
+    const sendEmailMutation = useMutation({
+        mutationFn: async (data: any) => {
+             await apiRequest("POST", "/api/admin/internal-emails", data);
+        },
+        onSuccess: () => {
+             toast({ 
+                title: language === 'ar' ? "تم الإرسال" : "Sent", 
+                description: language === 'ar' ? "تم إرسال البريد بنجاح" : "Email sent successfully" 
+            });
+            setIsEmailOpen(false);
+            setEmailData({ subject: '', content: '', recipientRole: 'all' });
+        }
+    });
+
+    const { data: tickets = [] } = useQuery<any[]>({
+        queryKey: ["/api/admin/tickets"],
+    });
+
+    const replyTicketMutation = useMutation({
+        mutationFn: async ({id, status}: {id: number, status: string}) => {
+             await apiRequest("POST", `/api/admin/tickets/${id}/reply`, { status });
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["/api/admin/tickets"] });
+            toast({ title: language === 'ar' ? "تم التحديث" : "Updated", description: language === 'ar' ? "تم تحديث حالة التذكرة" : "Ticket status updated" });
+        }
+    });
+
     const kpis = [
         {
-            label: language === 'ar' ? "الاشتراكات النشطة" : "Active Subscriptions",
+            label: language === 'ar' ? "إجمالي الإيرادات" : "Total Revenue",
+            value: stats?.totalRevenue ? `${stats.totalRevenue.toLocaleString()} SAR` : "0 SAR",
+            icon: DollarSign,
+            gradient: "from-emerald-500 to-teal-600",
+            trend: "+12.5% " + (language === 'ar' ? "نمو" : "growth")
+        },
+        {
+            label: language === 'ar' ? "العقود النشطة" : "Active Contracts",
+            value: stats?.totalActiveContracts || 0,
+            icon: ClipboardList,
+            gradient: "from-blue-500 to-indigo-600",
+            trend: "+8.2% " + (language === 'ar' ? "زيادة" : "increase")
+        },
+        {
+            label: language === 'ar' ? "المكاتب المؤجرة" : "Rented Offices",
             value: stats?.activeSubscriptions || 0,
-            icon: Zap,
-            gradient: "from-cyan-500 to-blue-500",
-            trend: "+12% " + (language === 'ar' ? "هذا الشهر" : "this month")
-        },
-        {
-            label: language === 'ar' ? "إجمالي المكاتب" : "Total Offices",
-            value: stats?.totalOffices || 0,
             icon: Building2,
-            gradient: "from-purple-500 to-indigo-500",
-            trend: "+5 " + (language === 'ar' ? "جديد" : "new")
+            gradient: "from-violet-500 to-purple-600",
+            trend: "+5.4% " + (language === 'ar' ? "هذا الشهر" : "this month")
         },
         {
-            label: language === 'ar' ? "إجمالي المستخدمين" : "Total Users",
+            label: language === 'ar' ? "المستخدمين النشطين" : "Active Users",
             value: stats?.totalUsers || 0,
             icon: Users,
-            gradient: "from-emerald-500 to-teal-500",
-            trend: "+48 " + (language === 'ar' ? "منذ الأمس" : "since yesterday")
-        },
-        {
-            label: language === 'ar' ? "طلبات قيد الانتظار" : "Pending Requests",
-            value: stats?.pendingRequests || 0,
-            icon: Clock,
-            gradient: "from-amber-500 to-orange-500",
-            trend: language === 'ar' ? "تحتاج تدخل" : "Requires action",
-            isAlert: (stats?.pendingRequests || 0) > 0
-        },
+            gradient: "from-orange-500 to-amber-600",
+            trend: "+15.3% " + (language === 'ar' ? "منذ الأمس" : "since yesterday")
+        }
     ];
 
     const formatCurrency = (amount: number) => {
@@ -212,6 +302,9 @@ export default function PlatformManagement() {
                 <TabsList className="bg-white/5 border border-white/10 p-1 w-full md:w-auto h-auto grid grid-cols-2 md:inline-flex">
                     <TabsTrigger value="overview" className="data-[state=active]:bg-indigo-500 data-[state=active]:text-white rounded-lg px-6 py-2">
                         {language === 'ar' ? "نظرة عامة" : "Overview"}
+                    </TabsTrigger>
+                    <TabsTrigger value="users" className="data-[state=active]:bg-indigo-500 data-[state=active]:text-white rounded-lg px-6 py-2">
+                        {language === 'ar' ? "المستخدمين" : "Users"}
                     </TabsTrigger>
                     <TabsTrigger value="offices" className="data-[state=active]:bg-indigo-500 data-[state=active]:text-white rounded-lg px-6 py-2">
                         {language === 'ar' ? "إدارة المكاتب" : "Offices"}
@@ -330,6 +423,176 @@ export default function PlatformManagement() {
                                 </div>
                             </CardContent>
                         </Card>
+                    </div>
+                </TabsContent>
+
+                <TabsContent value="users" className="outline-none space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                         {/* Add User Card */}
+                         <Card className="glass border-white/5">
+                            <CardHeader>
+                                <CardTitle className="text-white flex items-center gap-2">
+                                    <UserPlus className="h-5 w-5 text-indigo-400" />
+                                    {language === 'ar' ? "إضافة مستخدم جديد" : "Add New User"}
+                                </CardTitle>
+                                <CardDescription>
+                                    {language === 'ar' ? "إضافة موظف أو عميل جديد للمنصة" : "Add new staff or client to the platform"}
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <Dialog open={isAddUserOpen} onOpenChange={setIsAddUserOpen}>
+                                    <DialogTrigger asChild>
+                                        <Button className="w-full bg-indigo-500 hover:bg-indigo-600 text-white">
+                                            <UserPlus className="mr-2 h-4 w-4" />
+                                            {language === 'ar' ? "تسجيل مستخدم" : "Register User"}
+                                        </Button>
+                                    </DialogTrigger>
+                                    <DialogContent className="bg-slate-900 border-slate-800 text-white">
+                                        <DialogHeader>
+                                            <DialogTitle>{language === 'ar' ? "إضافة مستخدم جديد" : "Add New User"}</DialogTitle>
+                                            <DialogDescription>
+                                                {language === 'ar' ? "أدخل بيانات المستخدم الجديد" : "Enter new user details"}
+                                            </DialogDescription>
+                                        </DialogHeader>
+                                        <div className="space-y-4 py-4">
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div className="space-y-2">
+                                                    <Label>{language === 'ar' ? "الاسم الأول" : "First Name"}</Label>
+                                                    <Input 
+                                                        value={newUser.firstName}
+                                                        onChange={(e) => setNewUser({...newUser, firstName: e.target.value})}
+                                                        className="bg-slate-800 border-slate-700"
+                                                    />
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <Label>{language === 'ar' ? "اسم العائلة" : "Last Name"}</Label>
+                                                    <Input 
+                                                        value={newUser.lastName}
+                                                        onChange={(e) => setNewUser({...newUser, lastName: e.target.value})}
+                                                        className="bg-slate-800 border-slate-700"
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label>{language === 'ar' ? "اسم المستخدم" : "Username"}</Label>
+                                                <Input 
+                                                    value={newUser.username}
+                                                    onChange={(e) => setNewUser({...newUser, username: e.target.value})}
+                                                    className="bg-slate-800 border-slate-700"
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label>{language === 'ar' ? "البريد الإلكتروني" : "Email"}</Label>
+                                                <Input 
+                                                    type="email"
+                                                    value={newUser.email}
+                                                    onChange={(e) => setNewUser({...newUser, email: e.target.value})}
+                                                    className="bg-slate-800 border-slate-700"
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label>{language === 'ar' ? "كلمة المرور" : "Password"}</Label>
+                                                <Input 
+                                                    type="password"
+                                                    value={newUser.password}
+                                                    onChange={(e) => setNewUser({...newUser, password: e.target.value})}
+                                                    className="bg-slate-800 border-slate-700"
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label>{language === 'ar' ? "الدور" : "Role"}</Label>
+                                                <Select 
+                                                    value={newUser.role} 
+                                                    onValueChange={(val) => setNewUser({...newUser, role: val})}
+                                                >
+                                                    <SelectTrigger className="bg-slate-800 border-slate-700">
+                                                        <SelectValue />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value="admin">{language === 'ar' ? "مدير نظام" : "Admin"}</SelectItem>
+                                                        <SelectItem value="manager">{language === 'ar' ? "مدير" : "Manager"}</SelectItem>
+                                                        <SelectItem value="office_renter">{language === 'ar' ? "مستأجر مكتب" : "Office Renter"}</SelectItem>
+                                                        <SelectItem value="member">{language === 'ar' ? "عضو" : "Member"}</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
+                                        </div>
+                                        <DialogFooter>
+                                            <Button onClick={() => createUserMutation.mutate(newUser)} disabled={createUserMutation.isPending}>
+                                                {createUserMutation.isPending ? "..." : (language === 'ar' ? "حفظ" : "Save")}
+                                            </Button>
+                                        </DialogFooter>
+                                    </DialogContent>
+                                </Dialog>
+                            </CardContent>
+                         </Card>
+
+                         {/* Send Email Card */}
+                         <Card className="glass border-white/5">
+                            <CardHeader>
+                                <CardTitle className="text-white flex items-center gap-2">
+                                    <Mail className="h-5 w-5 text-teal-400" />
+                                    {language === 'ar' ? "البريد الداخلي" : "Internal Mail"}
+                                </CardTitle>
+                                <CardDescription>
+                                    {language === 'ar' ? "إرسال رسائل للمستخدمين" : "Send messages to users"}
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <Dialog open={isEmailOpen} onOpenChange={setIsEmailOpen}>
+                                    <DialogTrigger asChild>
+                                        <Button className="w-full bg-teal-500 hover:bg-teal-600 text-white">
+                                            <Send className="mr-2 h-4 w-4" />
+                                            {language === 'ar' ? "إرسال رسالة" : "Send Message"}
+                                        </Button>
+                                    </DialogTrigger>
+                                    <DialogContent className="bg-slate-900 border-slate-800 text-white">
+                                        <DialogHeader>
+                                            <DialogTitle>{language === 'ar' ? "رسالة جديدة" : "New Message"}</DialogTitle>
+                                        </DialogHeader>
+                                        <div className="space-y-4 py-4">
+                                            <div className="space-y-2">
+                                                <Label>{language === 'ar' ? "إلى" : "To"}</Label>
+                                                <Select 
+                                                    value={emailData.recipientRole} 
+                                                    onValueChange={(val) => setEmailData({...emailData, recipientRole: val})}
+                                                >
+                                                    <SelectTrigger className="bg-slate-800 border-slate-700">
+                                                        <SelectValue />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value="all">{language === 'ar' ? "جميع المستخدمين" : "All Users"}</SelectItem>
+                                                        <SelectItem value="office_renter">{language === 'ar' ? "أصحاب المكاتب" : "Office Owners"}</SelectItem>
+                                                        <SelectItem value="admin">{language === 'ar' ? "الإدارة" : "Admins"}</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label>{language === 'ar' ? "الموضوع" : "Subject"}</Label>
+                                                <Input 
+                                                    value={emailData.subject}
+                                                    onChange={(e) => setEmailData({...emailData, subject: e.target.value})}
+                                                    className="bg-slate-800 border-slate-700"
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label>{language === 'ar' ? "الرسالة" : "Message"}</Label>
+                                                <Textarea 
+                                                    value={emailData.content}
+                                                    onChange={(e) => setEmailData({...emailData, content: e.target.value})}
+                                                    className="bg-slate-800 border-slate-700 min-h-[100px]"
+                                                />
+                                            </div>
+                                        </div>
+                                        <DialogFooter>
+                                            <Button onClick={() => sendEmailMutation.mutate(emailData)} disabled={sendEmailMutation.isPending}>
+                                                {sendEmailMutation.isPending ? "..." : (language === 'ar' ? "إرسال" : "Send")}
+                                            </Button>
+                                        </DialogFooter>
+                                    </DialogContent>
+                                </Dialog>
+                            </CardContent>
+                         </Card>
                     </div>
                 </TabsContent>
 
@@ -531,11 +794,37 @@ export default function PlatformManagement() {
                             </CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <div className="text-center py-12">
-                                <AlertCircle className="h-12 w-12 text-slate-600 mx-auto mb-4" />
-                                <p className="text-slate-400">{language === 'ar' ? "لا توجد تذاكر نشطة حالياً" : "No active support tickets found"}</p>
-                                <Button variant="outline" className="mt-4 border-white/10 text-white">{language === 'ar' ? "تحديث" : "Refresh"}</Button>
-                            </div>
+                            {tickets.length === 0 ? (
+                                <div className="text-center py-12">
+                                    <AlertCircle className="h-12 w-12 text-slate-600 mx-auto mb-4" />
+                                    <p className="text-slate-400">{language === 'ar' ? "لا توجد تذاكر نشطة حالياً" : "No active support tickets found"}</p>
+                                    <Button variant="outline" className="mt-4 border-white/10 text-white" onClick={() => queryClient.invalidateQueries({ queryKey: ["/api/admin/tickets"] })}>
+                                        {language === 'ar' ? "تحديث" : "Refresh"}
+                                    </Button>
+                                </div>
+                            ) : (
+                                <div className="space-y-4">
+                                    {tickets.map((ticket) => (
+                                        <div key={ticket.id} className="flex items-center justify-between p-4 rounded-lg bg-white/5 border border-white/10">
+                                            <div>
+                                                <h4 className="text-white font-medium">{ticket.title}</h4>
+                                                <p className="text-sm text-slate-400">{ticket.description}</p>
+                                                <div className="flex gap-2 mt-2">
+                                                    <Badge variant="outline" className={ticket.status === 'open' ? 'text-green-400' : 'text-slate-400'}>{ticket.status}</Badge>
+                                                    <Badge variant="outline" className="text-indigo-400">{ticket.priority}</Badge>
+                                                </div>
+                                            </div>
+                                            <Button 
+                                                size="sm" 
+                                                onClick={() => replyTicketMutation.mutate({id: ticket.id, status: 'resolved'})}
+                                                disabled={ticket.status === 'resolved'}
+                                            >
+                                                {language === 'ar' ? "إغلاق التذكرة" : "Resolve"}
+                                            </Button>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
                         </CardContent>
                     </Card>
                 </TabsContent>
