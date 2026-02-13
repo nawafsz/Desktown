@@ -31,8 +31,8 @@ import Dashboard from "@/pages/Dashboard";
 import FollowUp from "@/pages/FollowUp";
 import Subscription from "@/pages/Subscription";
 import Advertising from "@/pages/Advertising";
-import AdminPanel from "@/pages/AdminPanel";
 import N8nSettings from "@/pages/N8nSettings";
+import HumanResources from "@/pages/HumanResources";
 import Storefront from "@/pages/Storefront";
 import OfficeDetail from "@/pages/OfficeDetail";
 import OfficeManagement from "@/pages/OfficeManagement";
@@ -200,6 +200,7 @@ function AuthenticatedRouter({ userRole }: { userRole: string | null | undefined
       <Route path="/office/:slug" component={OfficeDetail} />
       <Route path="/offices" component={Storefront} />
       <Route path="/employees" component={Team} />
+      <Route path="/hr" component={HumanResources} />
 
       {/* Manager & Admin only routes */}
       <Route path="/jobs">
@@ -224,11 +225,6 @@ function AuthenticatedRouter({ userRole }: { userRole: string | null | undefined
       </Route>
 
       {/* Admin only routes */}
-      <Route path="/admin">
-        <RoleGuard allowedRoles={["admin"]} userRole={userRole}>
-          <AdminPanel />
-        </RoleGuard>
-      </Route>
       <Route path="/finances">
         <RoleGuard allowedRoles={["admin"]} userRole={userRole}>
           <Finances />
@@ -326,6 +322,7 @@ function OfficeRenterRouter() {
       <Route path="/files" component={Files} />
       <Route path="/calendar" component={CalendarPage} />
       <Route path="/jobs" component={Jobs} />
+      <Route path="/hr" component={HumanResources} />
 
       {/* Office Renter Specific */}
       <Route path="/my-subscriptions" component={Subscription} />
