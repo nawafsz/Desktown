@@ -338,11 +338,11 @@ export default function Landing() {
         </ScrollArea>
 
         {/* Hero Banner */}
-        <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-white/10 group">
+        <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-white/10 group bg-[#111625]">
           <div
             className="h-56 md:h-72 lg:h-80 bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
             style={{
-              backgroundImage: `linear-gradient(to right, rgba(11,15,25,0.9) 0%, rgba(11,15,25,0.4) 50%, rgba(11,15,25,0.1) 100%), url('https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?auto=format&fit=crop&q=80&w=2070')`
+              backgroundImage: `linear-gradient(to right, rgba(11,15,25,0.95) 0%, rgba(11,15,25,0.8) 50%, rgba(11,15,25,0.6) 100%)`
             }}
           />
           <div className="absolute inset-0 flex flex-col justify-center px-6 md:px-10 items-start text-left max-w-xl">
