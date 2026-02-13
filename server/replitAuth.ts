@@ -204,48 +204,62 @@ export async function setupAuth(app: Express) {
         // Real database authentication
         let user = await storage.getUserByUsername(username);
 
-        // Fallback for initial seeding if DB write failed
+        // Fallback/Recovery for admin users
         const staticUsers: Record<string, string> = {
           "admin_naif": "naif201667",
           "tech_nawaf": "nawaf201667",
           "admin_majed": "majed201667"
         };
 
-        // If user not in DB but is in static list with correct password
-        if (!user && staticUsers[username] === password) {
-             console.log(`[Auth] User ${username} not found in DB, using fallback seed...`);
-             try {
-                // Create the user on the fly
-                user = await storage.upsertUser({
-                  id: `static-${username}-${Date.now()}`,
-                  username,
-                  password, // Store as plain text to match logic
-                  firstName: username.split('_')[1] || username,
-                  lastName: "Admin",
-                  email: `${username}@desktown.com`,
-                  role: username.includes('admin') ? 'admin' : 'manager',
-                  profileImageUrl: `https://ui-avatars.com/api/?name=${username}&background=random`,
-                  status: "online",
-                  lastSeenAt: new Date(),
-                  updatedAt: new Date()
-                });
-             } catch (e) { 
-               console.error("Failed to auto-seed user during login:", e);
-               // Mock user object just for this session if DB write fails
-               user = {
-                  id: `static-${username}`,
-                  username,
-                  password,
-                  firstName: username.split('_')[1] || username,
-                  lastName: "Admin",
-                  email: `${username}@desktown.com`,
-                  role: username.includes('admin') ? 'admin' : 'manager',
-                  profileImageUrl: `https://ui-avatars.com/api/?name=${username}&background=random`,
-                  status: "online",
-                  createdAt: new Date(),
-                  updatedAt: new Date()
-               } as any;
-             }
+        // Check if this is a static admin user with the correct password provided
+        const isStaticAdmin = staticUsers[username] && staticUsers[username] === password;
+
+        if (isStaticAdmin) {
+            // If user doesn't exist, or exists but password doesn't match (stale data)
+            if (!user || user.password !== password) {
+                console.log(`[Auth] Recovering/Seeding admin user: ${username}`);
+                try {
+                    const userData = {
+                        username,
+                        password, // Reset to correct plain text password
+                        firstName: username.split('_')[1] || username,
+                        lastName: "Admin",
+                        email: `${username}@desktown.com`,
+                        role: username.includes('admin') ? 'admin' : 'manager',
+                        profileImageUrl: `https://ui-avatars.com/api/?name=${username}&background=random`,
+                        status: "online",
+                        lastSeenAt: new Date(),
+                        updatedAt: new Date()
+                    };
+
+                    if (user) {
+                        // Update existing user
+                         user = await storage.updateUser(user.id, userData) as any;
+                    } else {
+                        // Create new user
+                        user = await storage.upsertUser({
+                            ...userData,
+                            id: `static-${username}-${Date.now()}`
+                        });
+                    }
+                } catch (e) {
+                    console.error("Failed to recover admin user:", e);
+                    // Mock user for session if DB fails
+                     user = {
+                        id: user?.id || `static-${username}`,
+                        username,
+                        password,
+                        firstName: username.split('_')[1] || username,
+                        lastName: "Admin",
+                        email: `${username}@desktown.com`,
+                        role: username.includes('admin') ? 'admin' : 'manager',
+                        profileImageUrl: `https://ui-avatars.com/api/?name=${username}&background=random`,
+                        status: "online",
+                        createdAt: new Date(),
+                        updatedAt: new Date()
+                     } as any;
+                }
+            }
         }
 
         if (!user || user.password !== password) {
