@@ -563,9 +563,9 @@ export default function Landing() {
                         // Already logged in, go to profile
                         setLocation('/profile/office');
                       } else {
-                        // Store pending profile type and redirect to social login
+                        // Store pending profile type and redirect to login page
                         localStorage.setItem('pendingProfileType', 'office');
-                        window.location.href = '/api/login?role=office_renter&type=office';
+                        setLocation('/login?role=office_renter&type=office');
                       }
                     }}
                     className="w-full flex items-center gap-4 p-4 bg-gradient-to-r from-amber-500/20 to-amber-600/10 border border-amber-500/30 rounded-2xl hover:border-amber-400 transition-all"
@@ -629,9 +629,9 @@ export default function Landing() {
                         // Already logged in, go to profile
                         setLocation('/profile/visitor');
                       } else {
-                        // Store pending profile type and redirect to social login
+                        // Store pending profile type and redirect to login page
                         localStorage.setItem('pendingProfileType', 'visitor');
-                        window.location.href = '/api/login?role=visitor&type=visitor';
+                        setLocation('/login?role=visitor&type=visitor');
                       }
                     }}
                     className="w-full flex items-center gap-4 p-4 bg-gradient-to-r from-blue-500/20 to-blue-600/10 border border-blue-500/30 rounded-2xl hover:border-blue-400 transition-all"
@@ -695,9 +695,9 @@ export default function Landing() {
                         // Already logged in, go to profile
                         setLocation('/profile/employee');
                       } else {
-                        // Store pending profile type and redirect to social login
+                        // Store pending profile type and redirect to login page
                         localStorage.setItem('pendingProfileType', 'employee');
-                        window.location.href = '/api/login?role=member&type=employee';
+                        setLocation('/login?role=member&type=employee');
                       }
                     }}
                     className="w-full flex items-center gap-4 p-4 bg-gradient-to-r from-emerald-500/20 to-emerald-600/10 border border-emerald-500/30 rounded-2xl hover:border-emerald-400 transition-all"

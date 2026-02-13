@@ -1,7 +1,10 @@
-import dns from 'dns';
-if (dns.setDefaultResultOrder) {
-  dns.setDefaultResultOrder('ipv4first');
-} 
+// import dns from 'dns';
+// if (dns.setDefaultResultOrder) {
+//   dns.setDefaultResultOrder('ipv4first');
+// } 
+
+console.log("Server starting...");
+console.log("Initial DATABASE_URL:", process.env.DATABASE_URL ? "Set (length: " + process.env.DATABASE_URL.length + ")" : "Not set");
 
 process.on('uncaughtException', (err) => {
   console.error('Uncaught Exception:', err);
@@ -11,6 +14,12 @@ process.on('unhandledRejection', (reason, promise) => {
 });
 
 import "dotenv/config";
+
+console.log("After dotenv DATABASE_URL:", process.env.DATABASE_URL ? "Set (length: " + process.env.DATABASE_URL.length + ")" : "Not set");
+if (process.env.DATABASE_URL && process.env.DATABASE_URL.includes('supabase.co')) {
+    console.log("WARNING: DATABASE_URL contains hostname, might be using DNS instead of IP");
+}
+
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes.ts";
 import { serveStatic } from "./static.ts";

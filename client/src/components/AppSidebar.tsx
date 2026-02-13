@@ -38,6 +38,9 @@ import {
   Mail,
   CreditCard,
   GraduationCap,
+  Calculator,
+  Warehouse,
+  BrainCircuit,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -79,6 +82,10 @@ const navigationItems: NavItem[] = [
   { titleKey: "myServices", url: "/my-services", icon: Package, categoryKey: "businessServices", allowedRoles: ["office_renter"] },
   { titleKey: "paidServices", url: "/paid-services", icon: CreditCard, categoryKey: "businessServices", allowedRoles: ["office_renter"] },
   { titleKey: "mySubscriptions", url: "/my-subscriptions", icon: DollarSign, categoryKey: "businessServices", allowedRoles: ["office_renter"] },
+  { titleKey: "aiAssistant", url: "/ai-assistant", icon: BrainCircuit, categoryKey: "businessServices", allowedRoles: ["office_renter", "manager", "admin"] },
+  // Hidden from main sidebar, accessed via Departments page
+  // { titleKey: "financialAccounting", url: "/financial-accounting", icon: Calculator, categoryKey: "businessServices", allowedRoles: ["office_renter", "manager", "admin"] },
+  // { titleKey: "inventoryManagement", url: "/inventory-management", icon: Warehouse, categoryKey: "businessServices", allowedRoles: ["office_renter", "manager", "admin"] },
 ];
 
 function hasAccess(userRole: string | null | undefined, allowedRoles: UserRole[]): boolean {
@@ -223,6 +230,9 @@ export function AppSidebar({ user }: AppSidebarProps) {
       myServices: t.sidebar?.myServices || "My Services",
       paidServices: t.sidebar?.paidServices || "Paid Services",
       mySubscriptions: t.sidebar?.mySubscriptions || "My Subscriptions",
+      aiAssistant: language === 'ar' ? "المساعد الذكي" : "AI Assistant",
+      financialAccounting: language === 'ar' ? "القسم المالي والمحاسبي" : "Financial Accounting",
+      inventoryManagement: language === 'ar' ? "إدارة المخزون" : "Inventory Management",
     };
     return labels[titleKey] || titleKey;
   };

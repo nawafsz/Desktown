@@ -39,7 +39,6 @@ import {
   insertServiceOrderSchema,
   insertCompanyDepartmentSchema,
   insertCompanySectionSchema,
-  insertClientSchema,
   type InsertTask,
 } from "../../shared/schema";
 import { z } from "zod";

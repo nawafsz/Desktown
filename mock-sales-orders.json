@@ -1,0 +1,33 @@
+[
+  {
+    "id": 34216,
+    "customerName": "ريان الزهراني",
+    "status": "pending",
+    "totalAmount": 3000,
+    "items": [
+      {
+        "id": 67925,
+        "salesOrderId": 34216,
+        "productId": 76654,
+        "quantity": 1,
+        "unitPrice": 3000,
+        "totalPrice": 3000,
+        "product": {
+          "id": 76654,
+          "name": "كمبيوتر مكتبي ",
+          "sku": "SKU145544",
+          "description": "كمبيوتر مكتبي  HP 2025",
+          "category": "",
+          "price": 3000,
+          "cost": 1250,
+          "minStockLevel": 1,
+          "supplierId": 56945,
+          "createdAt": "2026-02-13T01:05:41.918Z",
+          "updatedAt": "2026-02-13T01:05:41.918Z"
+        }
+      }
+    ],
+    "createdAt": "2026-02-13T01:06:33.585Z",
+    "updatedAt": "2026-02-13T01:06:33.585Z"
+  }
+]

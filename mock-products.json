@@ -1,0 +1,15 @@
+[
+  {
+    "id": 76654,
+    "name": "كمبيوتر مكتبي ",
+    "sku": "SKU145544",
+    "description": "كمبيوتر مكتبي  HP 2025",
+    "category": "",
+    "price": 3000,
+    "cost": 1250,
+    "minStockLevel": 1,
+    "supplierId": 56945,
+    "createdAt": "2026-02-13T01:05:41.918Z",
+    "updatedAt": "2026-02-13T01:05:41.918Z"
+  }
+]

@@ -41,6 +41,8 @@ export const users = pgTable("users", {
   role: varchar("role").default("member"),
   status: varchar("status").default("offline"),
   lastSeenAt: timestamp("last_seen_at"),
+  mfaCode: varchar("mfa_code"),
+  mfaExpiresAt: timestamp("mfa_expires_at"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -192,8 +194,180 @@ export const postLikesRelations = relations(postLikes, ({ one }) => ({
 }));
 
 // ============================================
-// Post Comments
+// Inventory Management
 // ============================================
+
+// Warehouses
+export const inventoryWarehouses = pgTable("inventory_warehouses", {
+  id: serial("id").primaryKey(),
+  name: varchar("name").notNull(),
+  location: varchar("location"),
+  managerId: varchar("manager_id").references(() => users.id),
+  capacity: integer("capacity"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertInventoryWarehouseSchema = createInsertSchema(inventoryWarehouses).omit({ id: true, createdAt: true, updatedAt: true });
+export type InsertInventoryWarehouse = z.infer<typeof insertInventoryWarehouseSchema>;
+export type InventoryWarehouse = typeof inventoryWarehouses.$inferSelect;
+
+// Suppliers
+export const inventorySuppliers = pgTable("inventory_suppliers", {
+  id: serial("id").primaryKey(),
+  name: varchar("name").notNull(),
+  contactPerson: varchar("contact_person"),
+  email: varchar("email"),
+  phone: varchar("phone"),
+  address: text("address"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertInventorySupplierSchema = createInsertSchema(inventorySuppliers).omit({ id: true, createdAt: true, updatedAt: true });
+export type InsertInventorySupplier = z.infer<typeof insertInventorySupplierSchema>;
+export type InventorySupplier = typeof inventorySuppliers.$inferSelect;
+
+// Products
+export const inventoryProducts = pgTable("inventory_products", {
+  id: serial("id").primaryKey(),
+  name: varchar("name").notNull(),
+  sku: varchar("sku").unique().notNull(),
+  description: text("description"),
+  category: varchar("category"),
+  unit: varchar("unit").default("piece"),
+  price: integer("price").notNull(), // Selling price in smallest currency unit
+  cost: integer("cost").notNull(), // Cost price in smallest currency unit
+  minStockLevel: integer("min_stock_level").default(0),
+  supplierId: integer("supplier_id").references(() => inventorySuppliers.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const inventoryProductsRelations = relations(inventoryProducts, ({ one, many }) => ({
+  supplier: one(inventorySuppliers, { fields: [inventoryProducts.supplierId], references: [inventorySuppliers.id] }),
+  stock: many(inventoryStock),
+}));
+
+export const insertInventoryProductSchema = createInsertSchema(inventoryProducts).omit({ id: true, createdAt: true, updatedAt: true });
+export type InsertInventoryProduct = z.infer<typeof insertInventoryProductSchema>;
+export type InventoryProduct = typeof inventoryProducts.$inferSelect;
+
+// Stock (Product Quantity per Warehouse)
+export const inventoryStock = pgTable("inventory_stock", {
+  id: serial("id").primaryKey(),
+  productId: integer("product_id").references(() => inventoryProducts.id).notNull(),
+  warehouseId: integer("warehouse_id").references(() => inventoryWarehouses.id).notNull(),
+  quantity: integer("quantity").default(0).notNull(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const inventoryStockRelations = relations(inventoryStock, ({ one }) => ({
+  product: one(inventoryProducts, { fields: [inventoryStock.productId], references: [inventoryProducts.id] }),
+  warehouse: one(inventoryWarehouses, { fields: [inventoryStock.warehouseId], references: [inventoryWarehouses.id] }),
+}));
+
+export const insertInventoryStockSchema = createInsertSchema(inventoryStock).omit({ id: true, updatedAt: true });
+export type InsertInventoryStock = z.infer<typeof insertInventoryStockSchema>;
+export type InventoryStock = typeof inventoryStock.$inferSelect;
+
+// Purchase Orders (POs)
+export const inventoryPurchaseOrders = pgTable("inventory_purchase_orders", {
+  id: serial("id").primaryKey(),
+  supplierId: integer("supplier_id").references(() => inventorySuppliers.id).notNull(),
+  orderDate: timestamp("order_date").defaultNow(),
+  expectedDeliveryDate: timestamp("expected_delivery_date"),
+  status: varchar("status").default("draft"), // draft, ordered, received, cancelled
+  totalAmount: integer("total_amount").default(0),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const inventoryPurchaseOrdersRelations = relations(inventoryPurchaseOrders, ({ one, many }) => ({
+  supplier: one(inventorySuppliers, { fields: [inventoryPurchaseOrders.supplierId], references: [inventorySuppliers.id] }),
+  items: many(inventoryPurchaseOrderItems),
+}));
+
+export const insertInventoryPurchaseOrderSchema = createInsertSchema(inventoryPurchaseOrders).omit({ id: true, createdAt: true, updatedAt: true });
+export type InsertInventoryPurchaseOrder = z.infer<typeof insertInventoryPurchaseOrderSchema>;
+export type InventoryPurchaseOrder = typeof inventoryPurchaseOrders.$inferSelect;
+
+// Purchase Order Items
+export const inventoryPurchaseOrderItems = pgTable("inventory_purchase_order_items", {
+  id: serial("id").primaryKey(),
+  purchaseOrderId: integer("purchase_order_id").references(() => inventoryPurchaseOrders.id).notNull(),
+  productId: integer("product_id").references(() => inventoryProducts.id).notNull(),
+  quantity: integer("quantity").notNull(),
+  unitCost: integer("unit_cost").notNull(),
+  totalCost: integer("total_cost").notNull(),
+});
+
+export const inventoryPurchaseOrderItemsRelations = relations(inventoryPurchaseOrderItems, ({ one }) => ({
+  purchaseOrder: one(inventoryPurchaseOrders, { fields: [inventoryPurchaseOrderItems.purchaseOrderId], references: [inventoryPurchaseOrders.id] }),
+  product: one(inventoryProducts, { fields: [inventoryPurchaseOrderItems.productId], references: [inventoryProducts.id] }),
+}));
+
+export const insertInventoryPurchaseOrderItemSchema = createInsertSchema(inventoryPurchaseOrderItems).omit({ id: true });
+export type InsertInventoryPurchaseOrderItem = z.infer<typeof insertInventoryPurchaseOrderItemSchema>;
+export type InventoryPurchaseOrderItem = typeof inventoryPurchaseOrderItems.$inferSelect;
+
+// Sales Orders (SOs)
+export const inventorySalesOrders = pgTable("inventory_sales_orders", {
+  id: serial("id").primaryKey(),
+  customerName: varchar("customer_name").notNull(),
+  orderDate: timestamp("order_date").defaultNow(),
+  status: varchar("status").default("pending"), // pending, shipped, delivered, cancelled
+  totalAmount: integer("total_amount").default(0),
+  paymentStatus: varchar("payment_status").default("unpaid"), // unpaid, paid, partial
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const inventorySalesOrdersRelations = relations(inventorySalesOrders, ({ many }) => ({
+  items: many(inventorySalesOrderItems),
+}));
+
+export const insertInventorySalesOrderSchema = createInsertSchema(inventorySalesOrders).omit({ id: true, createdAt: true, updatedAt: true });
+export type InsertInventorySalesOrder = z.infer<typeof insertInventorySalesOrderSchema>;
+export type InventorySalesOrder = typeof inventorySalesOrders.$inferSelect;
+
+// Sales Order Items
+export const inventorySalesOrderItems = pgTable("inventory_sales_order_items", {
+  id: serial("id").primaryKey(),
+  salesOrderId: integer("sales_order_id").references(() => inventorySalesOrders.id).notNull(),
+  productId: integer("product_id").references(() => inventoryProducts.id).notNull(),
+  quantity: integer("quantity").notNull(),
+  unitPrice: integer("unit_price").notNull(),
+  totalPrice: integer("total_price").notNull(),
+});
+
+export const inventorySalesOrderItemsRelations = relations(inventorySalesOrderItems, ({ one }) => ({
+  salesOrder: one(inventorySalesOrders, { fields: [inventorySalesOrderItems.salesOrderId], references: [inventorySalesOrders.id] }),
+  product: one(inventoryProducts, { fields: [inventorySalesOrderItems.productId], references: [inventoryProducts.id] }),
+}));
+
+export const insertInventorySalesOrderItemSchema = createInsertSchema(inventorySalesOrderItems).omit({ id: true });
+export type InsertInventorySalesOrderItem = z.infer<typeof insertInventorySalesOrderItemSchema>;
+export type InventorySalesOrderItem = typeof inventorySalesOrderItems.$inferSelect;
+
+// Inventory Movements (Audit Log)
+export const inventoryMovements = pgTable("inventory_movements", {
+  id: serial("id").primaryKey(),
+  productId: integer("product_id").references(() => inventoryProducts.id).notNull(),
+  warehouseId: integer("warehouse_id").references(() => inventoryWarehouses.id).notNull(),
+  type: varchar("type").notNull(), // IN, OUT, ADJUSTMENT, TRANSFER
+  quantity: integer("quantity").notNull(),
+  referenceId: integer("reference_id"), // PO ID or SO ID
+  referenceType: varchar("reference_type"), // 'purchase_order', 'sales_order', 'manual'
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow(),
+  userId: varchar("user_id").references(() => users.id), // Who performed the action
+});
+
+export const insertInventoryMovementSchema = createInsertSchema(inventoryMovements).omit({ id: true, createdAt: true });
+export type InsertInventoryMovement = z.infer<typeof insertInventoryMovementSchema>;
+export type InventoryMovement = typeof inventoryMovements.$inferSelect;
 export const postComments = pgTable("post_comments", {
   id: serial("id").primaryKey(),
   postId: integer("post_id").references(() => posts.id).notNull(),

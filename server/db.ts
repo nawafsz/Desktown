@@ -4,15 +4,16 @@ import * as schema from "../shared/schema.ts";
 import dns from 'dns';
 
 // Let Node decide DNS order automatically to support IPv6 projects
-// dns.setDefaultResultOrder('ipv4first'); 
+dns.setDefaultResultOrder('ipv4first'); 
 
 
 const connectionString = process.env.DATABASE_URL!;
 
+// Use connection string directly as postgres.js has been patched to handle IPv6 brackets
 const client = postgres(connectionString, {
   prepare: false,
   ssl: { rejectUnauthorized: false },
-  connect_timeout: 30,
+  connect_timeout: 120,
   max: 20,
   idle_timeout: 20,
   onnotice: () => { }

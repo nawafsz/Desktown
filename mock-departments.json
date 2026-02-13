@@ -1,0 +1,22 @@
+[
+  {
+    "id": 1853,
+    "name": "المالية",
+    "description": "المحاسبة المالية",
+    "icon": "calculator",
+    "color": "green",
+    "password": null,
+    "managerId": "dev-office_admin-id",
+    "createdAt": "2026-02-13T01:01:39.331Z"
+  },
+  {
+    "id": 1765,
+    "name": "إدارة المخزون",
+    "description": "المخزون",
+    "icon": "package",
+    "color": "orange",
+    "password": null,
+    "managerId": "dev-office_admin-id",
+    "createdAt": "2026-02-13T01:03:09.622Z"
+  }
+]

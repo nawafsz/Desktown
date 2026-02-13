@@ -48,6 +48,7 @@ import CalendarPage from "@/pages/CalendarPage";
 import VisitorServices from "@/pages/VisitorServices";
 import VisitorContact from "@/pages/VisitorContact";
 import Videos from "@/pages/Videos";
+import Login from "@/pages/Login";
 import PublicNewsFeed from "@/pages/PublicNewsFeed";
 import OfficeProfile from "@/pages/OfficeProfile";
 import VisitorProfile from "@/pages/VisitorProfile";
@@ -55,6 +56,10 @@ import EmployeeProfilePage from "@/pages/EmployeeProfilePage";
 import TrainingDashboard from "@/pages/TrainingDashboard";
 import SavedLessons from "@/pages/SavedLessons";
 import TrainingWelcome from "@/pages/TrainingWelcome";
+import FinancialAccounting from "@/pages/FinancialAccounting";
+import InventoryManagement from "@/pages/InventoryManagement";
+import AiAssistant from "@/pages/AiAssistant";
+import VerifyPasscode from "@/pages/VerifyPasscode";
 import { Loader2, ShieldAlert, CreditCard } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -63,6 +68,14 @@ import { useQuery } from "@tanstack/react-query";
 import { NotificationPermission } from "@/components/NotificationPermission";
 import type { Subscription as SubscriptionType } from "@shared/schema";
 import { useLanguage, translations } from "@/lib/i18n";
+
+const Redirect = ({ to }: { to: string }) => {
+  const [, setLocation] = useLocation();
+  useEffect(() => {
+    setLocation(to);
+  }, [to, setLocation]);
+  return null;
+};
 
 type UserRole = "visitor" | "member" | "manager" | "admin" | "office_renter";
 
@@ -155,9 +168,9 @@ function SubscriptionGuard({ children }: SubscriptionGuardProps) {
 function AuthenticatedRouter({ userRole }: { userRole: string | null | undefined }) {
   return (
     <Switch>
+      <Route path="/dashboard" component={Dashboard} />
       <Route path="/" component={Welcome} />
       <Route path="/follow-up" component={FollowUp} />
-      <Route path="/dashboard" component={Dashboard} />
       <Route path="/profile" component={Profile} />
       <Route path="/profile/office" component={OfficeProfile} />
       <Route path="/profile/visitor" component={VisitorProfile} />
@@ -180,8 +193,13 @@ function AuthenticatedRouter({ userRole }: { userRole: string | null | undefined
       <Route path="/departments" component={Departments} />
       <Route path="/departments/:id" component={Department} />
       <Route path="/employees/:username" component={EmployeeProfile} />
+      <Route path="/financial-accounting" component={FinancialAccounting} />
+      <Route path="/inventory-management" component={InventoryManagement} />
+      <Route path="/ai-assistant" component={AiAssistant} />
       <Route path="/subscription" component={Subscription} />
       <Route path="/office/:slug" component={OfficeDetail} />
+      <Route path="/offices" component={Storefront} />
+      <Route path="/employees" component={Team} />
 
       {/* Manager & Admin only routes */}
       <Route path="/jobs">
@@ -289,6 +307,7 @@ function OfficeRenterRouter() {
     <Switch>
       {/* Standard Features */}
       <Route path="/dashboard" component={Dashboard} />
+      <Route path="/" component={Dashboard} />
       <Route path="/follow-up" component={FollowUp} />
       <Route path="/tasks" component={Tasks} />
       <Route path="/tickets" component={Tickets} />
@@ -316,9 +335,11 @@ function OfficeRenterRouter() {
       <Route path="/profile/visitor" component={VisitorProfile} />
       <Route path="/profile/employee" component={EmployeeProfilePage} />
       <Route path="/employee-portal" component={EmployeePortal} />
+      <Route path="/financial-accounting" component={FinancialAccounting} />
+      <Route path="/inventory-management" component={InventoryManagement} />
+      <Route path="/ai-assistant" component={AiAssistant} />
 
       {/* Protected routes - require subscription */}
-      <Route path="/" component={Dashboard} />
       <Route path="/my-office" component={ProtectedOfficeManagement} />
       <Route path="/my-services" component={ProtectedOfficeServicesShowcase} />
       <Route path="/paid-services" component={ProtectedPaidServices} />
@@ -336,6 +357,21 @@ function AuthenticatedApp() {
     "--sidebar-width": "16rem",
     "--sidebar-width-icon": "3rem",
   };
+
+  // MFA Check
+  useEffect(() => {
+    if (user && (user as any).mfaVerified === false && location !== "/verify-passcode") {
+      if (location !== "/" && location !== "/welcome") {
+        sessionStorage.setItem("mfa_return_url", location);
+      }
+      setLocation("/verify-passcode");
+    }
+  }, [user, location, setLocation]);
+
+  // If MFA is required but not verified, show nothing or just the redirect happens
+  if (user && (user as any).mfaVerified === false) {
+    return <VerifyPasscode />;
+  }
 
   const isVisitorRole = user?.role === "visitor";
   const isOfficeRenterRole = user?.role === "office_renter";
@@ -408,6 +444,23 @@ function AuthenticatedApp() {
     );
   }
 
+  // Fallback for mock office login - treat office_admin as office renter
+  if (user?.role === 'office_renter' || user?.username === 'office_admin') {
+    return (
+      <SidebarProvider style={sidebarStyle as React.CSSProperties}>
+        <div className="flex h-screen w-full">
+          <AppSidebar user={user} />
+          <div className="flex flex-col flex-1 overflow-hidden">
+            <TopHeader />
+            <main className="flex-1 overflow-auto bg-background">
+              <OfficeRenterRouter />
+            </main>
+          </div>
+        </div>
+      </SidebarProvider>
+    );
+  }
+
   return (
     <SidebarProvider style={sidebarStyle as React.CSSProperties}>
       <div className="flex h-screen w-full">
@@ -439,6 +492,7 @@ function PublicRouter() {
       <Route path="/profile/employee" component={EmployeeProfilePage} />
       <Route path="/videos" component={Videos} />
       <Route path="/news" component={PublicNewsFeed} />
+      <Route path="/login" component={Login} />
       <Route component={Landing} />
     </Switch>
   );

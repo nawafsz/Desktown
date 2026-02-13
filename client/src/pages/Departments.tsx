@@ -46,6 +46,7 @@ import {
   Activity,
   Eye,
   EyeOff,
+  Package,
 } from "lucide-react";
 import type { Department, RemoteEmployee } from "@shared/schema";
 import { useLanguage, translations } from "@/lib/i18n";
@@ -59,6 +60,7 @@ const departmentIcons: Record<string, typeof Briefcase> = {
   megaphone: Megaphone,
   settings: Settings,
   dollarSign: DollarSign,
+  package: Package,
 };
 
 const departmentColors: Record<string, string> = {
@@ -96,6 +98,7 @@ export default function Departments() {
     { value: "megaphone", label: t.departments?.iconMarketing || "Marketing", icon: Megaphone },
     { value: "settings", label: t.departments?.iconOperations || "Operations", icon: Settings },
     { value: "dollarSign", label: t.departments?.iconSales || "Sales", icon: DollarSign },
+    { value: "package", label: t.departments?.iconWarehouse || "Warehouse", icon: Package },
   ];
   const { toast } = useToast();
   const [selectedDepartment, setSelectedDepartment] = useState<Department | null>(null);
@@ -422,21 +425,38 @@ export default function Departments() {
                     )}
                   </div>
                   <div className="flex gap-2">
-                    <Link href={`/departments/${selectedDepartment.id}`}>
-                      <Button size="sm" data-testid="button-manage-employees">
-                        <UserPlus className="h-4 w-4 mr-1" />
-                        {t.departments?.manageEmployees || "Manage Employees"}
-                      </Button>
-                    </Link>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => deleteDepartmentMutation.mutate(selectedDepartment.id)}
-                      data-testid="button-delete-department"
-                    >
-                      <Trash2 className="h-4 w-4" />
+                  <Link href={`/departments/${selectedDepartment.id}`}>
+                    <Button size="sm" data-testid="button-manage-employees">
+                      <UserPlus className="h-4 w-4 mr-1" />
+                      {t.departments?.manageEmployees || "Manage Employees"}
                     </Button>
-                  </div>
+                  </Link>
+                  {/* Department Specific Dashboard Links */}
+                  {(selectedDepartment.icon === 'calculator' || selectedDepartment.name.toLowerCase().includes('finance') || selectedDepartment.name.includes('المالي')) && (
+                     <Link href="/financial-accounting">
+                       <Button size="sm" variant="secondary" className="bg-amber-500/10 text-amber-500 hover:bg-amber-500/20">
+                         <Calculator className="h-4 w-4 mr-1" />
+                         {language === 'ar' ? "النظام المالي" : "Financial System"}
+                       </Button>
+                     </Link>
+                  )}
+                  {(selectedDepartment.icon === 'package' || selectedDepartment.name.toLowerCase().includes('inventory') || selectedDepartment.name.toLowerCase().includes('warehouse') || selectedDepartment.name.includes('مخزون') || selectedDepartment.name.includes('مستودع')) && (
+                     <Link href="/inventory-management">
+                       <Button size="sm" variant="secondary" className="bg-blue-500/10 text-blue-500 hover:bg-blue-500/20">
+                         <Briefcase className="h-4 w-4 mr-1" />
+                         {language === 'ar' ? "إدارة المخزون" : "Inventory System"}
+                       </Button>
+                     </Link>
+                  )}
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => deleteDepartmentMutation.mutate(selectedDepartment.id)}
+                    data-testid="button-delete-department"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
                 </div>
 
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">

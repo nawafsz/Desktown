@@ -90,6 +90,7 @@ interface ToolCategory {
 
 const departmentTools: Record<string, Tool[]> = {
   calculator: [
+    { id: "financial-accounting", name: "Financial System", description: "Access Financial Accounting Module", icon: Calculator, color: "text-blue-600" },
     { id: "budget", name: "Budget Planner", description: "Plan and track departmental budgets", icon: Calculator, color: "text-blue-500" },
     { id: "expenses", name: "Expense Tracker", description: "Log and categorize expenses", icon: Receipt, color: "text-green-500" },
     { id: "invoices", name: "Invoice Manager", description: "Create and manage invoices", icon: FileText, color: "text-purple-500" },
@@ -122,12 +123,20 @@ const departmentTools: Record<string, Tool[]> = {
     { id: "leads", name: "Lead Generation", description: "Track marketing leads", icon: TrendingUp, color: "text-cyan-500" },
   ],
   settings: [
+    { id: "inventory-management", name: "Inventory System", description: "Access Inventory Management Module", icon: Package, color: "text-green-600" },
     { id: "projects", name: "Project Tracker", description: "Monitor project progress", icon: ListChecks, color: "text-blue-500" },
     { id: "inventory", name: "Inventory Manager", description: "Track stock and supplies", icon: Package, color: "text-green-500" },
     { id: "processes", name: "Process Documentation", description: "Document workflows", icon: BookOpen, color: "text-purple-500" },
     { id: "quality", name: "Quality Metrics", description: "Track quality standards", icon: Gauge, color: "text-orange-500" },
     { id: "vendors", name: "Vendor Management", description: "Manage supplier relationships", icon: Truck, color: "text-cyan-500" },
     { id: "maintenance", name: "Maintenance Scheduler", description: "Schedule equipment maintenance", icon: Wrench, color: "text-red-500" },
+  ],
+  package: [
+    { id: "inventory-management", name: "Inventory System", description: "Access Inventory Management Module", icon: Package, color: "text-green-600" },
+    { id: "projects", name: "Project Tracker", description: "Monitor project progress", icon: ListChecks, color: "text-blue-500" },
+    { id: "inventory", name: "Inventory Manager", description: "Track stock and supplies", icon: Package, color: "text-green-500" },
+    { id: "vendors", name: "Vendor Management", description: "Manage supplier relationships", icon: Truck, color: "text-cyan-500" },
+    { id: "logistics", name: "Logistics", description: "Manage shipping and receiving", icon: Truck, color: "text-orange-500" },
   ],
   dollarSign: [
     { id: "pipeline", name: "Sales Pipeline", description: "Track deals and opportunities", icon: TrendingUp, color: "text-blue-500" },
@@ -304,6 +313,7 @@ export default function Department() {
       dollarSign: "Sales",
       users: "Team",
       briefcase: "General",
+      package: "Warehouse",
     };
     return labels[normalizedIcon] || "General";
   };
@@ -483,6 +493,30 @@ export default function Department() {
           <DialogDescription>{selectedTool?.description}</DialogDescription>
         </DialogHeader>
         <div className="py-6">
+          {selectedTool?.id === "financial-accounting" && (
+            <div className="flex flex-col gap-4 items-center py-8">
+              <p className="text-center text-muted-foreground">
+                Access the comprehensive Financial Accounting module to manage your finances.
+              </p>
+              <Link href="/financial-accounting">
+                <Button size="lg" className="w-full sm:w-auto">
+                  Go to Financial System
+                </Button>
+              </Link>
+            </div>
+          )}
+          {selectedTool?.id === "inventory-management" && (
+            <div className="flex flex-col gap-4 items-center py-8">
+              <p className="text-center text-muted-foreground">
+                Access the Inventory Management module to track stock and supplies.
+              </p>
+              <Link href="/inventory-management">
+                <Button size="lg" className="w-full sm:w-auto">
+                  Go to Inventory System
+                </Button>
+              </Link>
+            </div>
+          )}
           {selectedTool?.id === "budget" && (
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
