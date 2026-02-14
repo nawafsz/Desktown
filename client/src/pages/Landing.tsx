@@ -39,8 +39,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-import AISecurityReceptionist from "@/components/AISecurityReceptionist";
-
 const partners = [
   { id: 1, name: "Somira", avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop" },
   { id: 2, name: "Legal Hub", avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop" },
@@ -269,13 +267,6 @@ export default function Landing() {
               <br />
               <span className="italic">{language === 'ar' ? 'بمفهوم جديد' : 'Redefined'}</span>
             </h1>
-          </div>
-
-          {/* AI Receptionist Overlay - Subtle Position */}
-          <div className="absolute bottom-4 right-4 z-20 md:bottom-8 md:right-8">
-             <div className="scale-75 origin-bottom-right">
-                <AISecurityReceptionist defaultLanguage={language === 'ar' ? 'ar-SA' : 'en-US'} />
-             </div>
           </div>
         </div>
 
