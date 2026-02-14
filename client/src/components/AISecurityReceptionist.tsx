@@ -126,15 +126,18 @@ const AISecurityReceptionist: React.FC<VoiceAssistantProps> = ({ defaultLanguage
         </AnimatePresence> 
         
         {/* Avatar Circle */} 
-        <div className={`w-32 h-32 rounded-full border-4 ${getMoodBorder()} flex items-center justify-center transition-all duration-500 bg-slate-900/80 backdrop-blur-sm shadow-2xl`}> 
+        <div className={`w-32 h-32 rounded-full border-4 ${getMoodBorder()} flex items-center justify-center transition-all duration-500 bg-slate-900/80 backdrop-blur-sm shadow-2xl overflow-hidden`}> 
            {/* Lip-Sync Animation: Change icon/image based on speaking state */}
            <motion.div
-             animate={isSpeaking ? { scale: [1, 1.1, 1] } : { scale: 1 }}
-             transition={isSpeaking ? { repeat: Infinity, duration: 0.3 } : {}}
+             animate={isSpeaking ? { scale: [1, 1.05, 1] } : { scale: 1 }}
+             transition={isSpeaking ? { repeat: Infinity, duration: 0.2 } : {}}
+             className="w-full h-full"
            >
-             <span className="text-6xl filter drop-shadow-lg">
-               {listening ? '👂' : isSpeaking ? '🗣️' : sentiment === 'happy' ? '😊' : sentiment === 'angry' ? '😡' : '👩‍💼'}
-             </span>
+             <img 
+               src="https://coresg-normal.trae.ai/api/ide/v1/text_to_image?prompt=A%20professional%20business%20woman%20in%20a%20dark%20suit%2C%20office%20background%2C%20cinematic%20lighting%2C%20photorealistic%2C%208k%2C%20facing%20forward%2C%20serious%20but%20welcoming%20expression&image_size=square" 
+               alt="AI Receptionist" 
+               className="w-full h-full object-cover"
+             />
            </motion.div>
         </div> 
       </div> 
