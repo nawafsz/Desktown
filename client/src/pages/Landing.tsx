@@ -344,30 +344,32 @@ export default function Landing() {
           <div
             className="h-56 md:h-72 lg:h-80 bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
             style={{
-              backgroundImage: `linear-gradient(to right, rgba(11,15,25,0.95) 0%, rgba(11,15,25,0.8) 50%, rgba(11,15,25,0.6) 100%)`
+              backgroundImage: `linear-gradient(to left, rgba(11,15,25,0.95) 0%, rgba(11,15,25,0.8) 50%, rgba(11,15,25,0.6) 100%)`
             }}
           />
-          <div className="absolute inset-0 flex flex-col justify-center px-6 md:px-10 items-start text-left max-w-xl z-10">
-            <Badge variant="outline" className="mb-3 border-amber-500/50 text-amber-400 bg-amber-500/10 backdrop-blur-sm">
-              {language === 'ar' ? 'مستقبل العمل هنا' : 'The Future of Work is Here'}
-            </Badge>
-            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-2 leading-tight" style={{ textShadow: '0 2px 10px rgba(0,0,0,0.8)' }}>
-              {language === 'ar' ? 'افتح مكتبك السحابي' : 'Open Your Cloud Office'}
-            </h2>
-            <p className="text-amber-400 text-xl md:text-2xl font-bold mb-6" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.8)' }}>
-              {language === 'ar' ? 'بدون إيجار، بلا حدود' : 'No Rent. No Limits.'}
-            </p>
-            <Button 
-              className="bg-white text-black hover:bg-gray-100 rounded-full font-bold px-8 shadow-lg shadow-white/10 transition-all hover:scale-105"
-              onClick={() => setLocation("/storefront")}
-            >
-              {language === 'ar' ? 'ابدأ الآن' : 'Get Started'}
-            </Button>
+          <div className="absolute inset-0 flex flex-col justify-center px-6 md:px-10 items-end text-right z-10 pointer-events-none">
+            <div className="max-w-xl pointer-events-auto">
+              <Badge variant="outline" className="mb-3 border-amber-500/50 text-amber-400 bg-amber-500/10 backdrop-blur-sm">
+                {language === 'ar' ? 'مستقبل العمل هنا' : 'The Future of Work is Here'}
+              </Badge>
+              <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-2 leading-tight" style={{ textShadow: '0 2px 10px rgba(0,0,0,0.8)' }}>
+                {language === 'ar' ? 'افتح مكتبك السحابي' : 'Open Your Cloud Office'}
+              </h2>
+              <p className="text-amber-400 text-xl md:text-2xl font-bold mb-6" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.8)' }}>
+                {language === 'ar' ? 'بدون إيجار، بلا حدود' : 'No Rent. No Limits.'}
+              </p>
+              <Button 
+                className="bg-white text-black hover:bg-gray-100 rounded-full font-bold px-8 shadow-lg shadow-white/10 transition-all hover:scale-105"
+                onClick={() => setLocation("/storefront")}
+              >
+                {language === 'ar' ? 'ابدأ الآن' : 'Get Started'}
+              </Button>
+            </div>
           </div>
 
           {/* AI Receptionist Overlay */}
-          <div className="absolute inset-y-0 right-0 w-full md:w-1/2 flex items-center justify-center z-0 opacity-80 pointer-events-none md:pointer-events-auto">
-             <div className="scale-75 md:scale-90 origin-right">
+          <div className="absolute inset-y-0 left-0 w-full md:w-1/2 flex items-center justify-center z-0 opacity-100 md:opacity-100 pointer-events-none md:pointer-events-auto">
+             <div className="scale-75 md:scale-90 origin-left">
                 <AISecurityReceptionist defaultLanguage={language === 'ar' ? 'ar-SA' : 'en-US'} />
              </div>
           </div>
