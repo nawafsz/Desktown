@@ -58,7 +58,7 @@ interface NavItem {
 }
 
 const navigationItems: NavItem[] = [
-  { titleKey: "dashboard", url: "/dashboard", icon: LayoutDashboard, categoryKey: "overview", allowedRoles: ["member", "manager", "admin", "office_renter"] },
+  // { titleKey: "dashboard", url: "/dashboard", icon: LayoutDashboard, categoryKey: "overview", allowedRoles: ["member", "manager", "admin", "office_renter"] },
   { titleKey: "myProfile", url: "/profile", icon: User, categoryKey: "account", allowedRoles: ["member", "manager", "admin", "office_renter"] },
   { titleKey: "followUp", url: "/follow-up", icon: LayoutDashboard, categoryKey: "overview", allowedRoles: ["member", "manager", "admin", "office_renter"] },
   { titleKey: "tasks", url: "/tasks", icon: CheckSquare, categoryKey: "productivity", allowedRoles: ["member", "manager", "admin", "office_renter"] },

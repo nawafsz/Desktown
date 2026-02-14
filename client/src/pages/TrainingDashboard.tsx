@@ -320,7 +320,7 @@ export default function TrainingDashboard() {
             {/* Main Content Area */}
             <div className="flex-1 flex flex-col min-w-0">
                 {/* Top Navigation Bar */}
-                <div className="flex-shrink-0 h-16 bg-black/30 backdrop-blur-md border-b border-white/10 flex items-center justify-between px-6 z-50">
+                <div className="flex-shrink-0 h-16 bg-black/30 backdrop-blur-md border-b border-white/10 flex items-center justify-between px-3 md:px-6 z-50">
                     <div className="flex items-center gap-4">
                         <div className="flex items-center gap-3">
                             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-500 to-blue-600 flex items-center justify-center shadow-lg shadow-teal-500/30">
@@ -345,8 +345,8 @@ export default function TrainingDashboard() {
                 </div>
 
                 {/* Live Banner */}
-                <div className="flex-shrink-0 bg-gradient-to-r from-teal-500/20 to-blue-500/20 backdrop-blur-md border-b border-white/10 px-6 py-3">
-                    <div className="flex items-center justify-between">
+                <div className="flex-shrink-0 bg-gradient-to-r from-teal-500/20 to-blue-500/20 backdrop-blur-md border-b border-white/10 px-3 md:px-6 py-3">
+                    <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-2 md:gap-0">
                         <div className="flex items-center gap-4">
                             <div className="flex items-center gap-2 px-3 py-1.5 bg-red-500/20 border border-red-500/50 rounded-lg">
                                 <div className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse shadow-lg shadow-red-500/50" />
@@ -371,10 +371,10 @@ export default function TrainingDashboard() {
                 </div>
 
                 {/* Video & Main Workspace */}
-                <div className="flex-1 flex gap-4 p-4 overflow-hidden">
+                <div className="flex-1 flex flex-col lg:flex-row gap-4 p-4 overflow-y-auto lg:overflow-hidden">
                     <div className="flex-1 flex flex-col gap-4 min-w-0">
                         {/* Primary Video Container */}
-                        <div className="flex-[2] bg-black rounded-2xl overflow-hidden relative border border-white/10 shadow-2xl group">
+                        <div className="flex-[2] min-h-[300px] bg-black rounded-2xl overflow-hidden relative border border-white/10 shadow-2xl group">
                             <video
                                 ref={myVideoRef}
                                 autoPlay
@@ -406,8 +406,8 @@ export default function TrainingDashboard() {
                             </div>
 
                             {/* Bottom Navigation Controls */}
-                            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent p-6 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                                <div className="flex items-center justify-between">
+                            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent p-6 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity duration-300">
+                                <div className="flex flex-wrap items-center justify-between gap-4">
                                     <div className="flex items-center gap-3">
                                         <ControlButton
                                             icon={isMuted ? <MicOff /> : <Mic />}
@@ -465,9 +465,9 @@ export default function TrainingDashboard() {
                         </div>
 
                         {/* Bottom Section: Participants & Library */}
-                        <div className="flex-1 grid grid-cols-12 gap-4 min-h-0">
+                        <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-4 min-h-0">
                             {/* Remote Peers Grid */}
-                            <div className="col-span-8 bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-4 overflow-hidden flex flex-col">
+                            <div className="col-span-1 lg:col-span-8 bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-4 overflow-hidden flex flex-col min-h-[200px]">
                                 <div className="flex items-center justify-between mb-4">
                                     <div className="flex items-center gap-2 text-sm font-bold opacity-80">
                                         <Users className="w-4 h-4 text-blue-400" />
@@ -497,7 +497,7 @@ export default function TrainingDashboard() {
                             </div>
 
                             {/* Library Quick Access */}
-                            <div className="col-span-4 bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-4 flex flex-col">
+                            <div className="col-span-1 lg:col-span-4 bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-4 flex flex-col min-h-[200px]">
                                 <div className="flex items-center justify-between mb-4">
                                     <h3 className="text-sm font-bold flex items-center gap-2">
                                         <BookOpen className="w-4 h-4 text-teal-400" />
@@ -531,7 +531,7 @@ export default function TrainingDashboard() {
 
                     {/* Side Chat Sidebar */}
                     {showChat && (
-                        <div className="w-96 flex-shrink-0">
+                        <div className="w-full lg:w-96 flex-shrink-0 h-[400px] lg:h-auto">
                             <LiveChatPanel
                                 isTrainer={isTrainer}
                                 currentUserId={currentUser?.id || "guest"}
