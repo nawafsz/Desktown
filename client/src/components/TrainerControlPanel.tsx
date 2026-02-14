@@ -70,15 +70,6 @@ export default function TrainerControlPanel({
                                 <span className="text-[10px] md:text-xs text-gray-400 truncate">معدل الانتباه</span>
                                 <Activity className="w-3 h-3 md:w-4 md:h-4 text-teal-400" />
                             </div>
-                            <div className="flex items-end gap-1 h-12 mb-2">
-                                {metrics.attentionSpan.map((value, i) => (
-                                    <div
-                                        key={i}
-                                        className="flex-1 bg-gradient-to-t from-teal-500 to-teal-400 rounded-t opacity-80 hover:opacity-100 transition-opacity"
-                                        style={{ height: `${value}%` }}
-                                    />
-                                ))}
-                            </div>
                             <p className="text-2xl font-bold text-teal-400">
                                 {Math.round(metrics.attentionSpan.reduce((a, b) => a + b) / metrics.attentionSpan.length)}%
                             </p>
@@ -90,12 +81,6 @@ export default function TrainerControlPanel({
                                 <span className="text-[10px] md:text-xs text-gray-400 truncate">معدل المشاركة</span>
                                 <TrendingUp className="w-3 h-3 md:w-4 md:h-4 text-blue-400" />
                             </div>
-                            <div className="relative w-full h-2 bg-white/10 rounded-full mb-3 overflow-hidden">
-                                <div
-                                    className="absolute top-0 right-0 h-full bg-gradient-to-l from-blue-500 to-blue-400 rounded-full transition-all duration-500"
-                                    style={{ width: `${metrics.participationRate}%` }}
-                                />
-                            </div>
                             <p className="text-xl md:text-2xl font-bold text-blue-400">{metrics.participationRate}%</p>
                         </Card>
 
@@ -104,21 +89,6 @@ export default function TrainerControlPanel({
                             <div className="flex items-center justify-between mb-2">
                                 <span className="text-[10px] md:text-xs text-gray-400 truncate">أيدي مرفوعة</span>
                                 <Hand className="w-3 h-3 md:w-4 md:h-4 text-amber-400" />
-                            </div>
-                            <div className="flex items-center gap-2 mb-2">
-                                {metrics.raiseHandCount > 0 && (
-                                    <div className="flex -space-x-2">
-                                        {[...Array(Math.min(metrics.raiseHandCount, 3))].map((_, i) => (
-                                            <div
-                                                key={i}
-                                                className="w-6 h-6 md:w-8 md:h-8 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 border-2 border-gray-900 flex items-center justify-center animate-bounce"
-                                                style={{ animationDelay: `${i * 0.1}s` }}
-                                            >
-                                                <span className="text-[10px] md:text-xs">✋</span>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
                             </div>
                             <p className="text-xl md:text-2xl font-bold text-amber-400">
                                 {metrics.raiseHandCount} {metrics.raiseHandCount === 1 ? 'شخص' : 'أشخاص'}
@@ -130,11 +100,6 @@ export default function TrainerControlPanel({
                             <div className="flex items-center justify-between mb-2">
                                 <span className="text-[10px] md:text-xs text-gray-400 truncate">نشاط الدردشة</span>
                                 <MessageSquare className="w-3 h-3 md:w-4 md:h-4 text-purple-400" />
-                            </div>
-                            <div className="flex items-center gap-2 mb-2">
-                                <div className="flex-1 h-1 bg-white/10 rounded-full overflow-hidden">
-                                    <div className="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full animate-pulse" style={{ width: '75%' }} />
-                                </div>
                             </div>
                             <p className="text-xl md:text-2xl font-bold text-purple-400">{metrics.chatActivity} رسالة</p>
                         </Card>
