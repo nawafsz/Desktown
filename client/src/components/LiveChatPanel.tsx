@@ -19,7 +19,7 @@ import {
     MessageCircle,
 } from "lucide-react";
 
-interface ChatMessage {
+export interface ChatMessage {
     id: string;
     sender: {
         name: string;
@@ -39,84 +39,28 @@ interface ChatMessage {
 interface LiveChatPanelProps {
     isTrainer?: boolean;
     currentUserId: string;
+    messages: ChatMessage[];
     onSendMessage: (message: string, imageUrl?: string) => void;
     onPinMessage?: (messageId: string) => void;
     onDeleteMessage?: (messageId: string) => void;
     onMuteParticipant?: (userId: string) => void;
 }
 
-const mockMessages: ChatMessage[] = [
-    {
-        id: "1",
-        sender: {
-            name: "د. أحمد المنصوري / Dr. Ahmad",
-            avatar: "/api/placeholder/40/40",
-            role: "trainer",
-        },
-        content: {
-            text: "مرحباً بكم في جلسة التدريب اليوم! سنتحدث عن القيادة الاستراتيجية.\nWelcome to today's training session on Strategic Leadership!",
-        },
-        timestamp: new Date(Date.now() - 3600000),
-        isPinned: true,
-        isAnnouncement: true,
-    },
-    {
-        id: "2",
-        sender: {
-            name: "سارة الخالدي / Sarah",
-            avatar: "/api/placeholder/40/40",
-            role: "participant",
-        },
-        content: {
-            text: "شكراً دكتور! متحمسة للجلسة 🎉\nThank you! Excited for the session!",
-        },
-        timestamp: new Date(Date.now() - 3500000),
-        reactions: [
-            { emoji: "👍", count: 5 },
-            { emoji: "❤️", count: 3 },
-        ],
-    },
-    {
-        id: "3",
-        sender: {
-            name: "محمد العتيبي / Mohammed",
-            avatar: "/api/placeholder/40/40",
-            role: "participant",
-        },
-        content: {
-            text: "هل يمكن مشاركة العرض التقديمي؟\nCan you share the presentation?",
-        },
-        timestamp: new Date(Date.now() - 3000000),
-    },
-    {
-        id: "4",
-        sender: {
-            name: "د. أحمد المنصوري / Dr. Ahmad",
-            avatar: "/api/placeholder/40/40",
-            role: "trainer",
-        },
-        content: {
-            text: "بالتأكيد! سأشاركه الآن.\nOf course! Sharing it now.",
-        },
-        timestamp: new Date(Date.now() - 2800000),
-    },
-];
-
 export default function LiveChatPanel({
     isTrainer = false,
     currentUserId = "user-1",
+    messages,
     onSendMessage,
     onPinMessage,
     onDeleteMessage,
     onMuteParticipant,
 }: LiveChatPanelProps) {
-    const [messages, setMessages] = useState<ChatMessage[]>(mockMessages);
     const [newMessage, setNewMessage] = useState("");
     const [searchQuery, setSearchQuery] = useState("");
     const [showSearch, setShowSearch] = useState(false);
     const [isMuted, setIsMuted] = useState(false);
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
-    const [typingUsers, setTypingUsers] = useState<string[]>(["سارة", "محمد"]);
+    const [typingUsers, setTypingUsers] = useState<string[]>([]);
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -136,21 +80,6 @@ export default function LiveChatPanel({
     const handleSendMessage = () => {
         if (!newMessage.trim() && !selectedImage) return;
 
-        const message: ChatMessage = {
-            id: Date.now().toString(),
-            sender: {
-                name: isTrainer ? "د. أحمد / Dr. Ahmad" : "أنت / You",
-                avatar: "/api/placeholder/40/40",
-                role: isTrainer ? "trainer" : "participant",
-            },
-            content: {
-                text: newMessage,
-                imageUrl: selectedImage || undefined,
-            },
-            timestamp: new Date(),
-        };
-
-        setMessages([...messages, message]);
         onSendMessage(newMessage, selectedImage || undefined);
         setNewMessage("");
         setSelectedImage(null);
@@ -169,15 +98,11 @@ export default function LiveChatPanel({
 
     const handlePinMessage = (messageId: string) => {
         if (!isTrainer) return;
-        setMessages(messages.map(msg =>
-            msg.id === messageId ? { ...msg, isPinned: !msg.isPinned } : msg
-        ));
         onPinMessage?.(messageId);
     };
 
     const handleDeleteMessage = (messageId: string) => {
         if (!isTrainer) return;
-        setMessages(messages.filter(msg => msg.id !== messageId));
         onDeleteMessage?.(messageId);
     };
 

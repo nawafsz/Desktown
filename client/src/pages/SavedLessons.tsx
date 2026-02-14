@@ -3,6 +3,14 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/hooks/use-toast";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogDescription,
+} from "@/components/ui/dialog";
 import {
     Search,
     Filter,
@@ -17,6 +25,8 @@ import {
     BookOpen,
     TrendingUp,
     Calendar,
+    RotateCcw,
+    X,
 } from "lucide-react";
 
 interface Lesson {
@@ -29,6 +39,7 @@ interface Lesson {
     instructor: {
         name: string;
         avatar: string;
+        role?: string;
     };
     duration: string;
     progress: number;
@@ -38,6 +49,7 @@ interface Lesson {
     category: string;
     tags: string[];
     isNew?: boolean;
+    videoUrl: string;
 }
 
 const mockLessons: Lesson[] = [
@@ -60,6 +72,7 @@ const mockLessons: Lesson[] = [
         category: "القيادة / Leadership",
         tags: ["قيادة", "إدارة", "استراتيجية"],
         isNew: true,
+        videoUrl: "https://www.w3schools.com/html/mov_bbb.mp4",
     },
     {
         id: "2",
@@ -79,6 +92,7 @@ const mockLessons: Lesson[] = [
         rating: 4.6,
         category: "المالية / Finance",
         tags: ["مالية", "تحليل", "محاسبة"],
+        videoUrl: "https://www.w3schools.com/html/mov_bbb.mp4",
     },
     {
         id: "3",
@@ -99,6 +113,7 @@ const mockLessons: Lesson[] = [
         category: "التقنية / Technology",
         tags: ["أمن", "بيانات", "امتثال"],
         isNew: true,
+        videoUrl: "https://www.w3schools.com/html/mov_bbb.mp4",
     },
     {
         id: "4",
@@ -118,6 +133,7 @@ const mockLessons: Lesson[] = [
         rating: 4.7,
         category: "التواصل / Communication",
         tags: ["تواصل", "فرق", "مهارات"],
+        videoUrl: "https://www.w3schools.com/html/mov_bbb.mp4",
     },
     {
         id: "5",
@@ -137,6 +153,7 @@ const mockLessons: Lesson[] = [
         rating: 4.5,
         category: "الإدارة / Management",
         tags: ["مشاريع", "أجايل", "إدارة"],
+        videoUrl: "https://www.w3schools.com/html/mov_bbb.mp4",
     },
     {
         id: "6",
@@ -157,6 +174,7 @@ const mockLessons: Lesson[] = [
         category: "التقنية / Technology",
         tags: ["AI", "تقنية", "ابتكار"],
         isNew: true,
+        videoUrl: "https://www.w3schools.com/html/mov_bbb.mp4",
     },
 ];
 
@@ -175,6 +193,29 @@ export default function SavedLessons() {
     const [selectedCategory, setSelectedCategory] = useState("الكل / All");
     const [sortBy, setSortBy] = useState("newest");
     const [showFilters, setShowFilters] = useState(false);
+    const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
+    const { toast } = useToast();
+
+    const handleDownloadLesson = (lesson: Lesson) => {
+        toast({
+            title: "جاري التحميل",
+            description: `بدأ تحميل الدرس: ${lesson.title.ar}`,
+        });
+        const link = document.createElement('a');
+        link.href = lesson.videoUrl;
+        link.download = `${lesson.title.en}.mp4`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
+    const handleRestartLesson = () => {
+         const video = document.getElementById("saved-lesson-player") as HTMLVideoElement;
+         if (video) {
+             video.currentTime = 0;
+             video.play();
+         }
+    };
 
     const filteredLessons = mockLessons.filter((lesson) => {
         const matchesSearch =
@@ -321,7 +362,7 @@ export default function SavedLessons() {
                 {/* Lessons Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {filteredLessons.map((lesson) => (
-                        <LessonCard key={lesson.id} lesson={lesson} />
+                        <LessonCard key={lesson.id} lesson={lesson} onPlay={() => setSelectedLesson(lesson)} />
                     ))}
                 </div>
 
@@ -338,11 +379,49 @@ export default function SavedLessons() {
                     </div>
                 )}
             </div>
+
+            {/* Video Player Dialog */}
+            <Dialog open={!!selectedLesson} onOpenChange={(open) => !open && setSelectedLesson(null)}>
+                <DialogContent className="max-w-4xl bg-gray-900 border-white/10 text-white p-0 overflow-hidden">
+                    <DialogHeader className="p-4 bg-black/50 backdrop-blur-md border-b border-white/10">
+                        <DialogTitle className="flex items-center gap-2">
+                            <BookOpen className="w-5 h-5 text-teal-400" />
+                            <span>{selectedLesson?.title.ar}</span>
+                        </DialogTitle>
+                        <DialogDescription className="text-gray-400 text-xs">
+                            {selectedLesson?.title.en}
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="aspect-video bg-black relative group">
+                        <video 
+                            id="saved-lesson-player"
+                            src={selectedLesson?.videoUrl} 
+                            controls 
+                            autoPlay
+                            className="w-full h-full" 
+                        />
+                    </div>
+                    <div className="p-4 bg-gray-800 flex justify-between items-center">
+                            <div className="flex gap-2">
+                            <Button size="sm" variant="outline" className="gap-2 border-white/10 hover:bg-white/10 text-white" onClick={handleRestartLesson}>
+                                <RotateCcw className="w-4 h-4" />
+                                <span>إعادة التشغيل</span>
+                            </Button>
+                            </div>
+                            <div className="flex gap-2">
+                            <Button size="sm" className="gap-2 bg-teal-600 hover:bg-teal-700" onClick={() => selectedLesson && handleDownloadLesson(selectedLesson)}>
+                                <Download className="w-4 h-4" />
+                                <span>تحميل الدرس</span>
+                            </Button>
+                            </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }
 
-function LessonCard({ lesson }: { lesson: Lesson }) {
+function LessonCard({ lesson, onPlay }: { lesson: Lesson; onPlay?: () => void }) {
     const [isHovered, setIsHovered] = useState(false);
     const [isFavorite, setIsFavorite] = useState(false);
 
@@ -351,6 +430,7 @@ function LessonCard({ lesson }: { lesson: Lesson }) {
             className="group bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl overflow-hidden hover:border-teal-500/50 transition-all duration-300 hover:shadow-2xl hover:shadow-teal-500/20 hover:-translate-y-2 cursor-pointer"
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
+            onClick={onPlay}
         >
             {/* Thumbnail */}
             <div className="relative aspect-video overflow-hidden bg-gray-800">
@@ -464,7 +544,7 @@ function LessonCard({ lesson }: { lesson: Lesson }) {
                 )}
 
                 {/* Action Button */}
-                <Button className="w-full bg-gradient-to-r from-teal-500 to-blue-600 hover:from-teal-600 hover:to-blue-700 text-white shadow-lg shadow-teal-500/20 transition-all hover:scale-105">
+                <Button className="w-full bg-gradient-to-r from-teal-500 to-blue-600 hover:from-teal-600 hover:to-blue-700 text-white shadow-lg shadow-teal-500/20 transition-all hover:scale-105" onClick={(e) => { e.stopPropagation(); onPlay?.(); }}>
                     <Play className="w-4 h-4 ml-2" />
                     {lesson.progress === 100 ? 'إعادة المشاهدة / Rewatch' : lesson.progress > 0 ? 'متابعة / Continue' : 'مشاهدة الآن / Watch Now'}
                 </Button>

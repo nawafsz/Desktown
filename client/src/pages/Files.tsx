@@ -13,10 +13,20 @@ import {
   Search,
   Grid,
   List,
+  Eye,
+  X,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { useLanguage, translations } from "@/lib/i18n";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { useToast } from "@/hooks/use-toast";
 
 interface FileItem {
   id: number;
@@ -60,6 +70,27 @@ export default function Files() {
   const t = translations[language];
   const [searchQuery, setSearchQuery] = useState("");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [selectedFile, setSelectedFile] = useState<FileItem | null>(null);
+  const { toast } = useToast();
+
+  const handleFileClick = (file: FileItem) => {
+    if (file.type === "folder") {
+      toast({
+        title: language === 'ar' ? "مجلد" : "Folder",
+        description: language === 'ar' ? `فتح المجلد: ${file.name}` : `Opening folder: ${file.name}`,
+      });
+    } else {
+      setSelectedFile(file);
+    }
+  };
+
+  const handleDownload = (e: React.MouseEvent, file: FileItem) => {
+    e.stopPropagation();
+    toast({
+      title: language === 'ar' ? "جاري التحميل" : "Downloading",
+      description: language === 'ar' ? `بدأ تحميل: ${file.name}` : `Started downloading: ${file.name}`,
+    });
+  };
 
   const filteredFiles = mockFiles.filter(file => 
     file.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -137,6 +168,7 @@ export default function Files() {
                         : "flex items-center gap-4 p-3 rounded-lg border bg-card hover-elevate cursor-pointer"
                       }`}
                       data-testid={`folder-${folder.id}`}
+                      onClick={() => handleFileClick(folder)}
                     >
                       {getFileIcon(folder.type)}
                       <span className={`${viewMode === "grid" ? "mt-2 text-center" : ""} text-sm font-medium truncate max-w-full`}>
@@ -165,6 +197,7 @@ export default function Files() {
                         : "flex items-center justify-between p-3 rounded-lg border bg-card hover-elevate cursor-pointer group"
                       }`}
                       data-testid={`file-${file.id}`}
+                      onClick={() => handleFileClick(file)}
                     >
                       <div className={`${viewMode === "list" ? "flex items-center gap-4" : "flex flex-col items-center"}`}>
                         {getFileIcon(file.type)}
@@ -184,6 +217,7 @@ export default function Files() {
                         size="icon" 
                         className={`h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity ${viewMode === "grid" ? "mt-2" : ""}`}
                         data-testid={`button-download-${file.id}`}
+                        onClick={(e) => handleDownload(e, file)}
                       >
                         <Download className="h-4 w-4" />
                       </Button>
@@ -204,6 +238,49 @@ export default function Files() {
           </CardContent>
         </Card>
       </div>
+
+      <Dialog open={!!selectedFile} onOpenChange={(open) => !open && setSelectedFile(null)}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              {selectedFile && getFileIcon(selectedFile.type)}
+              <span>{selectedFile?.name}</span>
+            </DialogTitle>
+            <DialogDescription>
+              {selectedFile?.size} • {selectedFile?.modifiedAt}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="flex items-center justify-center p-10 bg-slate-100 dark:bg-muted rounded-lg min-h-[300px]">
+            {selectedFile?.type === "image" ? (
+               <div className="flex flex-col items-center gap-2">
+                  <Image className="h-20 w-20 text-gray-400" />
+                  <p>Image Preview Placeholder</p>
+               </div>
+            ) : selectedFile?.type === "video" ? (
+               <div className="flex flex-col items-center gap-2">
+                  <Video className="h-20 w-20 text-gray-400" />
+                  <p>Video Player Placeholder</p>
+               </div>
+            ) : (
+               <div className="flex flex-col items-center gap-2">
+                  <FileText className="h-20 w-20 text-gray-400" />
+                  <p>No preview available for this file type</p>
+               </div>
+            )}
+          </div>
+
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setSelectedFile(null)}>
+              {language === 'ar' ? "إغلاق" : "Close"}
+            </Button>
+            <Button onClick={(e) => selectedFile && handleDownload(e as any, selectedFile)}>
+              <Download className="h-4 w-4 mr-2" />
+              {language === 'ar' ? "تحميل" : "Download"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

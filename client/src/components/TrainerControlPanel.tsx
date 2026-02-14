@@ -35,6 +35,7 @@ interface TrainerControlPanelProps {
     onOpenWhiteboard: () => void;
     onCreatePoll: () => void;
     onManageBreakout: () => void;
+    raiseHandCount?: number;
 }
 
 export default function TrainerControlPanel({
@@ -46,16 +47,17 @@ export default function TrainerControlPanel({
     onOpenWhiteboard,
     onCreatePoll,
     onManageBreakout,
+    raiseHandCount = 0,
 }: TrainerControlPanelProps) {
     const [showMetrics, setShowMetrics] = useState(true);
     const [connectionQuality, setConnectionQuality] = useState<"excellent" | "good" | "poor">("excellent");
 
     const metrics: EngagementMetrics = {
         attentionSpan: [85, 88, 82, 90, 87, 92, 89, 91],
-        participationRate: 78,
-        raiseHandCount: 3,
-        chatActivity: 45,
-        averageViewTime: "38:15",
+        participationRate: Math.min(100, Math.round((viewerCount / 20) * 100)), // Mock calculation
+        raiseHandCount: raiseHandCount,
+        chatActivity: 45, // Could be passed as prop too
+        averageViewTime: sessionDuration,
     };
 
     return (

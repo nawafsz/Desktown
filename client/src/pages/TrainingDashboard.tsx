@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useRoute } from "wouter";
+import { useRoute, useLocation } from "wouter";
 import Peer from "peerjs";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,8 +7,15 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { useQuery } from "@tanstack/react-query";
-import LiveChatPanel from "@/components/LiveChatPanel";
+import LiveChatPanel, { ChatMessage } from "@/components/LiveChatPanel";
 import TrainerControlPanel from "@/components/TrainerControlPanel";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogDescription,
+} from "@/components/ui/dialog";
 import {
     Play,
     Mic,
@@ -29,6 +36,8 @@ import {
     Star,
     Clock,
     PhoneOff,
+    Download,
+    RotateCcw,
 } from "lucide-react";
 
 interface VideoPeer {
@@ -43,6 +52,7 @@ interface SavedLesson {
     thumbnail: string;
     duration: string;
     progress: number;
+    videoUrl: string;
 }
 
 const recentLessons: SavedLesson[] = [
@@ -52,6 +62,7 @@ const recentLessons: SavedLesson[] = [
         thumbnail: "/api/placeholder/200/112",
         duration: "45:30",
         progress: 75,
+        videoUrl: "https://www.w3schools.com/html/mov_bbb.mp4", // Placeholder
     },
     {
         id: "2",
@@ -59,6 +70,7 @@ const recentLessons: SavedLesson[] = [
         thumbnail: "/api/placeholder/200/112",
         duration: "52:15",
         progress: 23,
+        videoUrl: "https://www.w3schools.com/html/mov_bbb.mp4",
     },
     {
         id: "3",
@@ -66,6 +78,7 @@ const recentLessons: SavedLesson[] = [
         thumbnail: "/api/placeholder/200/112",
         duration: "38:45",
         progress: 100,
+        videoUrl: "https://www.w3schools.com/html/mov_bbb.mp4",
     },
     {
         id: "4",
@@ -73,6 +86,7 @@ const recentLessons: SavedLesson[] = [
         thumbnail: "/api/placeholder/200/112",
         duration: "41:20",
         progress: 60,
+        videoUrl: "https://www.w3schools.com/html/mov_bbb.mp4",
     },
     {
         id: "5",
@@ -80,11 +94,13 @@ const recentLessons: SavedLesson[] = [
         thumbnail: "/api/placeholder/200/112",
         duration: "55:00",
         progress: 0,
+        videoUrl: "https://www.w3schools.com/html/mov_bbb.mp4",
     },
 ];
 
 export default function TrainingDashboard() {
     const [match, params] = useRoute("/training/live/:sessionId?");
+    const [, setLocation] = useLocation();
     const sessionId = params?.sessionId || "default-training";
     const { toast } = useToast();
 
@@ -96,6 +112,8 @@ export default function TrainingDashboard() {
     const [handRaised, setHandRaised] = useState(false);
     const [showChat, setShowChat] = useState(true);
     const [volume, setVolume] = useState(80);
+    const [selectedLesson, setSelectedLesson] = useState<SavedLesson | null>(null);
+    const [messages, setMessages] = useState<ChatMessage[]>([]);
 
     // WebRTC State
     const [myPeerId, setMyPeerId] = useState<string>("");
@@ -203,9 +221,9 @@ export default function TrainingDashboard() {
         conn.on("open", () => connectionsRef.current.push(conn));
         conn.on("data", (data: any) => {
             if (data.type === "chat") {
-                // Handle incoming chat if needed (Chat component handles its own state usually, 
-                // but since we passed LiveChatPanel, we might need a way to push messages)
+                // Handle incoming chat
                 console.log("Received Chat Data:", data);
+                setMessages((prev) => [...prev, data.message]);
             }
         });
     };
@@ -299,15 +317,52 @@ export default function TrainingDashboard() {
         }
     };
 
+    const handleFeatureNotAvailable = (feature: string) => {
+        toast({
+            title: "قريباً",
+            description: `ميزة ${feature} ستكون متاحة قريباً.`,
+        });
+    };
+
+    const handleDownloadLesson = (lesson: SavedLesson) => {
+        toast({
+            title: "جاري التحميل",
+            description: `بدأ تحميل الدرس: ${lesson.title}`,
+        });
+        // Create a dummy link to trigger download
+        const link = document.createElement('a');
+        link.href = lesson.videoUrl;
+        link.download = `${lesson.title}.mp4`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
+    const handleRestartLesson = () => {
+         const video = document.getElementById("lesson-video-player") as HTMLVideoElement;
+         if (video) {
+             video.currentTime = 0;
+             video.play();
+         }
+    };
+
     const handleSendMessage = (message: string, imageUrl?: string) => {
+        const newMessage: ChatMessage = {
+            id: Date.now().toString(),
+            sender: {
+                name: displayName,
+                avatar: "/api/placeholder/40/40",
+                role: isTrainer ? "trainer" : "participant",
+            },
+            content: { text: message, imageUrl },
+            timestamp: new Date(),
+        };
+
+        setMessages((prev) => [...prev, newMessage]);
+
         const msgData = {
             type: "chat",
-            message: {
-                id: Date.now().toString(),
-                sender: { name: displayName, avatar: "/api/placeholder/40/40", role: isTrainer ? "trainer" : "participant" },
-                content: { text: message, imageUrl },
-                timestamp: new Date()
-            }
+            message: newMessage,
         };
 
         connectionsRef.current.forEach(conn => {
@@ -440,7 +495,7 @@ export default function TrainingDashboard() {
                                                 <span>{handRaised ? "إلغاء رفع اليد" : "رفع اليد"}</span>
                                             </Button>
                                         )}
-                                        <Button variant="destructive" className="h-12 px-6 rounded-xl gap-2 shadow-lg shadow-red-500/20" onClick={() => window.close()}>
+                                        <Button variant="destructive" className="h-12 px-6 rounded-xl gap-2 shadow-lg shadow-red-500/20" onClick={() => setLocation('/training')}>
                                             <PhoneOff className="w-5 h-5" />
                                             <span>مغادرة</span>
                                         </Button>
@@ -507,7 +562,11 @@ export default function TrainingDashboard() {
                                 </div>
                                 <div className="flex-1 space-y-3 overflow-y-auto scrollbar-thin pr-1">
                                     {recentLessons.map(lesson => (
-                                        <div key={lesson.id} className="group bg-white/5 rounded-xl p-2 border border-white/5 hover:border-teal-500/30 transition-all cursor-pointer">
+                                        <div 
+                                            key={lesson.id} 
+                                            className="group bg-white/5 rounded-xl p-2 border border-white/5 hover:border-teal-500/30 transition-all cursor-pointer"
+                                            onClick={() => setSelectedLesson(lesson)}
+                                        >
                                             <div className="flex gap-3">
                                                 <div className="w-16 h-10 rounded-lg overflow-hidden relative flex-shrink-0">
                                                     <img src={lesson.thumbnail} className="w-full h-full object-cover group-hover:scale-110 transition-transform" />
@@ -535,6 +594,7 @@ export default function TrainingDashboard() {
                             <LiveChatPanel
                                 isTrainer={isTrainer}
                                 currentUserId={currentUser?.id || "guest"}
+                                messages={messages}
                                 onSendMessage={handleSendMessage}
                             />
                         </div>
@@ -550,12 +610,49 @@ export default function TrainingDashboard() {
                             sessionDuration="00:45:22"
                             onToggleRecording={handleToggleRecording}
                             onScreenShare={() => setIsScreenSharing(!isScreenSharing)}
-                            onOpenWhiteboard={() => { }}
-                            onCreatePoll={() => { }}
-                            onManageBreakout={() => { }}
+                            onOpenWhiteboard={() => handleFeatureNotAvailable("السبورة")}
+                            onCreatePoll={() => handleFeatureNotAvailable("الاستطلاع")}
+                            onManageBreakout={() => handleFeatureNotAvailable("الغرف الفرعية")}
                         />
                     </div>
                 )}
+
+                <Dialog open={!!selectedLesson} onOpenChange={(open) => !open && setSelectedLesson(null)}>
+                    <DialogContent className="max-w-4xl bg-gray-900 border-white/10 text-white p-0 overflow-hidden">
+                        <DialogHeader className="p-4 bg-black/50 backdrop-blur-md border-b border-white/10">
+                            <DialogTitle className="flex items-center gap-2">
+                                <BookOpen className="w-5 h-5 text-teal-400" />
+                                <span>{selectedLesson?.title}</span>
+                            </DialogTitle>
+                            <DialogDescription className="text-gray-400 text-xs">
+                                المدة: {selectedLesson?.duration} | التقدم: {selectedLesson?.progress}%
+                            </DialogDescription>
+                        </DialogHeader>
+                        <div className="aspect-video bg-black relative group">
+                            <video 
+                                id="lesson-video-player"
+                                src={selectedLesson?.videoUrl} 
+                                controls 
+                                autoPlay
+                                className="w-full h-full" 
+                            />
+                        </div>
+                        <div className="p-4 bg-gray-800 flex justify-between items-center">
+                             <div className="flex gap-2">
+                                <Button size="sm" variant="outline" className="gap-2 border-white/10 hover:bg-white/10 text-white" onClick={handleRestartLesson}>
+                                    <RotateCcw className="w-4 h-4" />
+                                    <span>إعادة التشغيل</span>
+                                </Button>
+                             </div>
+                             <div className="flex gap-2">
+                                <Button size="sm" className="gap-2 bg-teal-600 hover:bg-teal-700" onClick={() => selectedLesson && handleDownloadLesson(selectedLesson)}>
+                                    <Download className="w-4 h-4" />
+                                    <span>تحميل الدرس</span>
+                                </Button>
+                             </div>
+                        </div>
+                    </DialogContent>
+                </Dialog>
             </div>
         </div>
     );

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useRoute } from "wouter";
+import { useRoute, useLocation } from "wouter";
 import Peer from "peerjs";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -40,6 +40,7 @@ interface ChatMessage {
 
 export default function VideoRoom() {
   const [match, params] = useRoute("/video-room/:meetingId");
+  const [, setLocation] = useLocation();
   const meetingId = params?.meetingId;
   const { toast } = useToast();
 
@@ -426,8 +427,11 @@ export default function VideoRoom() {
   };
 
   const endCall = () => {
-    window.close();
-    window.location.href = "/meetings";
+    if (window.opener) {
+        window.close();
+    } else {
+        setLocation("/meetings");
+    }
   };
 
   const sendMessage = () => {
