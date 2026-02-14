@@ -59,16 +59,16 @@ export default function TrainerControlPanel({
     };
 
     return (
-        <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-t from-black via-gray-900/95 to-transparent backdrop-blur-xl border-t border-white/10 p-4 z-50" dir="rtl">
+        <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-t from-black via-gray-900/95 to-transparent backdrop-blur-xl border-t border-white/10 p-2 md:p-4 z-50 max-h-[80vh] overflow-y-auto" dir="rtl">
             <div className="max-w-7xl mx-auto">
                 {/* Metrics Panel (Collapsible) */}
                 {showMetrics && (
-                    <div className="mb-4 grid grid-cols-1 md:grid-cols-4 gap-3 animate-in slide-in-from-bottom-4 duration-300">
+                    <div className="mb-4 grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3 animate-in slide-in-from-bottom-4 duration-300">
                         {/* Attention Span */}
-                        <Card className="bg-gradient-to-br from-teal-500/10 to-teal-600/5 border-teal-500/30 backdrop-blur-md p-4">
+                        <Card className="bg-gradient-to-br from-teal-500/10 to-teal-600/5 border-teal-500/30 backdrop-blur-md p-3 md:p-4">
                             <div className="flex items-center justify-between mb-2">
-                                <span className="text-xs text-gray-400">معدل الانتباه / Attention</span>
-                                <Activity className="w-4 h-4 text-teal-400" />
+                                <span className="text-[10px] md:text-xs text-gray-400 truncate">معدل الانتباه</span>
+                                <Activity className="w-3 h-3 md:w-4 md:h-4 text-teal-400" />
                             </div>
                             <div className="flex items-end gap-1 h-12 mb-2">
                                 {metrics.attentionSpan.map((value, i) => (
@@ -85,10 +85,10 @@ export default function TrainerControlPanel({
                         </Card>
 
                         {/* Participation Rate */}
-                        <Card className="bg-gradient-to-br from-blue-500/10 to-blue-600/5 border-blue-500/30 backdrop-blur-md p-4">
+                        <Card className="bg-gradient-to-br from-blue-500/10 to-blue-600/5 border-blue-500/30 backdrop-blur-md p-3 md:p-4">
                             <div className="flex items-center justify-between mb-2">
-                                <span className="text-xs text-gray-400">معدل المشاركة / Participation</span>
-                                <TrendingUp className="w-4 h-4 text-blue-400" />
+                                <span className="text-[10px] md:text-xs text-gray-400 truncate">معدل المشاركة</span>
+                                <TrendingUp className="w-3 h-3 md:w-4 md:h-4 text-blue-400" />
                             </div>
                             <div className="relative w-full h-2 bg-white/10 rounded-full mb-3 overflow-hidden">
                                 <div
@@ -96,14 +96,14 @@ export default function TrainerControlPanel({
                                     style={{ width: `${metrics.participationRate}%` }}
                                 />
                             </div>
-                            <p className="text-2xl font-bold text-blue-400">{metrics.participationRate}%</p>
+                            <p className="text-xl md:text-2xl font-bold text-blue-400">{metrics.participationRate}%</p>
                         </Card>
 
                         {/* Raise Hand Notifications */}
-                        <Card className="bg-gradient-to-br from-amber-500/10 to-amber-600/5 border-amber-500/30 backdrop-blur-md p-4">
+                        <Card className="bg-gradient-to-br from-amber-500/10 to-amber-600/5 border-amber-500/30 backdrop-blur-md p-3 md:p-4">
                             <div className="flex items-center justify-between mb-2">
-                                <span className="text-xs text-gray-400">أيدي مرفوعة / Raised Hands</span>
-                                <Hand className="w-4 h-4 text-amber-400" />
+                                <span className="text-[10px] md:text-xs text-gray-400 truncate">أيدي مرفوعة</span>
+                                <Hand className="w-3 h-3 md:w-4 md:h-4 text-amber-400" />
                             </div>
                             <div className="flex items-center gap-2 mb-2">
                                 {metrics.raiseHandCount > 0 && (
@@ -111,77 +111,77 @@ export default function TrainerControlPanel({
                                         {[...Array(Math.min(metrics.raiseHandCount, 3))].map((_, i) => (
                                             <div
                                                 key={i}
-                                                className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 border-2 border-gray-900 flex items-center justify-center animate-bounce"
+                                                className="w-6 h-6 md:w-8 md:h-8 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 border-2 border-gray-900 flex items-center justify-center animate-bounce"
                                                 style={{ animationDelay: `${i * 0.1}s` }}
                                             >
-                                                <span className="text-xs">✋</span>
+                                                <span className="text-[10px] md:text-xs">✋</span>
                                             </div>
                                         ))}
                                     </div>
                                 )}
                             </div>
-                            <p className="text-2xl font-bold text-amber-400">
+                            <p className="text-xl md:text-2xl font-bold text-amber-400">
                                 {metrics.raiseHandCount} {metrics.raiseHandCount === 1 ? 'شخص' : 'أشخاص'}
                             </p>
                         </Card>
 
                         {/* Chat Activity */}
-                        <Card className="bg-gradient-to-br from-purple-500/10 to-purple-600/5 border-purple-500/30 backdrop-blur-md p-4">
+                        <Card className="bg-gradient-to-br from-purple-500/10 to-purple-600/5 border-purple-500/30 backdrop-blur-md p-3 md:p-4">
                             <div className="flex items-center justify-between mb-2">
-                                <span className="text-xs text-gray-400">نشاط الدردشة / Chat Activity</span>
-                                <MessageSquare className="w-4 h-4 text-purple-400" />
+                                <span className="text-[10px] md:text-xs text-gray-400 truncate">نشاط الدردشة</span>
+                                <MessageSquare className="w-3 h-3 md:w-4 md:h-4 text-purple-400" />
                             </div>
                             <div className="flex items-center gap-2 mb-2">
                                 <div className="flex-1 h-1 bg-white/10 rounded-full overflow-hidden">
                                     <div className="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full animate-pulse" style={{ width: '75%' }} />
                                 </div>
                             </div>
-                            <p className="text-2xl font-bold text-purple-400">{metrics.chatActivity} رسالة</p>
+                            <p className="text-xl md:text-2xl font-bold text-purple-400">{metrics.chatActivity} رسالة</p>
                         </Card>
                     </div>
                 )}
 
                 {/* Main Control Bar */}
-                <div className="flex items-center justify-between gap-4">
+                <div className="flex flex-col md:flex-row items-center justify-between gap-4">
                     {/* Left Section - Session Info */}
-                    <div className="flex items-center gap-4">
+                    <div className="flex flex-wrap justify-center items-center gap-2 md:gap-4 w-full md:w-auto">
                         {/* Recording Status */}
-                        <div className="flex items-center gap-2 px-4 py-2 bg-white/5 backdrop-blur-md border border-white/10 rounded-xl">
+                        <div className="flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 bg-white/5 backdrop-blur-md border border-white/10 rounded-xl">
                             {isRecording && (
-                                <div className="w-3 h-3 rounded-full bg-red-500 animate-pulse shadow-lg shadow-red-500/50" />
+                                <div className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-red-500 animate-pulse shadow-lg shadow-red-500/50" />
                             )}
-                            <span className="text-sm font-semibold text-white">
+                            <span className="text-xs md:text-sm font-semibold text-white">
                                 {isRecording ? 'جاري التسجيل' : 'متوقف'}
                             </span>
-                            <span className="text-xs text-gray-400">RECORDING</span>
+                            <span className="text-[10px] md:text-xs text-gray-400 hidden sm:inline">RECORDING</span>
                         </div>
 
                         {/* Session Duration */}
-                        <div className="flex items-center gap-2 px-4 py-2 bg-white/5 backdrop-blur-md border border-white/10 rounded-xl">
-                            <Clock className="w-4 h-4 text-teal-400" />
-                            <span className="text-sm font-mono font-bold text-white">{sessionDuration}</span>
+                        <div className="flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 bg-white/5 backdrop-blur-md border border-white/10 rounded-xl">
+                            <Clock className="w-3 h-3 md:w-4 md:h-4 text-teal-400" />
+                            <span className="text-xs md:text-sm font-mono font-bold text-white">{sessionDuration}</span>
                         </div>
 
                         {/* Viewer Count */}
-                        <div className="flex items-center gap-2 px-4 py-2 bg-white/5 backdrop-blur-md border border-white/10 rounded-xl">
-                            <Users className="w-4 h-4 text-blue-400" />
-                            <span className="text-sm font-bold text-white">{viewerCount}</span>
-                            <span className="text-xs text-gray-400">مشاهد</span>
+                        <div className="flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 bg-white/5 backdrop-blur-md border border-white/10 rounded-xl">
+                            <Users className="w-3 h-3 md:w-4 md:h-4 text-blue-400" />
+                            <span className="text-xs md:text-sm font-bold text-white">{viewerCount}</span>
+                            <span className="text-[10px] md:text-xs text-gray-400 hidden sm:inline">مشاهد</span>
                         </div>
 
                         {/* Connection Quality */}
-                        <div className="flex items-center gap-2 px-4 py-2 bg-white/5 backdrop-blur-md border border-white/10 rounded-xl">
-                            <Wifi className={`w-4 h-4 ${connectionQuality === 'excellent' ? 'text-green-400' :
+                        <div className="flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 bg-white/5 backdrop-blur-md border border-white/10 rounded-xl">
+                            <Wifi className={`w-3 h-3 md:w-4 md:h-4 ${connectionQuality === 'excellent' ? 'text-green-400' :
                                     connectionQuality === 'good' ? 'text-yellow-400' : 'text-red-400'
                                 }`} />
-                            <span className="text-xs text-gray-400">
+                            <span className="text-[10px] md:text-xs text-gray-400">
                                 {connectionQuality === 'excellent' ? 'ممتاز' : connectionQuality === 'good' ? 'جيد' : 'ضعيف'}
                             </span>
                         </div>
                     </div>
 
                     {/* Center Section - Main Controls */}
-                    <div className="flex items-center gap-3">
+                    <div className="flex flex-wrap justify-center items-center gap-2 md:gap-3 w-full md:w-auto">
                         <ControlButton
                             icon="🎥"
                             label="تسجيل"
@@ -217,19 +217,19 @@ export default function TrainerControlPanel({
                     </div>
 
                     {/* Right Section - Settings */}
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 md:gap-3">
                         <button
                             onClick={() => setShowMetrics(!showMetrics)}
-                            className="p-3 rounded-xl bg-white/5 backdrop-blur-md border border-white/10 hover:bg-white/10 transition-all hover:scale-105"
+                            className="p-2 md:p-3 rounded-xl bg-white/5 backdrop-blur-md border border-white/10 hover:bg-white/10 transition-all hover:scale-105"
                             title="Toggle Metrics"
                         >
-                            <BarChart3 className="w-5 h-5 text-teal-400" />
+                            <BarChart3 className="w-4 h-4 md:w-5 md:h-5 text-teal-400" />
                         </button>
                         <button
-                            className="p-3 rounded-xl bg-white/5 backdrop-blur-md border border-white/10 hover:bg-white/10 transition-all hover:scale-105"
+                            className="p-2 md:p-3 rounded-xl bg-white/5 backdrop-blur-md border border-white/10 hover:bg-white/10 transition-all hover:scale-105"
                             title="Settings"
                         >
-                            <Settings className="w-5 h-5 text-gray-400" />
+                            <Settings className="w-4 h-4 md:w-5 md:h-5 text-gray-400" />
                         </button>
                     </div>
                 </div>
@@ -251,7 +251,7 @@ function ControlButton({ icon, label, sublabel, active, variant = "default", onC
     return (
         <button
             onClick={onClick}
-            className={`group relative px-6 py-3 rounded-xl backdrop-blur-md border transition-all duration-300 hover:scale-105 ${active
+            className={`group relative px-4 py-2 md:px-6 md:py-3 rounded-xl backdrop-blur-md border transition-all duration-300 hover:scale-105 flex-1 md:flex-none ${active
                     ? variant === "danger"
                         ? "bg-red-500/20 border-red-500/50 shadow-lg shadow-red-500/30"
                         : "bg-teal-500/20 border-teal-500/50 shadow-lg shadow-teal-500/30"
@@ -259,9 +259,9 @@ function ControlButton({ icon, label, sublabel, active, variant = "default", onC
                 }`}
         >
             <div className="flex flex-col items-center gap-1">
-                <span className="text-2xl">{icon}</span>
-                <span className="text-xs font-semibold text-white">{label}</span>
-                <span className="text-[10px] text-gray-400">{sublabel}</span>
+                <span className="text-xl md:text-2xl">{icon}</span>
+                <span className="text-[10px] md:text-xs font-semibold text-white hidden sm:inline">{label}</span>
+                <span className="text-[8px] md:text-[10px] text-gray-400 hidden sm:inline">{sublabel}</span>
             </div>
 
             {/* Glow Effect on Hover */}
