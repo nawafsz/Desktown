@@ -58,6 +58,8 @@ import SavedLessons from "@/pages/SavedLessons";
 import TrainingWelcome from "@/pages/TrainingWelcome";
 import FinancialAccounting from "@/pages/FinancialAccounting";
 import InventoryManagement from "@/pages/InventoryManagement";
+import Marketing from "@/pages/Marketing";
+import GeneralDepartment from "@/pages/GeneralDepartment";
 import AiAssistant from "@/pages/AiAssistant";
 import VerifyPasscode from "@/pages/VerifyPasscode";
 import { Loader2, ShieldAlert, CreditCard } from "lucide-react";
@@ -332,6 +334,10 @@ function OfficeRenterRouter() {
       <Route path="/profile/visitor" component={VisitorProfile} />
       <Route path="/profile/employee" component={EmployeeProfilePage} />
       <Route path="/employee-portal" component={EmployeePortal} />
+      <Route path="/marketing" component={Marketing} />
+      <Route path="/sales" component={Sales} />
+      <Route path="/legal" component={Legal} />
+      <Route path="/general-department" component={GeneralDepartment} />
       <Route path="/financial-accounting" component={FinancialAccounting} />
       <Route path="/inventory-management" component={InventoryManagement} />
       <Route path="/ai-assistant" component={AiAssistant} />

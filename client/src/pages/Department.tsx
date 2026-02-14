@@ -531,8 +531,60 @@ export default function Department() {
               </Link>
             </div>
           )}
+
+          {["campaigns", "content", "analytics", "social"].includes(selectedTool?.id || "") && (
+            <div className="flex flex-col gap-4 items-center py-8">
+              <p className="text-center text-muted-foreground">
+                {language === 'ar' ? "الوصول إلى لوحة التحكم التسويقية الشاملة." : "Access the comprehensive Marketing Dashboard."}
+              </p>
+              <Link href={`/marketing?tab=${selectedTool?.id}`}>
+                <Button size="lg" className="w-full sm:w-auto">
+                  {language === 'ar' ? "الذهاب للتسويق" : "Go to Marketing"}
+                </Button>
+              </Link>
+            </div>
+          )}
+
+          {["pipeline", "leads", "quotes", "clients"].includes(selectedTool?.id || "") && (
+            <div className="flex flex-col gap-4 items-center py-8">
+              <p className="text-center text-muted-foreground">
+                {language === 'ar' ? "الوصول إلى نظام إدارة المبيعات الشامل." : "Access the comprehensive Sales Management System."}
+              </p>
+              <Link href={`/sales?tab=${selectedTool?.id}`}>
+                <Button size="lg" className="w-full sm:w-auto">
+                  {language === 'ar' ? "الذهاب للمبيعات" : "Go to Sales"}
+                </Button>
+              </Link>
+            </div>
+          )}
+
+          {["contracts", "compliance", "cases", "documents"].includes(selectedTool?.id || "") && (
+            <div className="flex flex-col gap-4 items-center py-8">
+              <p className="text-center text-muted-foreground">
+                {language === 'ar' ? "الوصول إلى نظام الشؤون القانونية الشامل." : "Access the comprehensive Legal Affairs System."}
+              </p>
+              <Link href={`/legal?tab=${selectedTool?.id}`}>
+                <Button size="lg" className="w-full sm:w-auto">
+                  {language === 'ar' ? "الذهاب للشؤون القانونية" : "Go to Legal"}
+                </Button>
+              </Link>
+            </div>
+          )}
+
+          {["tasks", "notes", "files"].includes(selectedTool?.id || "") && (
+            <div className="flex flex-col gap-4 items-center py-8">
+              <p className="text-center text-muted-foreground">
+                {language === 'ar' ? "الوصول إلى لوحة المهام والملفات العامة." : "Access General Tasks and Files Dashboard."}
+              </p>
+              <Link href={`/general-department?tab=${selectedTool?.id}`}>
+                <Button size="lg" className="w-full sm:w-auto">
+                  {language === 'ar' ? "الذهاب للقسم العام" : "Go to General Department"}
+                </Button>
+              </Link>
+            </div>
+          )}
           
-          {!["financial-accounting", "inventory-management", "hr-system"].includes(selectedTool?.id || "") && (
+          {!["financial-accounting", "inventory-management", "hr-system", "campaigns", "content", "analytics", "social", "pipeline", "leads", "quotes", "clients", "contracts", "compliance", "cases", "documents", "tasks", "notes", "files"].includes(selectedTool?.id || "") && (
             <div className="text-center py-8">
               <div className={`h-16 w-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-4`}>
                 {selectedTool && <selectedTool.icon className={`h-8 w-8 ${selectedTool.color}`} />}
