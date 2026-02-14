@@ -65,43 +65,43 @@ export default function TrainerControlPanel({
                 {showMetrics && (
                     <div className="mb-4 grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3 animate-in slide-in-from-bottom-4 duration-300">
                         {/* Attention Span */}
-                        <Card className="bg-gradient-to-br from-teal-500/10 to-teal-600/5 border-teal-500/30 backdrop-blur-md p-3 md:p-4">
-                            <div className="flex items-center justify-between mb-2">
-                                <span className="text-[10px] md:text-xs text-gray-400 truncate">معدل الانتباه</span>
-                                <Activity className="w-3 h-3 md:w-4 md:h-4 text-teal-400" />
+                        <Card className="bg-gradient-to-br from-teal-500/10 to-teal-600/5 border-teal-500/30 backdrop-blur-md px-3 py-2 flex flex-col justify-between h-20">
+                            <div className="flex items-center justify-between">
+                                <span className="text-[10px] text-gray-400 truncate">معدل الانتباه</span>
+                                <Activity className="w-3 h-3 text-teal-400" />
                             </div>
-                            <p className="text-2xl font-bold text-teal-400">
+                            <p className="text-xl font-bold text-teal-400 self-end">
                                 {Math.round(metrics.attentionSpan.reduce((a, b) => a + b) / metrics.attentionSpan.length)}%
                             </p>
                         </Card>
 
                         {/* Participation Rate */}
-                        <Card className="bg-gradient-to-br from-blue-500/10 to-blue-600/5 border-blue-500/30 backdrop-blur-md p-3 md:p-4">
-                            <div className="flex items-center justify-between mb-2">
-                                <span className="text-[10px] md:text-xs text-gray-400 truncate">معدل المشاركة</span>
-                                <TrendingUp className="w-3 h-3 md:w-4 md:h-4 text-blue-400" />
+                        <Card className="bg-gradient-to-br from-blue-500/10 to-blue-600/5 border-blue-500/30 backdrop-blur-md px-3 py-2 flex flex-col justify-between h-20">
+                            <div className="flex items-center justify-between">
+                                <span className="text-[10px] text-gray-400 truncate">معدل المشاركة</span>
+                                <TrendingUp className="w-3 h-3 text-blue-400" />
                             </div>
-                            <p className="text-xl md:text-2xl font-bold text-blue-400">{metrics.participationRate}%</p>
+                            <p className="text-xl font-bold text-blue-400 self-end">{metrics.participationRate}%</p>
                         </Card>
 
                         {/* Raise Hand Notifications */}
-                        <Card className="bg-gradient-to-br from-amber-500/10 to-amber-600/5 border-amber-500/30 backdrop-blur-md p-3 md:p-4">
-                            <div className="flex items-center justify-between mb-2">
-                                <span className="text-[10px] md:text-xs text-gray-400 truncate">أيدي مرفوعة</span>
-                                <Hand className="w-3 h-3 md:w-4 md:h-4 text-amber-400" />
+                        <Card className="bg-gradient-to-br from-amber-500/10 to-amber-600/5 border-amber-500/30 backdrop-blur-md px-3 py-2 flex flex-col justify-between h-20">
+                            <div className="flex items-center justify-between">
+                                <span className="text-[10px] text-gray-400 truncate">أيدي مرفوعة</span>
+                                <Hand className="w-3 h-3 text-amber-400" />
                             </div>
-                            <p className="text-xl md:text-2xl font-bold text-amber-400">
+                            <p className="text-xl font-bold text-amber-400 self-end">
                                 {metrics.raiseHandCount} {metrics.raiseHandCount === 1 ? 'شخص' : 'أشخاص'}
                             </p>
                         </Card>
 
                         {/* Chat Activity */}
-                        <Card className="bg-gradient-to-br from-purple-500/10 to-purple-600/5 border-purple-500/30 backdrop-blur-md p-3 md:p-4">
-                            <div className="flex items-center justify-between mb-2">
-                                <span className="text-[10px] md:text-xs text-gray-400 truncate">نشاط الدردشة</span>
-                                <MessageSquare className="w-3 h-3 md:w-4 md:h-4 text-purple-400" />
+                        <Card className="bg-gradient-to-br from-purple-500/10 to-purple-600/5 border-purple-500/30 backdrop-blur-md px-3 py-2 flex flex-col justify-between h-20">
+                            <div className="flex items-center justify-between">
+                                <span className="text-[10px] text-gray-400 truncate">نشاط الدردشة</span>
+                                <MessageSquare className="w-3 h-3 text-purple-400" />
                             </div>
-                            <p className="text-xl md:text-2xl font-bold text-purple-400">{metrics.chatActivity} رسالة</p>
+                            <p className="text-xl font-bold text-purple-400 self-end">{metrics.chatActivity} رسالة</p>
                         </Card>
                     </div>
                 )}

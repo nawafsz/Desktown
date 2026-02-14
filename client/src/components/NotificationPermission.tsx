@@ -54,11 +54,13 @@ export function NotificationPermission({ showBanner = true }: NotificationPermis
           description: 'You will now receive push notifications',
         });
       } else {
-        toast({
+        console.warn('Could not enable notifications - check browser settings or VAPID key');
+        // Suppress error toast to avoid blocking UI in dev environments
+        /* toast({
           title: 'Could not enable notifications',
           description: 'Please check your browser settings',
           variant: 'destructive',
-        });
+        }); */
       }
     } catch (error) {
       console.error('Subscribe error:', error);
