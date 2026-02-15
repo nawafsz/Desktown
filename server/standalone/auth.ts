@@ -320,7 +320,7 @@ export async function setupAuth(app: Express) {
 
   app.post("/api/register", async (req, res) => {
     try {
-      const { username, password, email, firstName, lastName } = req.body;
+      const { username, password, email, firstName, lastName, interests, role } = req.body;
       if (!username || !password || !email) {
         return res.status(400).json({ message: "Missing required fields" });
       }
@@ -330,6 +330,10 @@ export async function setupAuth(app: Express) {
         return res.status(400).json({ message: "User already exists" });
       }
 
+      // Validate role - only allow specific roles for public registration
+      const allowedRoles = ["member", "visitor", "office_renter"];
+      const userRole = role && allowedRoles.includes(role) ? role : "member";
+
       const hashedPassword = await hashPassword(password);
       const newUser = await storage.upsertUser({
         username,
@@ -337,8 +341,9 @@ export async function setupAuth(app: Express) {
         password: hashedPassword,
         firstName: firstName || username,
         lastName: lastName || "",
-        role: "member",
+        role: userRole,
         status: "online",
+        interests: interests || null,
         profileImageUrl: `https://ui-avatars.com/api/?name=${username}&background=random`
       });
 

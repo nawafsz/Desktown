@@ -121,6 +121,7 @@ export const profiles = pgTable("profiles", {
   coverUrl: varchar("cover_url"),
   website: varchar("website"),
   location: varchar("location"),
+  interests: text("interests"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

@@ -393,8 +393,15 @@ function AuthenticatedApp() {
     if (isVisitorRole && location === "/") {
       hasRedirected.current = true;
       setLocation("/welcome");
+      return;
     }
-  }, [isVisitorRole, location, setLocation]);
+
+    if (!isVisitorRole && !isOfficeRenterRole && location === "/") {
+      hasRedirected.current = true;
+      setLocation("/profile");
+      return;
+    }
+  }, [isVisitorRole, isOfficeRenterRole, location, setLocation]);
 
   // Heartbeat to update online status every 2 minutes
   useEffect(() => {
