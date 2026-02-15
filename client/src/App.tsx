@@ -27,7 +27,6 @@ import Department from "@/pages/Department";
 import EmployeeProfile from "@/pages/EmployeeProfile";
 import MyEmployeeProfile from "@/pages/MyEmployeeProfile";
 import Profile from "@/pages/Profile";
-import Dashboard from "@/pages/Dashboard";
 import FollowUp from "@/pages/FollowUp";
 import Subscription from "@/pages/Subscription";
 import Advertising from "@/pages/Advertising";
@@ -70,6 +69,8 @@ import { useQuery } from "@tanstack/react-query";
 import { NotificationPermission } from "@/components/NotificationPermission";
 import type { Subscription as SubscriptionType } from "@shared/schema";
 import { useLanguage, translations } from "@/lib/i18n";
+import Sales from "@/pages/Sales";
+import Legal from "@/pages/Legal";
 
 const Redirect = ({ to }: { to: string }) => {
   const [, setLocation] = useLocation();
@@ -170,8 +171,8 @@ function SubscriptionGuard({ children }: SubscriptionGuardProps) {
 function AuthenticatedRouter({ userRole }: { userRole: string | null | undefined }) {
   return (
     <Switch>
-      <Route path="/dashboard" component={Dashboard} />
-      <Route path="/" component={Welcome} />
+      <Route path="/dashboard" component={EmployeeProfilePage} />
+      <Route path="/" component={EmployeeProfilePage} />
       <Route path="/follow-up" component={FollowUp} />
       <Route path="/profile" component={Profile} />
       <Route path="/profile/office" component={OfficeProfile} />
@@ -304,8 +305,8 @@ function OfficeRenterRouter() {
   return (
     <Switch>
       {/* Standard Features */}
-      <Route path="/dashboard" component={Dashboard} />
-      <Route path="/" component={Dashboard} />
+      <Route path="/dashboard" component={Profile} />
+      <Route path="/" component={Profile} />
       <Route path="/follow-up" component={FollowUp} />
       <Route path="/tasks" component={Tasks} />
       <Route path="/tickets" component={Tickets} />
@@ -346,7 +347,7 @@ function OfficeRenterRouter() {
       <Route path="/my-office" component={ProtectedOfficeManagement} />
       <Route path="/my-services" component={ProtectedOfficeServicesShowcase} />
       <Route path="/paid-services" component={ProtectedPaidServices} />
-      <Route component={Dashboard} />
+      <Route component={Profile} />
     </Switch>
   );
 }
@@ -398,7 +399,7 @@ function AuthenticatedApp() {
 
     if (!isVisitorRole && !isOfficeRenterRole && location === "/") {
       hasRedirected.current = true;
-      setLocation("/profile");
+      setLocation("/profile/employee");
       return;
     }
   }, [isVisitorRole, isOfficeRenterRole, location, setLocation]);

@@ -87,7 +87,7 @@ export default function Login() {
         setLocation('/profile/visitor');
       } else if (type === 'employee') {
         // Redirect employees to their personal profile as requested
-        setLocation('/profile');
+        setLocation('/profile/employee');
       } else {
         setLocation('/');
       }
