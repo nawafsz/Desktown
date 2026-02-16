@@ -38,6 +38,7 @@ import {
   DollarSign,
   Users,
   Mail,
+  Megaphone,
   Phone,
   Upload,
   FileText,
@@ -526,10 +527,10 @@ export default function Careers() {
             <Link
               href="/storefront"
               className="flex flex-col items-center gap-1 p-2 min-w-[60px] text-gray-400 hover:text-amber-400 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 rounded-lg"
-              data-testid="nav-bottom-offices"
+              data-testid="nav-bottom-ads"
             >
-              <Building2 className="h-5 w-5" />
-              <span className="text-[10px] font-medium">{language === 'ar' ? 'المكاتب' : 'Offices'}</span>
+              <Megaphone className="h-5 w-5" />
+              <span className="text-[10px] font-medium">{language === 'ar' ? 'إعلانات الشركات' : 'Company Ads'}</span>
             </Link>
             <Link
               href="/careers"

@@ -7,7 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import {
   Home, Building2, UserCircle, Briefcase, Play,
   Heart, MessageCircle, Share2, Music2, ChevronLeft,
-  Volume2, VolumeX, Pause, Film
+  Volume2, VolumeX, Pause, Film, Megaphone
 } from "lucide-react";
 import type { Post, User } from "@shared/schema";
 
@@ -372,8 +372,8 @@ export default function Videos() {
           <div
             key={index}
             className={`w-1 rounded-full transition-all duration-300 ${index === currentIndex
-                ? 'h-6 bg-amber-400'
-                : 'h-2 bg-white/40'
+              ? 'h-6 bg-amber-400'
+              : 'h-2 bg-white/40'
               }`}
           />
         ))}
@@ -387,10 +387,10 @@ export default function Videos() {
             <Link
               href="/storefront"
               className="flex flex-col items-center gap-0.5 p-2 min-w-[50px] text-gray-500 hover:text-amber-400 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 rounded-lg"
-              data-testid="nav-bottom-offices"
+              data-testid="nav-bottom-ads"
             >
-              <Building2 className="h-5 w-5" />
-              <span className="text-[9px] font-medium">{language === 'ar' ? 'المكاتب' : 'Offices'}</span>
+              <Megaphone className="h-5 w-5" />
+              <span className="text-[9px] font-medium">{language === 'ar' ? 'إعلانات الشركات' : 'Company Ads'}</span>
             </Link>
             <Link
               href="/profile"

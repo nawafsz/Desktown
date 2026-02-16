@@ -7,7 +7,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import {
-  User, Plus, X, Home, Building2, Briefcase, Play, UserCircle, Users, ArrowLeft, LogOut
+  User, Plus, X, Home, Building2, Briefcase, Play, UserCircle, Users, ArrowLeft, LogOut, Megaphone
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
@@ -347,8 +347,8 @@ export default function VisitorProfile() {
                     key={area.value}
                     onClick={() => toggleInterest(area.value)}
                     className={`cursor-pointer px-3 py-1 transition-all ${interests.includes(area.value)
-                        ? 'bg-blue-500 text-white border-blue-500'
-                        : 'bg-[#0B0F19] text-gray-400 border border-white/10 hover:border-blue-500/50'
+                      ? 'bg-blue-500 text-white border-blue-500'
+                      : 'bg-[#0B0F19] text-gray-400 border border-white/10 hover:border-blue-500/50'
                       }`}
                     data-testid={`badge-interest-${area.value}`}
                   >
@@ -378,10 +378,10 @@ export default function VisitorProfile() {
             <Link
               href="/storefront"
               className="flex flex-col items-center gap-0.5 p-2 min-w-[50px] text-gray-500 hover:text-amber-400 transition-colors"
-              data-testid="nav-bottom-offices"
+              data-testid="nav-bottom-ads"
             >
-              <Building2 className="h-5 w-5" />
-              <span className="text-[9px] font-medium">{language === 'ar' ? 'المكاتب' : 'Offices'}</span>
+              <Megaphone className="h-5 w-5" />
+              <span className="text-[9px] font-medium">{language === 'ar' ? 'إعلانات الشركات' : 'Company Ads'}</span>
             </Link>
             <Link
               href="/profile/visitor"

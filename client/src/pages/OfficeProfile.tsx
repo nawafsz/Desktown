@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { UserAvatar } from "@/components/UserAvatar";
 import { ObjectUploader } from "@/components/ObjectUploader";
 import {
-  Building2, Check, Plus, X, Home, Briefcase, Play, UserCircle, User, Users, ArrowLeft, LogOut, DoorOpen
+  Building2, Check, Plus, X, Home, Briefcase, Play, UserCircle, User, Users, ArrowLeft, LogOut, DoorOpen, Megaphone
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
@@ -419,10 +419,10 @@ export default function OfficeProfile() {
             <Link
               href="/storefront"
               className="flex flex-col items-center gap-0.5 p-2 min-w-[50px] text-gray-500 hover:text-amber-400 transition-colors"
-              data-testid="nav-bottom-offices"
+              data-testid="nav-bottom-ads"
             >
-              <Building2 className="h-5 w-5" />
-              <span className="text-[9px] font-medium">{language === 'ar' ? 'المكاتب' : 'Offices'}</span>
+              <Megaphone className="h-5 w-5" />
+              <span className="text-[9px] font-medium">{language === 'ar' ? 'إعلانات الشركات' : 'Company Ads'}</span>
             </Link>
             <Link
               href="/profile/office"

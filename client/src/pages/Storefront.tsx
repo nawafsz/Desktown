@@ -22,6 +22,7 @@ import {
   ArrowLeft,
   Sparkles,
   Phone,
+  Megaphone,
   Mail,
   Send,
   Check,
@@ -661,10 +662,10 @@ export default function Storefront() {
             <Link
               href="/storefront"
               className="flex flex-col items-center gap-1 p-2 min-w-[60px] text-amber-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 rounded-lg"
-              data-testid="nav-bottom-offices"
+              data-testid="nav-bottom-ads"
             >
-              <Building2 className="h-5 w-5" />
-              <span className="text-[10px] font-medium">{language === 'ar' ? 'المكاتب' : 'Offices'}</span>
+              <Megaphone className="h-5 w-5" />
+              <span className="text-[10px] font-medium">{language === 'ar' ? 'إعلانات الشركات' : 'Company Ads'}</span>
             </Link>
             <Link
               href="/careers"
