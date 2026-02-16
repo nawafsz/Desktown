@@ -547,7 +547,7 @@ export default function Careers() {
               <span className="text-[10px] font-medium">{language === 'ar' ? 'الوظائف' : 'Jobs'}</span>
             </Link>
             <Link 
-              href="/employee-portal"
+              href="/profile/employee"
               className="flex flex-col items-center gap-1 p-2 min-w-[60px] text-gray-400 hover:text-amber-400 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 rounded-lg"
               data-testid="nav-bottom-employee"
             >

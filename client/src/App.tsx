@@ -40,7 +40,6 @@ import MyPaidServices from "@/pages/MyPaidServices";
 import PublicServicePage from "@/pages/PublicServicePage";
 import PaymentSuccess from "@/pages/PaymentSuccess";
 import Careers from "@/pages/Careers";
-import EmployeePortal from "@/pages/EmployeePortal";
 import InternalMail from "@/pages/InternalMail";
 import Files from "@/pages/Files";
 import CalendarPage from "@/pages/CalendarPage";
@@ -178,7 +177,7 @@ function AuthenticatedRouter({ userRole }: { userRole: string | null | undefined
       <Route path="/profile/office" component={OfficeProfile} />
       <Route path="/profile/visitor" component={VisitorProfile} />
       <Route path="/profile/employee" component={EmployeeProfilePage} />
-      <Route path="/employee-portal" component={EmployeePortal} />
+      <Route path="/employee-portal" component={EmployeeProfilePage} />
       <Route path="/tasks" component={Tasks} />
       <Route path="/tickets" component={Tickets} />
       <Route path="/my-profile" component={MyEmployeeProfile} />
@@ -252,8 +251,8 @@ function AuthenticatedRouter({ userRole }: { userRole: string | null | undefined
 function VisitorRouter() {
   return (
     <Switch>
-      <Route path="/" component={Welcome} />
-      <Route path="/welcome" component={Welcome} />
+      <Route path="/" component={VisitorProfile} />
+      <Route path="/welcome" component={VisitorProfile} />
       <Route path="/visitor/offices" component={Storefront} />
       <Route path="/visitor/services" component={VisitorServices} />
       <Route path="/visitor/contact" component={VisitorContact} />
@@ -263,8 +262,8 @@ function VisitorRouter() {
       <Route path="/profile/office" component={OfficeProfile} />
       <Route path="/profile/visitor" component={VisitorProfile} />
       <Route path="/profile/employee" component={EmployeeProfilePage} />
-      <Route path="/employee-portal" component={EmployeePortal} />
-      <Route component={Welcome} />
+      <Route path="/employee-portal" component={EmployeeProfilePage} />
+      <Route component={VisitorProfile} />
     </Switch>
   );
 }
@@ -494,7 +493,7 @@ function PublicRouter() {
       <Route path="/storefront" component={Storefront} />
       <Route path="/office/:slug" component={OfficeDetail} />
       <Route path="/careers" component={Careers} />
-      <Route path="/employee-portal" component={EmployeePortal} />
+      <Route path="/employee-portal" component={EmployeeProfilePage} />
       <Route path="/s/:token" component={PublicServicePage} />
       <Route path="/payment-success" component={PaymentSuccess} />
       <Route path="/profile" component={Profile} />

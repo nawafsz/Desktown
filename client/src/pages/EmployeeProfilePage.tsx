@@ -158,18 +158,6 @@ export default function EmployeeProfilePage() {
           {language === 'ar' ? 'إدارة بياناتك الوظيفية ومهاراتك' : 'Manage your job data and skills'}
         </p>
 
-        {/* Employee Portal Login Button */}
-        <Link href="/employee-portal">
-          <Button
-            variant="outline"
-            className="w-full mt-4 border-emerald-500/50 text-emerald-400 hover:bg-emerald-500/10 rounded-xl py-3"
-            data-testid="button-employee-portal-login"
-          >
-            <Users className="h-4 w-4 ml-2" />
-            {language === 'ar' ? 'دخول القسم المؤقت' : 'Enter Department (Temp)'}
-          </Button>
-        </Link>
-
         {/* Logout Button */}
         <Button
           variant="outline"
