@@ -339,36 +339,61 @@ export default function Landing() {
         </ScrollArea>
 
         {/* Hero Banner */}
-        <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-white/10 group bg-[#111625]">
+        <div className="relative rounded-3xl overflow-hidden shadow-2xl border border-white/10 group bg-[#111625]">
           <div
-            className="h-56 md:h-72 lg:h-80 bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
+            className="h-72 md:h-96 lg:h-[32rem] bg-cover bg-center transition-transform duration-1000 group-hover:scale-110 ease-in-out"
             style={{
-              backgroundImage: `linear-gradient(to left, rgba(11,15,25,0.95) 0%, rgba(11,15,25,0.8) 50%, rgba(11,15,25,0.6) 100%)`
+              backgroundImage: `url('https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1200&q=80')`
             }}
-          />
-          <div className="absolute inset-0 flex flex-col justify-center px-6 md:px-10 items-end text-right z-10 pointer-events-none">
-            <div className="max-w-xl pointer-events-auto">
-              <Badge variant="outline" className="mb-3 border-amber-500/50 text-amber-400 bg-amber-500/10 backdrop-blur-sm">
+          >
+            <div className="absolute inset-0 bg-gradient-to-r from-[#0B0F19]/90 via-[#0B0F19]/60 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0B0F19] via-transparent to-transparent" />
+          </div>
+
+          <div className="absolute inset-0 flex flex-col justify-center px-6 md:px-12 items-start text-left z-10 pointer-events-none">
+            <div className="max-w-2xl pointer-events-auto space-y-6">
+              <Badge variant="outline" className="border-amber-500/50 text-amber-400 bg-amber-500/10 backdrop-blur-md px-4 py-1.5 text-sm uppercase tracking-wider">
                 {language === 'ar' ? 'مستقبل العمل هنا' : 'The Future of Work is Here'}
               </Badge>
-              <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-2 leading-tight" style={{ textShadow: '0 2px 10px rgba(0,0,0,0.8)' }}>
-                {language === 'ar' ? 'افتح مكتبك السحابي' : 'Open Your Cloud Office'}
-              </h2>
-              <p className="text-amber-400 text-xl md:text-2xl font-bold mb-6" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.8)' }}>
-                {language === 'ar' ? 'بدون إيجار، بلا حدود' : 'No Rent. No Limits.'}
-              </p>
-              <Button
-                className="bg-white text-black hover:bg-gray-100 rounded-full font-bold px-8 shadow-lg shadow-white/10 transition-all hover:scale-105"
-                onClick={() => setLocation("/storefront")}
-              >
-                {language === 'ar' ? 'ابدأ الآن' : 'Get Started'}
-              </Button>
+
+              <div className="space-y-2">
+                <h2 className="text-4xl md:text-5xl lg:text-7xl font-black text-white leading-tight tracking-tight">
+                  {language === 'ar' ? 'افتح مكتبك' : 'Open Your'}
+                  <span className="block text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-amber-400 to-amber-500 filter drop-shadow-sm">
+                    {language === 'ar' ? 'السحابي' : 'Cloud Office'}
+                  </span>
+                </h2>
+                <p className="text-gray-300 text-lg md:text-xl font-light max-w-lg leading-relaxed">
+                  {language === 'ar'
+                    ? 'بدون تكاليف تأسيس، بدون حدود جغرافية. ابدأ رحلتك الريادية اليوم في دقيقة واحدة.'
+                    : 'No rent. No limits. Start your entrepreneurial journey today in just one minute.'}
+                </p>
+              </div>
+
+              <div className="flex flex-wrap gap-4 pt-2">
+                <Button
+                  className="bg-white text-black hover:bg-gray-100 rounded-full font-bold px-8 py-6 text-lg shadow-[0_0_20px_rgba(255,255,255,0.3)] transition-all hover:scale-105 hover:shadow-[0_0_30px_rgba(255,255,255,0.5)]"
+                  onClick={() => setLocation("/storefront")}
+                >
+                  {language === 'ar' ? 'ابدأ الآن' : 'Get Started'}
+                </Button>
+                <Button
+                  variant="outline"
+                  className="border-white/20 text-white hover:bg-white/10 rounded-full font-medium px-8 py-6 text-lg backdrop-blur-sm transition-all hover:scale-105"
+                  onClick={() => {
+                    const element = document.getElementById('featured-section');
+                    element?.scrollIntoView({ behavior: 'smooth' });
+                  }}
+                >
+                  {language === 'ar' ? 'اكتشف المزيد' : 'Learn More'}
+                </Button>
+              </div>
             </div>
           </div>
         </div>
 
         {/* Featured Ad + News Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
+        <div id="featured-section" className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
           {/* Featured Ad Card - Expanded */}
           {activeAds.length > 0 ? (
             activeAds.slice(0, 1).map((ad) => (
@@ -378,15 +403,27 @@ export default function Landing() {
                 onClick={() => handleAdClick(ad)}
                 data-testid={`card-ad-${ad.id}`}
               >
-                <CardContent className="p-6">
-                  <div className="flex flex-col items-center text-center gap-4">
-                    <Gift className="h-12 w-12 text-amber-500" />
+                <CardContent className="p-0 relative h-full min-h-[280px] flex flex-col justify-end overflow-hidden group-hover:shadow-[0_0_40px_rgba(245,158,11,0.2)] transition-all duration-500">
+                  {/* Background Image/Gradient */}
+                  <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&w=800&q=80')] bg-cover bg-center opacity-40 group-hover:scale-105 transition-transform duration-700" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#1a1f2e] via-[#1a1f2e]/80 to-transparent" />
+
+                  <div className="relative z-10 p-6 flex flex-col gap-4">
+                    <div className="flex items-start justify-between">
+                      <Badge className="bg-amber-500 text-white border-none shadow-lg shadow-amber-500/20">
+                        {language === 'ar' ? 'مميز' : 'Featured'}
+                      </Badge>
+                      <div className="h-10 w-10 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/20">
+                        <Gift className="h-5 w-5 text-amber-400" />
+                      </div>
+                    </div>
+
                     <div>
-                      <h3 className="text-lg font-bold text-white mb-2">{ad.title}</h3>
-                      <p className="text-gray-400 text-sm leading-relaxed mb-4 line-clamp-3">{ad.description}</p>
+                      <h3 className="text-2xl font-bold text-white mb-2 leading-tight">{ad.title}</h3>
+                      <p className="text-gray-300 text-sm leading-relaxed mb-4 line-clamp-2 text-shadow-sm">{ad.description}</p>
+
                       <Button
-                        className="bg-gradient-to-b from-amber-400 via-amber-500 to-amber-600 hover:from-amber-500 hover:via-amber-600 hover:to-amber-700 text-white rounded-full text-sm px-6 py-2 h-auto font-bold shadow-lg shadow-amber-600/40 ring-1 ring-amber-400/50 border-t border-amber-300/30"
-                        style={{ textShadow: '0 1px 2px rgba(0,0,0,0.3)' }}
+                        className="w-full bg-white text-black hover:bg-amber-50 rounded-xl font-bold h-12 shadow-lg transition-all transform active:scale-95 flex items-center justify-between px-4 group/btn"
                         onClick={(e) => {
                           e.stopPropagation();
                           if (ad.linkUrl) {
@@ -395,7 +432,8 @@ export default function Landing() {
                         }}
                         data-testid={`button-ad-link-${ad.id}`}
                       >
-                        {language === 'ar' ? 'اعرف أكثر' : 'Learn More'}
+                        <span>{language === 'ar' ? 'اكتشف العرض' : 'View Offer'}</span>
+                        <ChevronRight className={`h-5 w-5 text-amber-600 transition-transform group-hover/btn:translate-x-1 ${isRTL ? 'rotate-180 group-hover/btn:-translate-x-1' : ''}`} />
                       </Button>
                     </div>
                   </div>
@@ -453,29 +491,37 @@ export default function Landing() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
             {displayOffices.map((office) => (
               <Link key={office.id} href={`/office/${office.slug}`}>
-                <Card className="bg-white text-gray-900 overflow-hidden" data-testid={`card-office-${office.id}`}>
-                  <CardContent className="p-3">
-                    <div className="flex items-start gap-2 mb-2">
-                      <div className="h-8 w-8 rounded-lg bg-amber-500 flex items-center justify-center flex-shrink-0">
-                        <Building2 className="h-4 w-4 text-white" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-bold text-gray-900 text-xs">{office.name}</h3>
-                        <p className="text-[9px] text-gray-500 truncate">{office.description}</p>
-                      </div>
+                <Card className="bg-[#1a1f2e] border border-white/5 overflow-hidden group hover:border-amber-500/50 transition-all duration-300 hover:shadow-xl hover:shadow-amber-500/10 hover:-translate-y-1" data-testid={`card-office-${office.id}`}>
+                  <div className="h-24 bg-gradient-to-br from-gray-800 to-[#111625] relative p-4 flex flex-col justify-between group-hover:from-gray-800 group-hover:to-gray-900 transition-colors">
+                    <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
+                      <Building2 className="h-16 w-16 text-white" />
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Avatar className="h-6 w-6">
-                        <AvatarFallback className="bg-gray-100 text-gray-600 text-[8px]">
-                          {office.tenant.substring(0, 2).toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <p className="text-[10px] font-medium text-gray-900">{office.tenant}</p>
-                        <Badge variant="outline" className="text-[8px] bg-amber-50 text-amber-700 border-amber-200 px-1.5 py-0 h-4">
-                          {language === 'ar' ? 'مستأجر' : 'Renter'}
-                        </Badge>
+
+                    <Badge variant="secondary" className="w-fit bg-white/10 text-white backdrop-blur-sm border-none">
+                      {office.tenant}
+                    </Badge>
+                  </div>
+
+                  <CardContent className="p-5 relative">
+                    <div className="absolute -top-6 right-4 h-12 w-12 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shadow-lg shadow-amber-900/20 ring-4 ring-[#1a1f2e] group-hover:scale-110 transition-transform">
+                      <Building2 className="h-6 w-6 text-white" />
+                    </div>
+
+                    <div className="mt-2 space-y-2">
+                      <h3 className="font-bold text-white text-lg group-hover:text-amber-400 transition-colors">{office.name}</h3>
+                      <p className="text-sm text-gray-400 line-clamp-2">{office.description}</p>
+                    </div>
+
+                    <div className="mt-4 pt-4 border-t border-white/5 flex items-center justify-between">
+                      <div className="flex -space-x-2 space-x-reverse">
+                        {[1, 2, 3].map(i => (
+                          <div key={i} className="h-6 w-6 rounded-full bg-gray-700 border-2 border-[#1a1f2e]" />
+                        ))}
                       </div>
+                      <span className="text-xs text-amber-500 font-medium flex items-center gap-1 group-hover:gap-2 transition-all">
+                        {language === 'ar' ? 'عرض المكتب' : 'View Office'}
+                        <ChevronRight className={`h-3 w-3 ${isRTL ? 'rotate-180' : ''}`} />
+                      </span>
                     </div>
                   </CardContent>
                 </Card>
