@@ -17,11 +17,11 @@ export default function Login() {
   const params = new URLSearchParams(search);
   const role = params.get("role") || "member";
   const type = params.get("type") || "visitor";
-  
+
   const { toast } = useToast();
   const { language, isRTL } = useLanguage();
   const { loginMutation } = useAuth();
-  
+
   const [isRegistering, setIsRegistering] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -51,30 +51,30 @@ export default function Login() {
 
     try {
       setLoading(true);
-      const user = await loginMutation.mutateAsync({ 
-        username, 
+      const user = await loginMutation.mutateAsync({
+        username,
         password,
         role,
-        type 
+        type
       });
-      
+
       // Role Validation
       if (type === 'employee' && user.role !== 'manager' && user.role !== 'admin' && user.role !== 'member') {
-         // Maybe 'member' is employee? Usually 'member' is default. 
-         // If visitor tries to login as employee
-         if (user.role === 'visitor') {
-            throw new Error(language === 'ar' ? "ليس لديك صلاحية دخول الموظفين" : "Access Denied: You are a visitor");
-         }
+        // Maybe 'member' is employee? Usually 'member' is default. 
+        // If visitor tries to login as employee
+        if (user.role === 'visitor') {
+          throw new Error(language === 'ar' ? "ليس لديك صلاحية دخول الموظفين" : "Access Denied: You are a visitor");
+        }
       }
-      
+
       if (type === 'office' && user.role !== 'office_renter' && user.role !== 'admin') {
-         if (user.role === 'visitor') {
-            throw new Error(language === 'ar' ? "ليس لديك صلاحية دخول المكتب" : "Access Denied: You are a visitor");
-         }
+        if (user.role === 'visitor') {
+          throw new Error(language === 'ar' ? "ليس لديك صلاحية دخول المكتب" : "Access Denied: You are a visitor");
+        }
       }
 
       localStorage.setItem('loggedInAs', type);
-      
+
       toast({
         title: language === 'ar' ? "تم تسجيل الدخول" : "Login Successful",
         description: language === 'ar' ? `مرحباً بك ${user.firstName}` : `Welcome back ${user.firstName}`,
@@ -95,9 +95,9 @@ export default function Login() {
       console.error("Login failed:", error);
       // Logout if role check failed but login succeeded
       if (error.message.includes("Access Denied") || error.message.includes("صلاحية")) {
-          await apiRequest("POST", "/api/logout");
+        await apiRequest("POST", "/api/logout");
       }
-      
+
       toast({
         title: language === 'ar' ? "فشل الدخول" : "Login Failed",
         description: error.message || (language === 'ar' ? "تأكد من اسم المستخدم وكلمة المرور" : "Check your username and password"),
@@ -110,9 +110,9 @@ export default function Login() {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!regFirstName || !regLastName || !regUsername || !regPassword || !regEmail) {
-       toast({
+      toast({
         title: language === 'ar' ? "خطأ" : "Error",
         description: language === 'ar' ? "يرجى ملء جميع الحقول المطلوبة" : "Please fill in all required fields",
         variant: "destructive"
@@ -142,15 +142,15 @@ export default function Login() {
       });
 
       // Auto login after register
-      const user = await loginMutation.mutateAsync({ 
-        username: regUsername, 
+      const user = await loginMutation.mutateAsync({
+        username: regUsername,
         password: regPassword,
         role: "visitor",
         type: "visitor"
       });
 
       localStorage.setItem('loggedInAs', 'visitor');
-      
+
       toast({
         title: language === 'ar' ? "تم التسجيل بنجاح" : "Registration Successful",
         description: language === 'ar' ? "تم إنشاء حساب الزائر الخاص بك" : "Your visitor account has been created",
@@ -178,7 +178,7 @@ export default function Login() {
 
   const getTitle = () => {
     if (isRegistering) {
-        return language === 'ar' ? 'تسجيل زائر جديد' : 'New Visitor Registration';
+      return language === 'ar' ? 'تسجيل زائر جديد' : 'New Visitor Registration';
     }
     if (language === 'ar') {
       if (role === 'office_renter') return 'دخول المكتب';
@@ -196,13 +196,13 @@ export default function Login() {
       <Card className="w-full max-w-md bg-[#1a1f2e] border-white/10 shadow-2xl">
         <CardHeader className="space-y-4">
           <div className="flex items-center justify-between">
-            <Button 
-              variant="ghost" 
-              size="icon" 
+            <Button
+              variant="ghost"
+              size="icon"
               className="text-gray-400 hover:text-white hover:bg-white/10"
               onClick={() => {
-                  if (isRegistering) setIsRegistering(false);
-                  else setLocation('/');
+                if (isRegistering) setIsRegistering(false);
+                else setLocation('/');
               }}
             >
               {isRegistering ? (isRTL ? <ArrowRight className="h-5 w-5" /> : <ArrowLeft className="h-5 w-5" />) : (isRTL ? <ArrowRight className="h-5 w-5" /> : <ArrowLeft className="h-5 w-5" />)}
@@ -215,7 +215,7 @@ export default function Login() {
           <div className="text-center">
             <CardTitle className="text-2xl text-white font-bold">{getTitle()}</CardTitle>
             <CardDescription className="text-gray-400">
-              {isRegistering 
+              {isRegistering
                 ? (language === 'ar' ? 'أنشئ حسابك للوصول إلى الخدمات' : 'Create your account to access services')
                 : (language === 'ar' ? 'أدخل بياناتك للمتابعة' : 'Enter your credentials to continue')}
             </CardDescription>
@@ -224,64 +224,68 @@ export default function Login() {
         <CardContent>
           {isRegistering ? (
             <form onSubmit={handleRegister} className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                        <Label className="text-gray-300">{language === 'ar' ? 'الاسم الأول' : 'First Name'}</Label>
-                        <Input value={regFirstName} onChange={(e) => setRegFirstName(e.target.value)} className="bg-[#0B0F19] border-white/10 text-white" />
-                    </div>
-                    <div className="space-y-2">
-                        <Label className="text-gray-300">{language === 'ar' ? 'الاسم الأخير' : 'Last Name'}</Label>
-                        <Input value={regLastName} onChange={(e) => setRegLastName(e.target.value)} className="bg-[#0B0F19] border-white/10 text-white" />
-                    </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-gray-300">{language === 'ar' ? 'الاسم الأول' : 'First Name'}</Label>
+                  <Input value={regFirstName} onChange={(e) => setRegFirstName(e.target.value)} className="bg-[#0B0F19] border-white/10 text-white" />
                 </div>
                 <div className="space-y-2">
-                    <Label className="text-gray-300">{language === 'ar' ? 'اسم المستخدم' : 'Username'}</Label>
-                    <Input value={regUsername} onChange={(e) => setRegUsername(e.target.value)} className="bg-[#0B0F19] border-white/10 text-white" />
+                  <Label className="text-gray-300">{language === 'ar' ? 'الاسم الأخير' : 'Last Name'}</Label>
+                  <Input value={regLastName} onChange={(e) => setRegLastName(e.target.value)} className="bg-[#0B0F19] border-white/10 text-white" />
                 </div>
-                <div className="space-y-2">
-                    <Label className="text-gray-300">{language === 'ar' ? 'البريد الإلكتروني' : 'Email'}</Label>
-                    <Input type="email" value={regEmail} onChange={(e) => setRegEmail(e.target.value)} className="bg-[#0B0F19] border-white/10 text-white" />
-                </div>
-                <div className="space-y-2">
-                    <Label className="text-gray-300">{language === 'ar' ? 'كلمة المرور' : 'Password'}</Label>
-                    <Input type="password" value={regPassword} onChange={(e) => setRegPassword(e.target.value)} className="bg-[#0B0F19] border-white/10 text-white" />
-                </div>
-                <div className="space-y-2">
-                    <Label className="text-gray-300">{language === 'ar' ? 'تأكيد كلمة المرور' : 'Confirm Password'}</Label>
-                    <Input type="password" value={regConfirmPassword} onChange={(e) => setRegConfirmPassword(e.target.value)} className="bg-[#0B0F19] border-white/10 text-white" />
-                </div>
-                <div className="space-y-2">
-                    <Label className="text-gray-300">{language === 'ar' ? 'الاهتمامات' : 'Interests'}</Label>
-                    <Textarea 
-                        value={regInterests} 
-                        onChange={(e) => setRegInterests(e.target.value)} 
-                        className="bg-[#0B0F19] border-white/10 text-white resize-none" 
-                        placeholder={language === 'ar' ? 'مثال: تقنية، تسويق، قانون...' : 'e.g. Tech, Marketing, Law...'}
-                    />
-                </div>
-                <Button type="submit" className="w-full h-12 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold" disabled={loading}>
-                    {loading ? (language === 'ar' ? 'جاري التسجيل...' : 'Registering...') : (language === 'ar' ? 'تسجيل' : 'Register')}
-                </Button>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-gray-300">{language === 'ar' ? 'اسم المستخدم' : 'Username'}</Label>
+                <Input value={regUsername} onChange={(e) => setRegUsername(e.target.value)} className="bg-[#0B0F19] border-white/10 text-white" />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-gray-300">{language === 'ar' ? 'البريد الإلكتروني' : 'Email'}</Label>
+                <Input type="email" value={regEmail} onChange={(e) => setRegEmail(e.target.value)} className="bg-[#0B0F19] border-white/10 text-white" />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-gray-300">{language === 'ar' ? 'كلمة المرور' : 'Password'}</Label>
+                <Input type="password" value={regPassword} onChange={(e) => setRegPassword(e.target.value)} className="bg-[#0B0F19] border-white/10 text-white" />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-gray-300">{language === 'ar' ? 'تأكيد كلمة المرور' : 'Confirm Password'}</Label>
+                <Input type="password" value={regConfirmPassword} onChange={(e) => setRegConfirmPassword(e.target.value)} className="bg-[#0B0F19] border-white/10 text-white" />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-gray-300">{language === 'ar' ? 'الاهتمامات' : 'Interests'}</Label>
+                <Textarea
+                  value={regInterests}
+                  onChange={(e) => setRegInterests(e.target.value)}
+                  className="bg-[#0B0F19] border-white/10 text-white resize-none"
+                  placeholder={language === 'ar' ? 'مثال: تقنية، تسويق، قانون...' : 'e.g. Tech, Marketing, Law...'}
+                />
+              </div>
+              <Button type="submit" className="w-full h-12 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold" disabled={loading}>
+                {loading ? (language === 'ar' ? 'جاري التسجيل...' : 'Registering...') : (language === 'ar' ? 'تسجيل' : 'Register')}
+              </Button>
             </form>
           ) : (
-            <form onSubmit={handleLogin} className="space-y-4">
+            <form onSubmit={handleLogin} className="space-y-4" autoComplete="off">
               <div className="space-y-2">
                 <Label className="text-gray-300">
                   {language === 'ar' ? 'اسم المستخدم' : 'Username'}
                 </Label>
-                <Input 
+                <Input
+                  name="username"
+                  autoComplete="username"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   placeholder={language === 'ar' ? 'أدخل اسم المستخدم' : 'Enter username'}
                   className="bg-[#0B0F19] border-white/10 text-white h-12"
                 />
               </div>
-              
+
               <div className="space-y-2">
                 <Label className="text-gray-300">
                   {language === 'ar' ? 'كلمة المرور' : 'Password'}
                 </Label>
-                <Input 
+                <Input
+                  name="password"
+                  autoComplete="current-password"
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -290,30 +294,30 @@ export default function Login() {
                 />
               </div>
 
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 className="w-full h-12 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-bold text-lg"
                 disabled={loading}
               >
                 {loading ? (language === 'ar' ? 'جاري الدخول...' : 'Logging in...') : (language === 'ar' ? 'دخول' : 'Login')}
               </Button>
-              
+
             </form>
           )}
         </CardContent>
         {!isRegistering && type === 'visitor' && (
-            <CardFooter className="flex justify-center border-t border-white/5 pt-4">
-                <Button variant="link" className="text-blue-400 hover:text-blue-300" onClick={() => setIsRegistering(true)}>
-                    {language === 'ar' ? 'ليس لديك حساب؟ سجل كزائر الآن' : "Don't have an account? Register as Visitor"}
-                </Button>
-            </CardFooter>
+          <CardFooter className="flex justify-center border-t border-white/5 pt-4">
+            <Button variant="ghost" className="text-blue-400 hover:text-blue-300 underline" onClick={() => setIsRegistering(true)}>
+              {language === 'ar' ? 'ليس لديك حساب؟ سجل كزائر الآن' : "Don't have an account? Register as Visitor"}
+            </Button>
+          </CardFooter>
         )}
         {isRegistering && (
-             <CardFooter className="flex justify-center border-t border-white/5 pt-4">
-                <Button variant="link" className="text-gray-400 hover:text-gray-300" onClick={() => setIsRegistering(false)}>
-                    {language === 'ar' ? 'لديك حساب بالفعل؟ تسجيل الدخول' : "Already have an account? Login"}
-                </Button>
-            </CardFooter>
+          <CardFooter className="flex justify-center border-t border-white/5 pt-4">
+            <Button variant="ghost" className="text-gray-400 hover:text-gray-300 underline" onClick={() => setIsRegistering(false)}>
+              {language === 'ar' ? 'لديك حساب بالفعل؟ تسجيل الدخول' : "Already have an account? Login"}
+            </Button>
+          </CardFooter>
         )}
       </Card>
     </div>
