@@ -39,7 +39,6 @@ interface NavItem {
 }
 
 const navigationItems: NavItem[] = [
-  { titleKey: "welcome", url: "/welcome", icon: Home, categoryKey: "home" },
   { titleKey: "browseOffices", url: "/visitor/offices", icon: Building2, categoryKey: "explore" },
   { titleKey: "findJobs", url: "/careers", icon: Briefcase, categoryKey: "opportunities" },
   { titleKey: "myProfile", url: "/profile", icon: User, categoryKey: "account" },
@@ -132,18 +131,18 @@ export function VisitorSidebar({ user }: VisitorSidebarProps) {
               <SidebarGroupContent>
                 <SidebarMenu>
                   {items.map((item) => {
-                    const isActive = location === item.url || 
+                    const isActive = location === item.url ||
                       (item.url !== "/" && item.url !== "/welcome" && location.startsWith(item.url));
                     const itemLabel = getItemLabel(item.titleKey);
                     return (
                       <SidebarMenuItem key={item.titleKey}>
-                        <SidebarMenuButton 
-                          asChild 
+                        <SidebarMenuButton
+                          asChild
                           isActive={isActive}
                           className={cn(
                             "group relative flex items-center gap-3 rounded-lg px-3 py-2.5 transition-all duration-200",
-                            isActive 
-                              ? "bg-gradient-to-r from-cyan-500/10 to-teal-500/10 text-foreground" 
+                            isActive
+                              ? "bg-gradient-to-r from-cyan-500/10 to-teal-500/10 text-foreground"
                               : "text-muted-foreground hover:text-foreground"
                           )}
                         >
@@ -173,26 +172,24 @@ export function VisitorSidebar({ user }: VisitorSidebarProps) {
 
       <SidebarFooter className="p-4 border-t border-white/5">
         <div className="flex items-center gap-3 p-3 rounded-xl bg-gradient-to-r from-white/5 to-transparent">
-          <UserAvatar 
+          <UserAvatar
             name={displayName}
-            avatar={avatar} 
+            avatar={avatar}
             size="md"
           />
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium truncate">{displayName}</p>
             <p className="text-xs text-cyan-500 capitalize">{t.sidebar?.visitor || "Visitor"}</p>
           </div>
-          <form action="/api/logout" method="POST">
-            <Button 
-              type="submit" 
-              variant="ghost" 
-              size="icon" 
-              className="h-8 w-8 text-muted-foreground hover:text-destructive"
-              data-testid="button-logout"
-            >
-              <LogOut className="h-4 w-4" />
-            </Button>
-          </form>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 text-muted-foreground hover:text-destructive"
+            data-testid="button-logout"
+            onClick={() => window.location.href = '/api/logout'}
+          >
+            <LogOut className="h-4 w-4" />
+          </Button>
         </div>
       </SidebarFooter>
     </Sidebar>

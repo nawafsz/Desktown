@@ -241,13 +241,13 @@ function ServiceCard({ service }: { service: PublicService }) {
   const formatPrice = (price: number | null, priceType: string | null) => {
     if (!price) return t.contactForPricing;
     if (priceType === "free") return t.free;
-    
+
     const formattedPrice = new Intl.NumberFormat(language === 'ar' ? 'ar-SA' : 'en-SA', {
       style: 'decimal',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     }).format(price);
-    
+
     if (priceType === "hourly") return `${formattedPrice} ${t.sar}${t.hourly}`;
     if (priceType === "negotiable") return `${t.from} ${formattedPrice} ${t.sar}`;
     return `${formattedPrice} ${t.sar}`;
@@ -650,22 +650,15 @@ export default function Storefront() {
       </footer>
 
       {/* Bottom Navigation Bar */}
-      <nav 
+      <nav
         className="fixed bottom-0 left-0 right-0 z-50 bg-slate-900/80 backdrop-blur-xl border-t border-white/10"
         aria-label={language === 'ar' ? 'التنقل السريع' : 'Quick Navigation'}
         data-testid="nav-bottom-bar"
       >
         <div className="max-w-lg mx-auto px-4 py-2">
           <div className="flex items-center justify-around">
-            <Link 
-              href="/"
-              className="flex flex-col items-center gap-1 p-2 min-w-[60px] text-gray-400 hover:text-amber-400 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 rounded-lg"
-              data-testid="nav-bottom-home"
-            >
-              <Home className="h-5 w-5" />
-              <span className="text-[10px] font-medium">{language === 'ar' ? 'الرئيسية' : 'Home'}</span>
-            </Link>
-            <Link 
+
+            <Link
               href="/storefront"
               className="flex flex-col items-center gap-1 p-2 min-w-[60px] text-amber-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 rounded-lg"
               data-testid="nav-bottom-offices"
@@ -673,7 +666,7 @@ export default function Storefront() {
               <Building2 className="h-5 w-5" />
               <span className="text-[10px] font-medium">{language === 'ar' ? 'المكاتب' : 'Offices'}</span>
             </Link>
-            <Link 
+            <Link
               href="/careers"
               className="flex flex-col items-center gap-1 p-2 min-w-[60px] text-gray-400 hover:text-amber-400 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 rounded-lg"
               data-testid="nav-bottom-careers"
@@ -681,7 +674,7 @@ export default function Storefront() {
               <Briefcase className="h-5 w-5" />
               <span className="text-[10px] font-medium">{language === 'ar' ? 'الوظائف' : 'Jobs'}</span>
             </Link>
-            <Link 
+            <Link
               href="/profile/employee"
               className="flex flex-col items-center gap-1 p-2 min-w-[60px] text-gray-400 hover:text-amber-400 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 rounded-lg"
               data-testid="nav-bottom-employee"

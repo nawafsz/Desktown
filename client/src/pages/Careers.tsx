@@ -191,8 +191,8 @@ function JobApplicationDialog({ job, children, t, language }: { job: JobPosting;
               </div>
               <div className="space-y-2">
                 <Label htmlFor="experience">{t.yearsExperience}</Label>
-                <Select 
-                  value={applicant.experience} 
+                <Select
+                  value={applicant.experience}
                   onValueChange={(v) => setApplicant({ ...applicant, experience: v })}
                 >
                   <SelectTrigger data-testid="select-career-applicant-experience">
@@ -237,8 +237,8 @@ function JobApplicationDialog({ job, children, t, language }: { job: JobPosting;
               <Button variant="outline" onClick={() => setOpen(false)}>
                 {t.cancel}
               </Button>
-              <Button 
-                onClick={handleSubmit} 
+              <Button
+                onClick={handleSubmit}
                 disabled={submitApplication.isPending}
                 className="gap-2"
                 data-testid="button-submit-career-application"
@@ -262,8 +262,8 @@ function JobApplicationDialog({ job, children, t, language }: { job: JobPosting;
 
 function JobCard({ job, t, language }: { job: JobPosting; t: typeof translations.en.careers; language: string }) {
   const isRTL = language === 'ar';
-  const daysAgo = job.createdAt 
-    ? Math.floor((Date.now() - new Date(job.createdAt).getTime()) / (1000 * 60 * 60 * 24)) 
+  const daysAgo = job.createdAt
+    ? Math.floor((Date.now() - new Date(job.createdAt).getTime()) / (1000 * 60 * 60 * 24))
     : 0;
 
   const jobTypeLabels: Record<string, string> = {
@@ -344,11 +344,11 @@ export default function Careers() {
   const publishedJobs = jobs.filter(job => job.status === "published");
 
   const filteredJobs = publishedJobs.filter((job) => {
-    const matchesSearch = 
+    const matchesSearch =
       job.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       job.department?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       job.description?.toLowerCase().includes(searchQuery.toLowerCase());
-    
+
     if (activeFilter === "all") return matchesSearch;
     if (activeFilter === "remote") return matchesSearch && job.location?.toLowerCase().includes("remote");
     return matchesSearch && job.type === activeFilter;
@@ -390,18 +390,18 @@ export default function Careers() {
           <div className={`absolute top-1/4 ${isRTL ? 'right-1/4' : 'left-1/4'} w-96 h-96 bg-orange-500/10 rounded-full blur-3xl`} />
           <div className={`absolute bottom-1/4 ${isRTL ? 'left-1/4' : 'right-1/4'} w-96 h-96 bg-primary/10 rounded-full blur-3xl`} />
         </div>
-        
+
         <div className="relative container mx-auto px-4 text-center">
           <Badge variant="outline" className="mb-6 px-4 py-1.5 border-orange-500/30 bg-orange-500/10">
             <Sparkles className={`h-3 w-3 ${isRTL ? 'ml-2' : 'mr-2'} text-orange-400`} />
             <span className="text-orange-400 text-xs">{t.joinPartners}</span>
           </Badge>
-          
+
           <h1 className="text-3xl md:text-5xl font-bold mb-4">
             {t.findNext}
             <span className="block text-primary">{t.careerOpportunity}</span>
           </h1>
-          
+
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
             {t.subtitle}
           </p>
@@ -515,22 +515,15 @@ export default function Careers() {
       </footer>
 
       {/* Bottom Navigation Bar */}
-      <nav 
+      <nav
         className="fixed bottom-0 left-0 right-0 z-50 bg-slate-900/80 backdrop-blur-xl border-t border-white/10"
         aria-label={language === 'ar' ? 'التنقل السريع' : 'Quick Navigation'}
         data-testid="nav-bottom-bar"
       >
         <div className="max-w-lg mx-auto px-4 py-2">
           <div className="flex items-center justify-around">
-            <Link 
-              href="/"
-              className="flex flex-col items-center gap-1 p-2 min-w-[60px] text-gray-400 hover:text-amber-400 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 rounded-lg"
-              data-testid="nav-bottom-home"
-            >
-              <Home className="h-5 w-5" />
-              <span className="text-[10px] font-medium">{language === 'ar' ? 'الرئيسية' : 'Home'}</span>
-            </Link>
-            <Link 
+
+            <Link
               href="/storefront"
               className="flex flex-col items-center gap-1 p-2 min-w-[60px] text-gray-400 hover:text-amber-400 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 rounded-lg"
               data-testid="nav-bottom-offices"
@@ -538,7 +531,7 @@ export default function Careers() {
               <Building2 className="h-5 w-5" />
               <span className="text-[10px] font-medium">{language === 'ar' ? 'المكاتب' : 'Offices'}</span>
             </Link>
-            <Link 
+            <Link
               href="/careers"
               className="flex flex-col items-center gap-1 p-2 min-w-[60px] text-amber-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 rounded-lg"
               data-testid="nav-bottom-careers"
@@ -546,7 +539,7 @@ export default function Careers() {
               <Briefcase className="h-5 w-5" />
               <span className="text-[10px] font-medium">{language === 'ar' ? 'الوظائف' : 'Jobs'}</span>
             </Link>
-            <Link 
+            <Link
               href="/profile/employee"
               className="flex flex-col items-center gap-1 p-2 min-w-[60px] text-gray-400 hover:text-amber-400 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 rounded-lg"
               data-testid="nav-bottom-employee"

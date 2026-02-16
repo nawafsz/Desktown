@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { 
+import {
   User, Plus, X, Home, Building2, Briefcase, Play, UserCircle, Users, ArrowLeft, LogOut
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
@@ -34,7 +34,7 @@ const interestAreas = [
 export default function VisitorProfile() {
   const { toast } = useToast();
   const { language } = useLanguage();
-  
+
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -87,7 +87,7 @@ export default function VisitorProfile() {
     };
     localStorage.setItem('visitorProfile', JSON.stringify(profileData));
     localStorage.setItem('loggedInAs', 'visitor');
-    
+
     toast({
       title: language === 'ar' ? 'تم الحفظ' : 'Saved',
       description: language === 'ar' ? 'تم حفظ بيانات الزائر بنجاح' : 'Visitor profile saved successfully',
@@ -98,7 +98,7 @@ export default function VisitorProfile() {
   const handleLogout = () => {
     // Only clear login status, keep profile data saved
     localStorage.removeItem('loggedInAs');
-    
+
     toast({
       title: language === 'ar' ? 'تم تسجيل الخروج' : 'Logged Out',
       description: language === 'ar' ? 'تم تسجيل الخروج بنجاح' : 'Successfully logged out',
@@ -108,16 +108,16 @@ export default function VisitorProfile() {
   };
 
   return (
-    <div 
+    <div
       className="min-h-screen bg-[#0B0F19] pb-24"
       dir={language === 'ar' ? 'rtl' : 'ltr'}
     >
       {/* Header */}
       <div className="bg-gradient-to-b from-blue-600/20 to-transparent p-6 pt-8">
         <div className="flex items-center justify-between mb-4">
-          <Button 
-            variant="ghost" 
-            size="icon" 
+          <Button
+            variant="ghost"
+            size="icon"
             className="text-white hover:bg-white/10"
             onClick={() => window.location.href = '/'}
             data-testid="button-back-home"
@@ -129,7 +129,7 @@ export default function VisitorProfile() {
           </h1>
           <div className="w-10" />
         </div>
-        
+
         {/* Account Type Badge */}
         <div className="flex items-center gap-2 mb-4">
           <div className="bg-blue-500 text-white px-4 py-2 rounded-xl flex items-center gap-2">
@@ -170,8 +170,8 @@ export default function VisitorProfile() {
                   <User className="h-12 w-12 text-white" />
                 </div>
               </div>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 size="sm"
                 className="border-blue-500/50 text-blue-400 hover:bg-blue-500/10"
                 data-testid="button-update-visitor-photo"
@@ -249,7 +249,7 @@ export default function VisitorProfile() {
                   disabled
                   className="bg-[#0B0F19] border-white/10 text-white flex-1"
                 />
-                <Button 
+                <Button
                   variant="outline"
                   className="border-blue-500/50 text-blue-400 hover:bg-blue-500/10"
                   data-testid="button-change-visitor-password"
@@ -343,14 +343,13 @@ export default function VisitorProfile() {
               </Label>
               <div className="flex flex-wrap gap-2">
                 {interestAreas.map((area) => (
-                  <Badge 
+                  <Badge
                     key={area.value}
                     onClick={() => toggleInterest(area.value)}
-                    className={`cursor-pointer px-3 py-1 transition-all ${
-                      interests.includes(area.value)
+                    className={`cursor-pointer px-3 py-1 transition-all ${interests.includes(area.value)
                         ? 'bg-blue-500 text-white border-blue-500'
                         : 'bg-[#0B0F19] text-gray-400 border border-white/10 hover:border-blue-500/50'
-                    }`}
+                      }`}
                     data-testid={`badge-interest-${area.value}`}
                   >
                     {interests.includes(area.value) && <span className="ml-1">✓</span>}
@@ -363,7 +362,7 @@ export default function VisitorProfile() {
         </Card>
 
         {/* Save Button */}
-        <Button 
+        <Button
           onClick={handleSave}
           className="w-full bg-blue-600 hover:bg-blue-700 text-white py-6 rounded-full text-lg font-bold shadow-lg mb-24"
           data-testid="button-save-visitor-profile"
@@ -376,15 +375,7 @@ export default function VisitorProfile() {
       <nav className="fixed bottom-0 left-0 right-0 z-50">
         <div className="bg-[#0B0F19]/95 backdrop-blur-md border-t border-white/10">
           <div className="flex items-center justify-around py-2 px-4 max-w-lg mx-auto">
-            <Link 
-              href="/"
-              className="flex flex-col items-center gap-0.5 p-2 min-w-[50px] text-gray-500 hover:text-amber-400 transition-colors"
-              data-testid="nav-bottom-home"
-            >
-              <Home className="h-5 w-5" />
-              <span className="text-[9px] font-medium">{language === 'ar' ? 'الرئيسية' : 'Home'}</span>
-            </Link>
-            <Link 
+            <Link
               href="/storefront"
               className="flex flex-col items-center gap-0.5 p-2 min-w-[50px] text-gray-500 hover:text-amber-400 transition-colors"
               data-testid="nav-bottom-offices"
@@ -392,7 +383,7 @@ export default function VisitorProfile() {
               <Building2 className="h-5 w-5" />
               <span className="text-[9px] font-medium">{language === 'ar' ? 'المكاتب' : 'Offices'}</span>
             </Link>
-            <Link 
+            <Link
               href="/profile/visitor"
               className="flex flex-col items-center gap-0.5 p-2 min-w-[50px] text-blue-400"
               data-testid="nav-bottom-profile"
@@ -400,7 +391,7 @@ export default function VisitorProfile() {
               <UserCircle className="h-5 w-5" />
               <span className="text-[9px] font-medium">{language === 'ar' ? 'حسابي' : 'Profile'}</span>
             </Link>
-            <Link 
+            <Link
               href="/careers"
               className="flex flex-col items-center gap-0.5 p-2 min-w-[50px] text-gray-500 hover:text-amber-400 transition-colors"
               data-testid="nav-bottom-careers"
@@ -408,7 +399,7 @@ export default function VisitorProfile() {
               <Briefcase className="h-5 w-5" />
               <span className="text-[9px] font-medium">{language === 'ar' ? 'الوظائف' : 'Jobs'}</span>
             </Link>
-            <Link 
+            <Link
               href="/videos"
               className="flex flex-col items-center gap-0.5 p-2 min-w-[50px] text-gray-500 hover:text-amber-400 transition-colors"
               data-testid="nav-bottom-videos"

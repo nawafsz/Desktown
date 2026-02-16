@@ -356,7 +356,7 @@ export default function Landing() {
               <p className="text-amber-400 text-xl md:text-2xl font-bold mb-6" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.8)' }}>
                 {language === 'ar' ? 'بدون إيجار، بلا حدود' : 'No Rent. No Limits.'}
               </p>
-              <Button 
+              <Button
                 className="bg-white text-black hover:bg-gray-100 rounded-full font-bold px-8 shadow-lg shadow-white/10 transition-all hover:scale-105"
                 onClick={() => setLocation("/storefront")}
               >
@@ -494,14 +494,6 @@ export default function Landing() {
       >
         <div className="max-w-lg md:max-w-2xl lg:max-w-4xl xl:max-w-5xl mx-auto px-2 py-2">
           <div className="flex items-center justify-around">
-            <Link
-              href="/"
-              className="flex flex-col items-center gap-0.5 p-2 min-w-[50px] text-amber-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 rounded-lg"
-              data-testid="nav-bottom-home"
-            >
-              <Home className="h-5 w-5" />
-              <span className="text-[9px] font-medium">{language === 'ar' ? 'الرئيسية' : 'Home'}</span>
-            </Link>
             <Link
               href="/storefront"
               className="flex flex-col items-center gap-0.5 p-2 min-w-[50px] text-gray-500 hover:text-amber-400 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 rounded-lg"
@@ -796,7 +788,7 @@ export default function Landing() {
               <button
                 onClick={() => {
                   setShowUploadModal(false);
-                  setLocation('/social?upload=reel');
+                  setLocation('/feed?upload=reel');
                 }}
                 className="w-full flex items-center gap-4 p-4 bg-gradient-to-r from-purple-500/20 to-pink-500/10 border border-purple-500/30 rounded-2xl hover:border-purple-400 transition-all"
                 data-testid="button-upload-video"
@@ -819,7 +811,7 @@ export default function Landing() {
               <button
                 onClick={() => {
                   setShowUploadModal(false);
-                  setLocation('/social?upload=story');
+                  setLocation('/feed?upload=story');
                 }}
                 className="w-full flex items-center gap-4 p-4 bg-gradient-to-r from-amber-500/20 to-orange-500/10 border border-amber-500/30 rounded-2xl hover:border-amber-400 transition-all"
                 data-testid="button-upload-story"

@@ -4,8 +4,8 @@ import { useQuery } from "@tanstack/react-query";
 import { useLanguage } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { 
-  Home, Building2, UserCircle, Briefcase, Play, 
+import {
+  Home, Building2, UserCircle, Briefcase, Play,
   Heart, MessageCircle, Share2, Music2, ChevronLeft,
   Volume2, VolumeX, Pause, Film
 } from "lucide-react";
@@ -105,7 +105,7 @@ export default function Videos() {
   const videoReels: VideoReel[] = (posts || [])
     .map(post => {
       const author = users.find(u => u.id === post.authorId);
-      const authorName = author 
+      const authorName = author
         ? `${author.firstName || ''} ${author.lastName || ''}`.trim() || 'مستخدم'
         : 'مستخدم';
       return {
@@ -165,7 +165,7 @@ export default function Videos() {
       if (video) {
         if (index === currentIndex) {
           video.currentTime = 0;
-          video.play().catch(() => {});
+          video.play().catch(() => { });
           setIsPlaying(true);
         } else {
           video.pause();
@@ -199,7 +199,7 @@ export default function Videos() {
       if (isPlaying) {
         currentVideo.pause();
       } else {
-        currentVideo.play().catch(() => {});
+        currentVideo.play().catch(() => { });
       }
       setIsPlaying(!isPlaying);
     }
@@ -217,7 +217,7 @@ export default function Videos() {
   }
 
   return (
-    <div 
+    <div
       ref={containerRef}
       className="fixed inset-0 bg-black overflow-hidden"
       onTouchStart={handleTouchStart}
@@ -228,9 +228,9 @@ export default function Videos() {
       {/* Header */}
       <div className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between p-4 bg-gradient-to-b from-black/60 to-transparent">
         <Link href="/">
-          <Button 
-            variant="ghost" 
-            size="icon" 
+          <Button
+            variant="ghost"
+            size="icon"
             className="text-white hover:bg-white/20"
             data-testid="button-back"
           >
@@ -240,9 +240,9 @@ export default function Videos() {
         <h1 className="text-white font-bold text-lg">
           {language === 'ar' ? 'المقاطع' : 'Reels'}
         </h1>
-        <Button 
-          variant="ghost" 
-          size="icon" 
+        <Button
+          variant="ghost"
+          size="icon"
           className="text-white hover:bg-white/20"
           onClick={toggleMute}
           data-testid="button-mute"
@@ -252,13 +252,13 @@ export default function Videos() {
       </div>
 
       {/* Videos Container */}
-      <div 
+      <div
         className="h-full transition-transform duration-300 ease-out"
         style={{ transform: `translateY(-${currentIndex * 100}%)` }}
       >
         {displayVideos.map((video, index) => (
-          <div 
-            key={video.id} 
+          <div
+            key={video.id}
             className="h-full w-full relative flex items-center justify-center"
           >
             {/* Video */}
@@ -275,7 +275,7 @@ export default function Videos() {
 
             {/* Play/Pause Overlay */}
             {!isPlaying && index === currentIndex && (
-              <div 
+              <div
                 className="absolute inset-0 flex items-center justify-center bg-black/20"
                 onClick={togglePlay}
               >
@@ -286,14 +286,14 @@ export default function Videos() {
             {/* Right Side Actions */}
             <div className="absolute right-3 bottom-32 flex flex-col items-center gap-5">
               {/* Like */}
-              <button 
+              <button
                 onClick={() => toggleLike(video.id)}
                 className="flex flex-col items-center gap-1"
                 data-testid={`button-like-${video.id}`}
               >
                 <div className={`p-2 rounded-full ${liked.has(video.id) ? 'bg-red-500' : 'bg-white/20'}`}>
-                  <Heart 
-                    className={`h-7 w-7 ${liked.has(video.id) ? 'text-white fill-white' : 'text-white'}`} 
+                  <Heart
+                    className={`h-7 w-7 ${liked.has(video.id) ? 'text-white fill-white' : 'text-white'}`}
                   />
                 </div>
                 <span className="text-white text-xs font-medium">
@@ -302,7 +302,7 @@ export default function Videos() {
               </button>
 
               {/* Comments */}
-              <button 
+              <button
                 className="flex flex-col items-center gap-1"
                 data-testid={`button-comment-${video.id}`}
               >
@@ -315,7 +315,7 @@ export default function Videos() {
               </button>
 
               {/* Share */}
-              <button 
+              <button
                 className="flex flex-col items-center gap-1"
                 data-testid={`button-share-${video.id}`}
               >
@@ -339,9 +339,9 @@ export default function Videos() {
                 <span className="text-white font-bold text-base">
                   @{video.username}
                 </span>
-                <Button 
-                  size="sm" 
-                  variant="outline" 
+                <Button
+                  size="sm"
+                  variant="outline"
                   className="h-7 px-3 text-xs border-white/50 text-white hover:bg-white/20 rounded-full"
                   data-testid={`button-follow-${video.id}`}
                 >
@@ -369,13 +369,12 @@ export default function Videos() {
       {/* Progress Indicators */}
       <div className="absolute right-2 top-1/2 -translate-y-1/2 flex flex-col gap-1 z-20">
         {displayVideos.map((_, index) => (
-          <div 
+          <div
             key={index}
-            className={`w-1 rounded-full transition-all duration-300 ${
-              index === currentIndex 
-                ? 'h-6 bg-amber-400' 
+            className={`w-1 rounded-full transition-all duration-300 ${index === currentIndex
+                ? 'h-6 bg-amber-400'
                 : 'h-2 bg-white/40'
-            }`}
+              }`}
           />
         ))}
       </div>
@@ -384,15 +383,8 @@ export default function Videos() {
       <nav className="absolute bottom-0 left-0 right-0 z-30">
         <div className="bg-black/90 backdrop-blur-md border-t border-white/10">
           <div className="flex items-center justify-around py-2 px-4 max-w-lg mx-auto">
-            <Link 
-              href="/"
-              className="flex flex-col items-center gap-0.5 p-2 min-w-[50px] text-gray-500 hover:text-amber-400 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 rounded-lg"
-              data-testid="nav-bottom-home"
-            >
-              <Home className="h-5 w-5" />
-              <span className="text-[9px] font-medium">{language === 'ar' ? 'الرئيسية' : 'Home'}</span>
-            </Link>
-            <Link 
+
+            <Link
               href="/storefront"
               className="flex flex-col items-center gap-0.5 p-2 min-w-[50px] text-gray-500 hover:text-amber-400 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 rounded-lg"
               data-testid="nav-bottom-offices"
@@ -400,7 +392,7 @@ export default function Videos() {
               <Building2 className="h-5 w-5" />
               <span className="text-[9px] font-medium">{language === 'ar' ? 'المكاتب' : 'Offices'}</span>
             </Link>
-            <Link 
+            <Link
               href="/profile"
               className="flex flex-col items-center gap-0.5 p-2 min-w-[50px] text-gray-500 hover:text-amber-400 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 rounded-lg"
               data-testid="nav-bottom-profile"
@@ -408,7 +400,7 @@ export default function Videos() {
               <UserCircle className="h-5 w-5" />
               <span className="text-[9px] font-medium">{language === 'ar' ? 'حسابي' : 'Profile'}</span>
             </Link>
-            <Link 
+            <Link
               href="/careers"
               className="flex flex-col items-center gap-0.5 p-2 min-w-[50px] text-gray-500 hover:text-amber-400 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 rounded-lg"
               data-testid="nav-bottom-careers"
@@ -416,7 +408,7 @@ export default function Videos() {
               <Briefcase className="h-5 w-5" />
               <span className="text-[9px] font-medium">{language === 'ar' ? 'الوظائف' : 'Jobs'}</span>
             </Link>
-            <Link 
+            <Link
               href="/videos"
               className="flex flex-col items-center gap-0.5 p-2 min-w-[50px] text-amber-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 rounded-lg"
               data-testid="nav-bottom-videos"

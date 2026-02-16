@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { UserAvatar } from "@/components/UserAvatar";
 import { ObjectUploader } from "@/components/ObjectUploader";
-import { 
+import {
   Building2, Check, Plus, X, Home, Briefcase, Play, UserCircle, User, Users, ArrowLeft, LogOut, DoorOpen
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
@@ -50,7 +50,7 @@ export default function OfficeProfile() {
   const { toast } = useToast();
   const { language } = useLanguage();
   const { user, isAuthenticated } = useAuth();
-  
+
   const [officeName, setOfficeName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -107,7 +107,7 @@ export default function OfficeProfile() {
     };
     localStorage.setItem('officeProfile', JSON.stringify(profileData));
     localStorage.setItem('loggedInAs', 'office');
-    
+
     toast({
       title: language === 'ar' ? 'تم الحفظ' : 'Saved',
       description: language === 'ar' ? 'تم حفظ بيانات المكتب بنجاح' : 'Office profile saved successfully',
@@ -118,7 +118,7 @@ export default function OfficeProfile() {
   const handleLogout = () => {
     // Only clear login status, keep profile data saved
     localStorage.removeItem('loggedInAs');
-    
+
     toast({
       title: language === 'ar' ? 'تم تسجيل الخروج' : 'Logged Out',
       description: language === 'ar' ? 'تم تسجيل الخروج بنجاح' : 'Successfully logged out',
@@ -128,16 +128,16 @@ export default function OfficeProfile() {
   };
 
   return (
-    <div 
+    <div
       className="min-h-screen bg-[#0B0F19] pb-24"
       dir={language === 'ar' ? 'rtl' : 'ltr'}
     >
       {/* Header */}
       <div className="bg-gradient-to-b from-amber-600/20 to-transparent p-6 pt-8">
         <div className="flex items-center justify-between mb-4">
-          <Button 
-            variant="ghost" 
-            size="icon" 
+          <Button
+            variant="ghost"
+            size="icon"
             className="text-white hover:bg-white/10"
             onClick={() => window.location.href = '/'}
             data-testid="button-back-home"
@@ -149,7 +149,7 @@ export default function OfficeProfile() {
           </h1>
           <div className="w-10" />
         </div>
-        
+
         {/* Account Type Badge */}
         <div className="flex items-center gap-2 mb-4">
           <div className="bg-amber-500 text-white px-4 py-2 rounded-xl flex items-center gap-2">
@@ -211,8 +211,8 @@ export default function OfficeProfile() {
                   )}
                 </div>
               </div>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 size="sm"
                 className="border-amber-500/50 text-amber-400 hover:bg-amber-500/10"
                 data-testid="button-update-office-photo"
@@ -276,7 +276,7 @@ export default function OfficeProfile() {
                   disabled
                   className="bg-[#0B0F19] border-white/10 text-white flex-1"
                 />
-                <Button 
+                <Button
                   variant="outline"
                   className="border-amber-500/50 text-amber-400 hover:bg-amber-500/10"
                   data-testid="button-change-office-password"
@@ -353,8 +353,8 @@ export default function OfficeProfile() {
               </Label>
               <div className="flex flex-wrap gap-2 mb-2">
                 {services.map((service) => (
-                  <Badge 
-                    key={service} 
+                  <Badge
+                    key={service}
                     className="bg-amber-500/20 text-amber-400 border border-amber-500/30 px-3 py-1"
                   >
                     {service}
@@ -373,7 +373,7 @@ export default function OfficeProfile() {
                   onKeyPress={(e) => e.key === 'Enter' && addService()}
                   data-testid="input-new-office-service"
                 />
-                <Button 
+                <Button
                   onClick={addService}
                   size="icon"
                   className="bg-amber-500 hover:bg-amber-600"
@@ -402,7 +402,7 @@ export default function OfficeProfile() {
         </Card>
 
         {/* Save Button */}
-        <Button 
+        <Button
           onClick={handleSave}
           className="w-full bg-amber-600 hover:bg-amber-700 text-white py-6 rounded-full text-lg font-bold shadow-lg mb-24"
           data-testid="button-save-office-profile"
@@ -415,15 +415,8 @@ export default function OfficeProfile() {
       <nav className="fixed bottom-0 left-0 right-0 z-50">
         <div className="bg-[#0B0F19]/95 backdrop-blur-md border-t border-white/10">
           <div className="flex items-center justify-around py-2 px-4 max-w-lg mx-auto">
-            <Link 
-              href="/"
-              className="flex flex-col items-center gap-0.5 p-2 min-w-[50px] text-gray-500 hover:text-amber-400 transition-colors"
-              data-testid="nav-bottom-home"
-            >
-              <Home className="h-5 w-5" />
-              <span className="text-[9px] font-medium">{language === 'ar' ? 'الرئيسية' : 'Home'}</span>
-            </Link>
-            <Link 
+
+            <Link
               href="/storefront"
               className="flex flex-col items-center gap-0.5 p-2 min-w-[50px] text-gray-500 hover:text-amber-400 transition-colors"
               data-testid="nav-bottom-offices"
@@ -431,7 +424,7 @@ export default function OfficeProfile() {
               <Building2 className="h-5 w-5" />
               <span className="text-[9px] font-medium">{language === 'ar' ? 'المكاتب' : 'Offices'}</span>
             </Link>
-            <Link 
+            <Link
               href="/profile/office"
               className="flex flex-col items-center gap-0.5 p-2 min-w-[50px] text-amber-400"
               data-testid="nav-bottom-profile"
@@ -439,7 +432,7 @@ export default function OfficeProfile() {
               <UserCircle className="h-5 w-5" />
               <span className="text-[9px] font-medium">{language === 'ar' ? 'حسابي' : 'Profile'}</span>
             </Link>
-            <Link 
+            <Link
               href="/careers"
               className="flex flex-col items-center gap-0.5 p-2 min-w-[50px] text-gray-500 hover:text-amber-400 transition-colors"
               data-testid="nav-bottom-careers"
@@ -447,7 +440,7 @@ export default function OfficeProfile() {
               <Briefcase className="h-5 w-5" />
               <span className="text-[9px] font-medium">{language === 'ar' ? 'الوظائف' : 'Jobs'}</span>
             </Link>
-            <Link 
+            <Link
               href="/videos"
               className="flex flex-col items-center gap-0.5 p-2 min-w-[50px] text-gray-500 hover:text-amber-400 transition-colors"
               data-testid="nav-bottom-videos"

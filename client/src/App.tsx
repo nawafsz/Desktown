@@ -11,7 +11,6 @@ import { TopHeader } from "@/components/TopHeader";
 import { useAuth } from "@/hooks/useAuth";
 import NotFound from "@/pages/not-found";
 import Landing from "@/pages/Landing";
-import Welcome from "@/pages/Welcome";
 import Tasks from "@/pages/Tasks";
 import Tickets from "@/pages/Tickets";
 import SocialFeed from "@/pages/SocialFeed";
@@ -203,6 +202,7 @@ function AuthenticatedRouter({ userRole }: { userRole: string | null | undefined
       <Route path="/offices" component={Storefront} />
       <Route path="/employees" component={Team} />
       <Route path="/hr" component={HumanResources} />
+      <Route path="/videos" component={Videos} />
 
       {/* Manager & Admin only routes */}
       <Route path="/jobs">
@@ -263,6 +263,8 @@ function VisitorRouter() {
       <Route path="/profile/visitor" component={VisitorProfile} />
       <Route path="/profile/employee" component={EmployeeProfilePage} />
       <Route path="/employee-portal" component={EmployeeProfilePage} />
+      <Route path="/feed" component={SocialFeed} />
+      <Route path="/videos" component={Videos} />
       <Route component={VisitorProfile} />
     </Switch>
   );
@@ -333,7 +335,7 @@ function OfficeRenterRouter() {
       <Route path="/profile/office" component={OfficeProfile} />
       <Route path="/profile/visitor" component={VisitorProfile} />
       <Route path="/profile/employee" component={EmployeeProfilePage} />
-      <Route path="/employee-portal" component={EmployeePortal} />
+      <Route path="/employee-portal" component={EmployeeProfilePage} />
       <Route path="/marketing" component={Marketing} />
       <Route path="/sales" component={Sales} />
       <Route path="/legal" component={Legal} />
@@ -341,6 +343,7 @@ function OfficeRenterRouter() {
       <Route path="/financial-accounting" component={FinancialAccounting} />
       <Route path="/inventory-management" component={InventoryManagement} />
       <Route path="/ai-assistant" component={AiAssistant} />
+      <Route path="/videos" component={Videos} />
 
       {/* Protected routes - require subscription */}
       <Route path="/my-office" component={ProtectedOfficeManagement} />
@@ -501,6 +504,7 @@ function PublicRouter() {
       <Route path="/profile/visitor" component={VisitorProfile} />
       <Route path="/profile/employee" component={EmployeeProfilePage} />
       <Route path="/videos" component={Videos} />
+      <Route path="/feed" component={SocialFeed} />
       <Route path="/news" component={PublicNewsFeed} />
       <Route path="/login" component={Login} />
       <Route component={Landing} />
