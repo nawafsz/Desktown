@@ -21,7 +21,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useParams } from "wouter";
 import type { Service, Office } from "@shared/schema";
-import logoUrl from "@/assets/office-logo.png";
+import logoUrl from "/assets/logo.png";
 
 interface ServiceWithOffice extends Service {
   office: {

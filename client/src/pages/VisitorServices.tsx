@@ -2,14 +2,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { 
-  Package, 
-  ArrowLeft, 
+import {
+  Package,
+  ArrowLeft,
   ExternalLink,
   Building2,
   CreditCard,
 } from "lucide-react";
-import logoUrl from "@/assets/logo-welcome.png";
+import logoUrl from "/assets/logo.png";
 import { Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { useLanguage } from "@/lib/i18n";

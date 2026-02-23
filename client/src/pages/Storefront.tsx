@@ -39,7 +39,7 @@ import {
   Home,
   User,
 } from "lucide-react";
-import logoUrl from "@/assets/office-logo.png";
+import logoUrl from "/assets/logo.png";
 import { useState } from "react";
 import { Link } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";

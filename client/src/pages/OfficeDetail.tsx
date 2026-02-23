@@ -24,7 +24,7 @@ import {
   Megaphone,
   User,
 } from "lucide-react";
-import logoUrl from "@/assets/office-logo.png";
+import logoUrl from "/assets/logo.png";
 import { useState, useEffect, useRef } from "react";
 import { Link, useParams } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";

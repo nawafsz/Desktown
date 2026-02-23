@@ -3,16 +3,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { 
-  ArrowLeft, 
-  Mail, 
-  Phone, 
+import {
+  ArrowLeft,
+  Mail,
+  Phone,
   MapPin,
   MessageCircle,
   Send,
   Clock,
 } from "lucide-react";
-import logoUrl from "@/assets/logo-welcome.png";
+import logoUrl from "/assets/logo.png";
 import { useState } from "react";
 import { Link } from "wouter";
 import { useLanguage } from "@/lib/i18n";

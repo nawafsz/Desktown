@@ -46,7 +46,7 @@ import {
   Home,
   User,
 } from "lucide-react";
-import logoUrl from "@/assets/office-logo.png";
+import logoUrl from "/assets/logo.png";
 import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage, translations } from "@/lib/i18n";

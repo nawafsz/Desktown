@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2, Home, ArrowRight } from "lucide-react";
-import logoUrl from "@/assets/office-logo.png";
+import logoUrl from "/assets/logo.png";
 
 export default function PaymentSuccess() {
   return (
