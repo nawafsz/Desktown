@@ -3,6 +3,7 @@ import { type Server } from "http";
 import crypto from "crypto";
 import fs from "fs";
 import path from "path";
+import nodemailer from "nodemailer";
 import { storage } from "./storage.ts";
 import { setupAuth, isAuthenticated } from "./replitAuth.ts";
 import {
@@ -123,6 +124,28 @@ function cleanExpiredSessions() {
       employeeSessions.delete(token);
     }
   });
+}
+
+const smtpHost = process.env.SMTP_HOST;
+const smtpPort = process.env.SMTP_PORT ? parseInt(process.env.SMTP_PORT, 10) : undefined;
+const smtpUser = process.env.SMTP_USER;
+const smtpPass = process.env.SMTP_PASS;
+const smtpFrom = process.env.SMTP_FROM || "Desktown <no-reply@desktown.com>";
+
+const mailTransporter = smtpHost && smtpPort && smtpUser && smtpPass
+  ? nodemailer.createTransport({
+      host: smtpHost,
+      port: smtpPort,
+      secure: smtpPort === 465,
+      auth: {
+        user: smtpUser,
+        pass: smtpPass,
+      },
+    })
+  : null;
+
+if (!mailTransporter) {
+  console.warn("SMTP is not fully configured (SMTP_HOST/SMTP_PORT/SMTP_USER/SMTP_PASS). External email sending is disabled.");
 }
 
 // Clean expired sessions every 5 minutes
@@ -5324,6 +5347,23 @@ ${coverLetter || 'No cover letter provided'}
       };
 
       const email = await storage.createInternalEmail(emailData);
+
+      if (!email.isDraft && mailTransporter) {
+        try {
+          const recipientUser = await storage.getUser(recipientId);
+          if (recipientUser?.email) {
+            await mailTransporter.sendMail({
+              from: smtpFrom,
+              to: recipientUser.email,
+              subject,
+              text: body || "",
+            });
+          }
+        } catch (sendError) {
+          console.error("Failed to send external email copy:", sendError);
+        }
+      }
+
       res.status(201).json(email);
     } catch (error) {
       console.error("Error creating email:", error);
