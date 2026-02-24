@@ -65,29 +65,21 @@ export default function AiAssistant() {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // --- Data Fetching ---
-  const { data: salesOrdersData } = useQuery({ queryKey: ["/api/inventory/sales-orders"] });
-  const salesOrders = salesOrdersData || [];
+  const { data: salesOrders = [] } = useQuery<any[]>({ queryKey: ["/api/inventory/sales-orders"] });
 
-  const { data: purchaseOrdersData } = useQuery({ queryKey: ["/api/inventory/purchase-orders"] });
-  const purchaseOrders = purchaseOrdersData || [];
+  const { data: purchaseOrders = [] } = useQuery<any[]>({ queryKey: ["/api/inventory/purchase-orders"] });
 
-  const { data: productsData } = useQuery({ queryKey: ["/api/inventory/products"] });
-  const products = productsData || [];
+  const { data: products = [] } = useQuery<any[]>({ queryKey: ["/api/inventory/products"] });
 
-  const { data: stockData } = useQuery({ queryKey: ["/api/inventory/stock"] });
-  const stock = stockData || [];
+  const { data: stock = [] } = useQuery<any[]>({ queryKey: ["/api/inventory/stock"] });
 
-  const { data: meetingsData } = useQuery({ queryKey: ["/api/meetings"] });
-  const meetings = meetingsData || [];
+  const { data: meetings = [] } = useQuery<any[]>({ queryKey: ["/api/meetings"] });
 
-  const { data: transactionsData } = useQuery({ queryKey: ["/api/finance/transactions"] });
-  const transactions = transactionsData || [];
+  const { data: transactions = [] } = useQuery<any[]>({ queryKey: ["/api/finance/transactions"] });
 
-  const { data: usersData } = useQuery({ queryKey: ["/api/users"] });
-  const users = usersData || [];
+  const { data: users = [] } = useQuery<any[]>({ queryKey: ["/api/users"] });
 
-  const { data: departmentsData } = useQuery({ queryKey: ["/api/departments"] });
-  const departments = departmentsData || [];
+  const { data: departments = [] } = useQuery<any[]>({ queryKey: ["/api/departments"] });
 
   // --- Analysis Engine ---
   const insights: Insight[] = [];

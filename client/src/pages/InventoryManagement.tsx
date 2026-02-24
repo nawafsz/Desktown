@@ -54,6 +54,13 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
+import type {
+  InventoryProduct,
+  InventoryWarehouse,
+  InventorySupplier,
+  InventoryPurchaseOrder,
+  InventorySalesOrder,
+} from "@shared/schema";
 import {
   BarChart,
   Bar,
@@ -79,23 +86,23 @@ export default function InventoryManagement() {
   const [invoiceOrder, setInvoiceOrder] = useState<any>(null);
 
   // Queries
-  const { data: products, isLoading: productsLoading } = useQuery({
+  const { data: products = [], isLoading: productsLoading } = useQuery<InventoryProduct[]>({
     queryKey: ["/api/inventory/products"],
   });
 
-  const { data: warehouses, isLoading: warehousesLoading } = useQuery({
+  const { data: warehouses = [], isLoading: warehousesLoading } = useQuery<InventoryWarehouse[]>({
     queryKey: ["/api/inventory/warehouses"],
   });
 
-  const { data: suppliers, isLoading: suppliersLoading } = useQuery({
+  const { data: suppliers = [], isLoading: suppliersLoading } = useQuery<InventorySupplier[]>({
     queryKey: ["/api/inventory/suppliers"],
   });
 
-  const { data: purchaseOrders, isLoading: poLoading } = useQuery({
+  const { data: purchaseOrders = [], isLoading: poLoading } = useQuery<InventoryPurchaseOrder[]>({
     queryKey: ["/api/inventory/purchase-orders"],
   });
 
-  const { data: salesOrders, isLoading: salesLoading } = useQuery({
+  const { data: salesOrders = [], isLoading: salesLoading } = useQuery<InventorySalesOrder[]>({
     queryKey: ["/api/inventory/sales-orders"],
   });
 

@@ -45,14 +45,17 @@ import {
   Sparkles,
   Home,
   User,
+  MessageSquare,
 } from "lucide-react";
 import logoUrl from "/assets/logo.png";
 import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage, translations } from "@/lib/i18n";
-import type { JobPosting } from "@shared/schema";
+import type { JobPosting, Office } from "@shared/schema";
 
-function JobApplicationDialog({ job, children, t, language }: { job: JobPosting; children: React.ReactNode; t: typeof translations.en.careers; language: string }) {
+type PublicJobPosting = JobPosting & { category?: string | null };
+
+function JobApplicationDialog({ job, children, t, language }: { job: PublicJobPosting; children: React.ReactNode; t: typeof translations.en.careers; language: string }) {
   const [open, setOpen] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const { toast } = useToast();
@@ -261,7 +264,7 @@ function JobApplicationDialog({ job, children, t, language }: { job: JobPosting;
   );
 }
 
-function JobCard({ job, t, language }: { job: JobPosting; t: typeof translations.en.careers; language: string }) {
+function JobCard({ job, t, language, office }: { job: PublicJobPosting; t: typeof translations.en.careers; language: string; office?: Office | null }) {
   const isRTL = language === 'ar';
   const daysAgo = job.createdAt
     ? Math.floor((Date.now() - new Date(job.createdAt).getTime()) / (1000 * 60 * 60 * 24))
@@ -311,17 +314,36 @@ function JobCard({ job, t, language }: { job: JobPosting; t: typeof translations
                 {job.description}
               </p>
             )}
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-3 flex-wrap">
               <span className="text-xs text-muted-foreground flex items-center gap-1">
                 <Clock className="h-3 w-3" />
                 {formatPostedDate()}
               </span>
-              <JobApplicationDialog job={job} t={t} language={language}>
-                <Button size="sm" className="gap-1" data-testid={`button-apply-job-${job.id}`}>
-                  {t.applyNow}
-                  <Send className="h-3 w-3" />
-                </Button>
-              </JobApplicationDialog>
+              <div className="flex items-center gap-2">
+                {office?.slug && (
+                  <Link
+                    href={`/office/${office.slug}`}
+                    className="inline-flex"
+                  >
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="gap-1"
+                      type="button"
+                      data-testid={`button-chat-office-${job.id}`}
+                    >
+                      <MessageSquare className="h-3 w-3" />
+                      {translations[language === 'ar' ? 'ar' : 'en'].officeDetail.chatWithReceptionist}
+                    </Button>
+                  </Link>
+                )}
+                <JobApplicationDialog job={job} t={t} language={language}>
+                  <Button size="sm" className="gap-1" data-testid={`button-apply-job-${job.id}`}>
+                    {t.applyNow}
+                    <Send className="h-3 w-3" />
+                  </Button>
+                </JobApplicationDialog>
+              </div>
             </div>
           </div>
         </div>
@@ -330,29 +352,114 @@ function JobCard({ job, t, language }: { job: JobPosting; t: typeof translations
   );
 }
 
+const jobTypeOptions = [
+  { id: "all", labelEn: "All job types", labelAr: "كل أنواع الوظائف" },
+  { id: "admin", labelEn: "Administrative", labelAr: "وظائف إدارية" },
+  { id: "accounting", labelEn: "Accounting", labelAr: "وظائف محاسبية" },
+  { id: "tech", labelEn: "Technical / IT", labelAr: "وظائف تقنية" },
+];
+
+const saudiRegions: { id: string; nameAr: string; nameEn: string; cities: { id: string; nameAr: string; nameEn: string }[] }[] = [
+  {
+    id: "riyadh",
+    nameAr: "منطقة الرياض",
+    nameEn: "Riyadh Region",
+    cities: [
+      { id: "riyadh", nameAr: "الرياض", nameEn: "Riyadh" },
+      { id: "alkharj", nameAr: "الخرج", nameEn: "Al Kharj" },
+      { id: "almuzahmiyah", nameAr: "المزاحمية", nameEn: "Al Muzahmiyah" },
+    ],
+  },
+  {
+    id: "makkah",
+    nameAr: "منطقة مكة المكرمة",
+    nameEn: "Makkah Region",
+    cities: [
+      { id: "jeddah", nameAr: "جدة", nameEn: "Jeddah" },
+      { id: "makkah", nameAr: "مكة المكرمة", nameEn: "Makkah" },
+      { id: "taif", nameAr: "الطائف", nameEn: "Taif" },
+    ],
+  },
+  {
+    id: "eastern",
+    nameAr: "المنطقة الشرقية",
+    nameEn: "Eastern Province",
+    cities: [
+      { id: "dammam", nameAr: "الدمام", nameEn: "Dammam" },
+      { id: "khobar", nameAr: "الخبر", nameEn: "Al Khobar" },
+      { id: "dhahran", nameAr: "الظهران", nameEn: "Dhahran" },
+    ],
+  },
+  {
+    id: "madinah",
+    nameAr: "منطقة المدينة المنورة",
+    nameEn: "Madinah Region",
+    cities: [
+      { id: "madinah", nameAr: "المدينة المنورة", nameEn: "Madinah" },
+      { id: "yanbu", nameAr: "ينبع", nameEn: "Yanbu" },
+    ],
+  },
+];
+
 export default function Careers() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState("all");
+  const [selectedJobType, setSelectedJobType] = useState("all");
+  const [selectedRegion, setSelectedRegion] = useState<string>("");
+  const [selectedCity, setSelectedCity] = useState<string>("");
   const { toast } = useToast();
   const { language } = useLanguage();
   const t = translations[language].careers;
   const isRTL = language === 'ar';
 
-  const { data: jobs = [], isLoading } = useQuery<JobPosting[]>({
+  const { data: jobs = [], isLoading } = useQuery<PublicJobPosting[]>({
     queryKey: ["/api/public/jobs"],
+  });
+
+  const { data: offices = [] } = useQuery<Office[]>({
+    queryKey: ['/api/public/offices'],
   });
 
   const publishedJobs = jobs.filter(job => job.status === "published");
 
   const filteredJobs = publishedJobs.filter((job) => {
+    const query = searchQuery.toLowerCase();
     const matchesSearch =
-      job.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      job.department?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      job.description?.toLowerCase().includes(searchQuery.toLowerCase());
+      job.title.toLowerCase().includes(query) ||
+      job.department?.toLowerCase().includes(query) ||
+      job.description?.toLowerCase().includes(query);
 
-    if (activeFilter === "all") return matchesSearch;
-    if (activeFilter === "remote") return matchesSearch && job.location?.toLowerCase().includes("remote");
-    return matchesSearch && job.type === activeFilter;
+    const matchesTypeFilter =
+      activeFilter === "all"
+        ? true
+        : activeFilter === "remote"
+          ? job.location?.toLowerCase().includes("remote")
+          : job.type === activeFilter;
+
+    const matchesJobType =
+      selectedJobType === "all"
+        ? true
+        : (job.category || "").toLowerCase() === selectedJobType.toLowerCase();
+
+    const jobLocation = (job.location || "").toLowerCase();
+
+    const region = saudiRegions.find((r) => r.id === selectedRegion);
+    const city = region?.cities.find((c) => c.id === selectedCity);
+
+    const matchesRegion = selectedRegion
+      ? !!region && region.cities.some((c) =>
+          jobLocation.includes(c.nameAr.toLowerCase()) ||
+          jobLocation.includes(c.nameEn.toLowerCase())
+        )
+      : true;
+
+    const matchesCity = selectedCity
+      ? !!city &&
+        (jobLocation.includes(city.nameAr.toLowerCase()) ||
+          jobLocation.includes(city.nameEn.toLowerCase()))
+      : true;
+
+    return matchesSearch && matchesTypeFilter && matchesJobType && matchesRegion && matchesCity;
   });
 
   const departments = Array.from(new Set(publishedJobs.map(j => j.department).filter(Boolean)));
@@ -430,17 +537,17 @@ export default function Careers() {
             </div>
           </div>
 
-          <div className="flex items-center justify-center gap-8 mt-10">
+          <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-8 mt-10">
             <div className="text-center">
               <p className="text-3xl font-bold text-primary">{publishedJobs.length}</p>
               <p className="text-sm text-muted-foreground">{t.openPositions}</p>
             </div>
-            <div className="h-10 w-px bg-border" />
+            <div className="hidden md:block h-10 w-px bg-border" />
             <div className="text-center">
               <p className="text-3xl font-bold">{departments.length}</p>
               <p className="text-sm text-muted-foreground">{t.departments}</p>
             </div>
-            <div className="h-10 w-px bg-border" />
+            <div className="hidden md:block h-10 w-px bg-border" />
             <div className="text-center">
               <p className="text-3xl font-bold">100%</p>
               <p className="text-sm text-muted-foreground">{t.verified}</p>
@@ -450,6 +557,83 @@ export default function Careers() {
       </section>
 
       <main className="container mx-auto px-4 pb-16 max-w-5xl">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
+          <div className="space-y-1">
+            <Label className="text-xs text-muted-foreground">
+              {language === 'ar' ? 'نوع الوظيفة' : 'Job Type'}
+            </Label>
+            <Select
+              value={selectedJobType}
+              onValueChange={(value) => setSelectedJobType(value)}
+            >
+              <SelectTrigger className="h-10 bg-card border">
+                <SelectValue
+                  placeholder={language === 'ar' ? 'اختر نوع الوظيفة' : 'Select job type'}
+                />
+              </SelectTrigger>
+              <SelectContent>
+                {jobTypeOptions.map((option) => (
+                  <SelectItem key={option.id} value={option.id}>
+                    {language === 'ar' ? option.labelAr : option.labelEn}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-1">
+            <Label className="text-xs text-muted-foreground">
+              {language === 'ar' ? 'المنطقة' : 'Region'}
+            </Label>
+            <Select
+              value={selectedRegion}
+              onValueChange={(value) => {
+                setSelectedRegion(value);
+                setSelectedCity("");
+              }}
+            >
+              <SelectTrigger className="h-10 bg-card border">
+                <SelectValue
+                  placeholder={language === 'ar' ? 'اختر المنطقة' : 'Select region'}
+                />
+              </SelectTrigger>
+              <SelectContent>
+                {saudiRegions.map((region) => (
+                  <SelectItem key={region.id} value={region.id}>
+                    {language === 'ar' ? region.nameAr : region.nameEn}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-1">
+            <Label className="text-xs text-muted-foreground">
+              {language === 'ar' ? 'المدينة' : 'City'}
+            </Label>
+            <Select
+              value={selectedCity}
+              onValueChange={(value) => setSelectedCity(value)}
+              disabled={!selectedRegion}
+            >
+              <SelectTrigger className="h-10 bg-card border">
+                <SelectValue
+                  placeholder={language === 'ar' ? 'اختر المدينة' : 'Select city'}
+                />
+              </SelectTrigger>
+              <SelectContent>
+                {saudiRegions
+                  .find((region) => region.id === selectedRegion)
+                  ?.cities.map((city) => (
+                    <SelectItem key={city.id} value={city.id}>
+                      {language === 'ar' ? city.nameAr : city.nameEn}
+                    </SelectItem>
+                  ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
         <ScrollArea className="w-full whitespace-nowrap mb-6">
           <div className="flex gap-2 pb-2">
             {filterOptions.map((option) => (
@@ -482,7 +666,18 @@ export default function Careers() {
               </Card>
             ))
           ) : filteredJobs.length > 0 ? (
-            filteredJobs.map((job) => <JobCard key={job.id} job={job} t={t} language={language} />)
+            filteredJobs.map((job) => {
+              const office = offices.find((o) => o.ownerId === job.creatorId && o.isPublished);
+              return (
+                <JobCard
+                  key={job.id}
+                  job={job}
+                  t={t}
+                  language={language}
+                  office={office}
+                />
+              );
+            })
           ) : (
             <Card className="p-12 text-center">
               <Briefcase className="h-16 w-16 mx-auto mb-4 text-muted-foreground opacity-30" />

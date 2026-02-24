@@ -43,6 +43,7 @@ import {
   insertCompanySectionSchema,
   type InsertTask,
 } from "../shared/schema.ts";
+import { sendPushNotification } from "./pushService.ts";
 import { z } from "zod";
 
 // Video call validation schemas
@@ -1949,9 +1950,20 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
       console.log("Creating job posting. User:", req.user?.claims?.sub);
       console.log("Body:", req.body);
 
+      let officeId: number | undefined;
+      try {
+        const office = await storage.getOfficeByOwnerId(req.user.claims.sub);
+        if (office) {
+          officeId = office.id;
+        }
+      } catch (e) {
+        console.warn("Could not determine office for job creator:", e);
+      }
+
       const data = insertJobPostingSchema.parse({
         ...req.body,
         creatorId: req.user.claims.sub,
+        officeId: officeId ?? undefined,
       });
       const job = await storage.createJobPosting(data);
       res.status(201).json(job);
@@ -3787,6 +3799,32 @@ ${coverLetter || 'No cover letter provided'}
         status: 'pending',
       });
 
+      try {
+        await storage.createNotification({
+          userId: job.creatorId,
+          type: "job_application",
+          title: `طلب توظيف جديد: ${jobTitle || job.title}`,
+          message: `متقدم جديد (${fullName}) على وظيفة ${jobTitle || job.title}`,
+          read: false,
+          data: {
+            jobId,
+            applicantName: fullName,
+            applicantEmail: email,
+            applicantPhone: phone || null,
+          },
+        });
+
+        await sendPushNotification(job.creatorId, {
+          title: `طلب توظيف جديد`,
+          body: `متقدم جديد (${fullName}) على وظيفة ${jobTitle || job.title}`,
+          data: {
+            jobId,
+          },
+        });
+      } catch (notifyError) {
+        console.error("Failed to create job application notification:", notifyError);
+      }
+
       res.status(201).json({ message: "Application submitted successfully" });
     } catch (error) {
       console.error("Error submitting job application:", error);
@@ -4115,7 +4153,13 @@ ${coverLetter || 'No cover letter provided'}
 
       const data = insertCompanyDepartmentSchema.parse({
         officeId,
-        ...req.body,
+        name: req.body.name,
+        nameAr: req.body.nameAr,
+        description: req.body.description,
+        descriptionAr: req.body.descriptionAr,
+        managerId: req.body.managerId,
+        sortOrder: req.body.sortOrder,
+        isActive: req.body.isActive,
       });
       let department;
       try {
@@ -4127,12 +4171,14 @@ ${coverLetter || 'No cover letter provided'}
           id: Math.floor(Math.random() * 10000),
           officeId: officeId,
           name: data.name,
-          description: data.description || null,
-          icon: data.icon || "briefcase",
-          color: data.color || "blue",
-          password: data.password || null,
-          managerId: null,
-          createdAt: new Date().toISOString()
+          nameAr: data.nameAr ?? null,
+          description: data.description ?? null,
+          descriptionAr: data.descriptionAr ?? null,
+          managerId: data.managerId ?? null,
+          sortOrder: data.sortOrder ?? 0,
+          isActive: data.isActive ?? true,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
         };
       }
       res.status(201).json(department);

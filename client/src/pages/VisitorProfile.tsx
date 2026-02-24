@@ -155,6 +155,37 @@ export default function VisitorProfile() {
       </div>
 
       <div className="px-4 space-y-4">
+        <Card className="bg-gradient-to-r from-blue-600/20 to-blue-500/10 border border-blue-500/20 rounded-2xl p-4 mt-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center">
+              <User className="h-5 w-5 text-white" />
+            </div>
+            <div className="flex-1">
+              <p className="text-xs text-blue-100/80">
+                {language === 'ar' ? 'مرحبا بك في حساب الزائر' : 'Welcome to your visitor account'}
+              </p>
+              <p className="text-sm font-semibold text-white">
+                {fullName || (language === 'ar'
+                  ? 'أكمل بياناتك لنبني ملفك المهني والوظيفي'
+                  : 'Complete your details to build your career profile')}
+              </p>
+            </div>
+          </div>
+          <div className="mt-4 grid grid-cols-3 gap-2 text-center text-xs text-gray-300">
+            <div className="bg-[#0B0F19]/60 rounded-xl py-2 flex flex-col items-center gap-1">
+              <Briefcase className="h-4 w-4 text-blue-400" />
+              <span>{language === 'ar' ? 'الوظائف' : 'Jobs'}</span>
+            </div>
+            <div className="bg-[#0B0F19]/60 rounded-xl py-2 flex flex-col items-center gap-1">
+              <Building2 className="h-4 w-4 text-blue-400" />
+              <span>{language === 'ar' ? 'المكاتب' : 'Offices'}</span>
+            </div>
+            <div className="bg-[#0B0F19]/60 rounded-xl py-2 flex flex-col items-center gap-1">
+              <Megaphone className="h-4 w-4 text-blue-400" />
+              <span>{language === 'ar' ? 'العروض' : 'Offers'}</span>
+            </div>
+          </div>
+        </Card>
         {/* Basic Account Settings */}
         <Card className="bg-[#1a1f2e] border-0 rounded-2xl overflow-hidden">
           <div className="bg-blue-600 px-4 py-3">
@@ -357,6 +388,51 @@ export default function VisitorProfile() {
                   </Badge>
                 ))}
               </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-[#111525] border border-blue-500/30 rounded-2xl overflow-hidden">
+          <div className="bg-gradient-to-r from-blue-600 to-blue-500 px-4 py-3">
+            <h2 className="text-white font-bold text-lg">
+              {language === 'ar' ? 'وظيفتك المستقبلية' : 'Your Future Job'}
+            </h2>
+            <p className="text-xs text-blue-100/90 mt-1">
+              {language === 'ar'
+                ? 'تصفح الوظائف الإدارية والمحاسبية والتقنية من مكان واحد'
+                : 'Browse admin, accounting and tech jobs in one place'}
+            </p>
+          </div>
+          <CardContent className="p-4 space-y-4">
+            <div className="flex flex-wrap gap-2 text-xs">
+              <span className="px-3 py-1 rounded-full bg-[#0B0F19] text-blue-100 border border-white/10">
+                {language === 'ar' ? 'وظائف إدارية' : 'Admin roles'}
+              </span>
+              <span className="px-3 py-1 rounded-full bg-[#0B0F19] text-blue-100 border border-white/10">
+                {language === 'ar' ? 'وظائف محاسبية' : 'Accounting roles'}
+              </span>
+              <span className="px-3 py-1 rounded-full bg-[#0B0F19] text-blue-100 border border-white/10">
+                {language === 'ar' ? 'وظائف تقنية' : 'Tech roles'}
+              </span>
+            </div>
+            <div className="bg-[#0B0F19] rounded-2xl p-3 flex items-center justify-between gap-3">
+              <div className="text-xs text-gray-300">
+                <p className="font-semibold text-white mb-1">
+                  {language === 'ar' ? 'ابحث عن وظيفتك المستقبلية' : 'Find your next opportunity'}
+                </p>
+                <p className="text-[11px] text-gray-400">
+                  {language === 'ar'
+                    ? 'انتقل إلى قسم الوظائف لاختيار نوع الوظيفة والمنطقة والمدينة'
+                    : 'Go to the jobs section to choose job type, region and city'}
+                </p>
+              </div>
+              <Button
+                onClick={() => setLocation('/careers')}
+                className="bg-white text-blue-600 hover:bg-blue-50 text-xs font-bold px-4 py-2 rounded-full"
+                data-testid="button-go-to-careers-from-visitor"
+              >
+                {language === 'ar' ? 'ابحث عن وظيفة' : 'Find a Job'}
+              </Button>
             </div>
           </CardContent>
         </Card>

@@ -118,17 +118,16 @@ export default function VerifyPasscode() {
             </Button>
 
             <div className="text-center">
-              <Button 
-                type="button" 
-                variant="link" 
+              <button 
+                type="button"
                 onClick={() => resendMutation.mutate()}
                 disabled={resendMutation.isPending}
-                className="text-sm text-muted-foreground"
+                className="text-sm text-muted-foreground underline underline-offset-4"
               >
                 {resendMutation.isPending 
                   ? (language === 'ar' ? "جاري الإرسال..." : "Sending...") 
                   : (language === 'ar' ? "إعادة إرسال الرمز" : "Resend Code")}
-              </Button>
+              </button>
             </div>
           </form>
         </CardContent>

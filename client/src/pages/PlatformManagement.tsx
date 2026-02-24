@@ -191,35 +191,42 @@ export default function PlatformManagement() {
         }
     });
 
-    const kpis = [
+    const kpis: {
+        label: string;
+        value: string | number;
+        icon: React.ComponentType<{ className?: string }>;
+        gradient: string;
+        trend: string;
+        isAlert?: boolean;
+    }[] = [
         {
             label: language === 'ar' ? "إجمالي الإيرادات" : "Total Revenue",
             value: stats?.totalRevenue ? `${stats.totalRevenue.toLocaleString()} SAR` : "0 SAR",
             icon: DollarSign,
             gradient: "from-emerald-500 to-teal-600",
-            trend: "+12.5% " + (language === 'ar' ? "نمو" : "growth")
+            trend: "+12.5% " + (language === 'ar' ? "نمو" : "growth"),
         },
         {
             label: language === 'ar' ? "العقود النشطة" : "Active Contracts",
             value: stats?.totalActiveContracts || 0,
             icon: ClipboardList,
             gradient: "from-blue-500 to-indigo-600",
-            trend: "+8.2% " + (language === 'ar' ? "زيادة" : "increase")
+            trend: "+8.2% " + (language === 'ar' ? "زيادة" : "increase"),
         },
         {
             label: language === 'ar' ? "المكاتب المؤجرة" : "Rented Offices",
             value: stats?.activeSubscriptions || 0,
             icon: Building2,
             gradient: "from-violet-500 to-purple-600",
-            trend: "+5.4% " + (language === 'ar' ? "هذا الشهر" : "this month")
+            trend: "+5.4% " + (language === 'ar' ? "هذا الشهر" : "this month"),
         },
         {
             label: language === 'ar' ? "المستخدمين النشطين" : "Active Users",
             value: stats?.totalUsers || 0,
             icon: Users,
             gradient: "from-orange-500 to-amber-600",
-            trend: "+15.3% " + (language === 'ar' ? "منذ الأمس" : "since yesterday")
-        }
+            trend: "+15.3% " + (language === 'ar' ? "منذ الأمس" : "since yesterday"),
+        },
     ];
 
     const formatCurrency = (amount: number) => {

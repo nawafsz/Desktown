@@ -1157,6 +1157,12 @@
           "notNull": false,
           "default": "'draft'"
         },
+        "office_id": {
+          "name": "office_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp",
@@ -1180,6 +1186,19 @@
           "tableTo": "users",
           "columnsFrom": [
             "creator_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "job_postings_office_id_offices_id_fk": {
+          "name": "job_postings_office_id_offices_id_fk",
+          "tableFrom": "job_postings",
+          "tableTo": "offices",
+          "columnsFrom": [
+            "office_id"
           ],
           "columnsTo": [
             "id"

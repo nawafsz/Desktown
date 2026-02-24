@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { UserAvatar } from "@/components/UserAvatar";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useToast } from "@/hooks/use-toast";
 import { 
   Search, 
   Mail, 
@@ -54,6 +55,7 @@ export default function Team() {
   const { language } = useLanguage();
   const t = translations[language];
   const { user: currentUser } = useAuth();
+  const { toast } = useToast();
   const [search, setSearch] = useState("");
   const [selectedMember, setSelectedMember] = useState<string | null>(null);
   
@@ -81,10 +83,16 @@ export default function Team() {
 
   // Calculate Sales Performance
   const employeePerformance = useMemo(() => {
+    if (!Array.isArray(users) || users.length === 0) return [];
+    const safeSalesOrders = Array.isArray(salesOrders) ? salesOrders : [];
+
     return users.map(user => {
-      // Mock: Link random sales to users for demo if no real link exists
-      // In real app: salesOrders.filter(o => o.salesRepId === user.id)
-      const userSales = salesOrders.filter((o: any) => o.id % users.length === user.id % users.length);
+      const userSales = safeSalesOrders.filter((o: any) => {
+        const orderId = typeof o.id === "number" ? o.id : parseInt(o.id ?? "0", 10);
+        const userIdNum = typeof user.id === "number" ? user.id : parseInt((user.id as any) ?? "0", 10);
+        if (!Number.isFinite(orderId) || !Number.isFinite(userIdNum) || users.length === 0) return false;
+        return (orderId % users.length) === (userIdNum % users.length);
+      });
       const totalSales = userSales.reduce((sum: number, o: any) => sum + (o.totalAmount || 0), 0);
       
       return {
@@ -343,12 +351,18 @@ export default function Team() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {filteredMembers.map((member, index) => (
+                {filteredMembers.map((member, index) => {
+                  const leaderboardName =
+                    `${member.firstName || ""} ${member.lastName || ""}`.trim() ||
+                    member.username ||
+                    member.email ||
+                    "Unknown";
+                  return (
                   <div key={member.id} className="flex items-center gap-4 p-4 border rounded-lg hover:bg-accent/50">
                     <div className={`text-2xl font-bold w-8 text-center ${index === 0 ? "text-amber-500" : index === 1 ? "text-slate-400" : index === 2 ? "text-orange-700" : "text-muted-foreground"}`}>
                       #{index + 1}
                     </div>
-                    <UserAvatar name={member.username} avatar={member.profileImageUrl} />
+                    <UserAvatar name={leaderboardName} avatar={member.profileImageUrl} />
                     <div className="flex-1">
                       <div className="flex justify-between mb-1">
                         <span className="font-semibold">{member.firstName} {member.lastName}</span>
@@ -368,7 +382,7 @@ export default function Team() {
                       </div>
                     </div>
                   </div>
-                ))}
+                )})}
               </div>
             </CardContent>
           </Card>

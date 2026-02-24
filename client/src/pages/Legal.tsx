@@ -17,6 +17,7 @@ import {
   Filter,
   Plus,
   ArrowLeft,
+  ArrowRight,
   FileCheck,
   AlertTriangle
 } from "lucide-react";

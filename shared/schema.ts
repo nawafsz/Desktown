@@ -565,6 +565,7 @@ export const jobPostings = pgTable("job_postings", {
   requirements: text("requirements"),
   salary: varchar("salary"),
   creatorId: varchar("creator_id").references(() => users.id).notNull(),
+  officeId: integer("office_id").references(() => offices.id),
   status: varchar("status").default("draft"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -572,6 +573,7 @@ export const jobPostings = pgTable("job_postings", {
 
 export const jobPostingsRelations = relations(jobPostings, ({ one }) => ({
   creator: one(users, { fields: [jobPostings.creatorId], references: [users.id] }),
+  office: one(offices, { fields: [jobPostings.officeId], references: [offices.id] }),
 }));
 
 export const insertJobPostingSchema = createInsertSchema(jobPostings).omit({ id: true, createdAt: true, updatedAt: true });

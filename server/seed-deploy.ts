@@ -1,6 +1,6 @@
 
 import { db } from "./db_postgres";
-import { users, offices, jobPostings, products, inventoryProducts } from "@shared/schema";
+import { users } from "@shared/schema";
 import { sql } from "drizzle-orm";
 import { scrypt, randomBytes } from "crypto";
 import { promisify } from "util";
