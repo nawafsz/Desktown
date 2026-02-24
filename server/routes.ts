@@ -3788,16 +3788,45 @@ ${coverLetter || 'No cover letter provided'}
         // Continue, as we still want to record the service request
       }
 
-      // Create a service request entry for the job application
-      await storage.createServiceRequest({
-        officeId: officeId,
-        serviceId: 0, // 0 for general/job application
-        visitorName: fullName,
-        visitorEmail: email,
-        visitorPhone: phone || null,
-        message: `Job Application for: ${jobTitle || job.title}\nDepartment: ${department || job.department}\nExperience: ${experience || 'Not specified'}\nResume: ${resume || 'Not provided'}\nCover Letter: ${coverLetter || 'Not provided'}`,
-        status: 'pending',
-      });
+      // Create a service request entry for the job application (best-effort, without breaking submission)
+      try {
+        let requestOfficeId = officeId;
+
+        // Prefer explicit officeId on the job if available
+        if (!requestOfficeId && (job as any).officeId) {
+          requestOfficeId = (job as any).officeId;
+        }
+
+        let requestServiceId: number | null = null;
+
+        // Try to link to any existing service for this office (for unified CRM view)
+        if (requestOfficeId) {
+          try {
+            const officeServices = await storage.getServicesByOffice(requestOfficeId);
+            if (officeServices && officeServices.length > 0) {
+              requestServiceId = officeServices[0].id;
+            }
+          } catch (serviceErr) {
+            console.warn("Failed to load services for office when creating job application request:", serviceErr);
+          }
+        }
+
+        if (requestOfficeId && requestServiceId) {
+          await storage.createServiceRequest({
+            officeId: requestOfficeId,
+            serviceId: requestServiceId,
+            visitorName: fullName,
+            visitorEmail: email,
+            visitorPhone: phone || null,
+            message: `Job Application for: ${jobTitle || job.title}\nDepartment: ${department || job.department}\nExperience: ${experience || 'Not specified'}\nResume: ${resume || 'Not provided'}\nCover Letter: ${coverLetter || 'Not provided'}`,
+            status: 'pending',
+          });
+        } else {
+          console.log("Skipping serviceRequest creation for job application - no valid office/service mapping");
+        }
+      } catch (serviceRequestError) {
+        console.error("Failed to create service request for job application:", serviceRequestError);
+      }
 
       try {
         await storage.createNotification({
