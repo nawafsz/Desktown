@@ -262,9 +262,9 @@ export default function Landing() {
               <Search className="h-5 w-5" />
             </Button>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <span className="text-lg font-bold text-white">DeskTown</span>
-            <img src={logoUrl} alt="DeskTown" className="h-8 w-8 object-contain" />
+            <img src={logoUrl} alt="DeskTown" className="h-10 w-10 object-contain" />
           </div>
         </header>
 

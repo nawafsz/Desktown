@@ -30,13 +30,13 @@ export default function VisitorServices() {
         
         {/* Header */}
         <header className="flex items-center justify-between py-4">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-4">
             <Link href="/welcome">
               <Button variant="ghost" size="icon" className="text-white hover:bg-white/10" data-testid="button-back">
                 <ArrowLeft className="h-5 w-5" />
               </Button>
             </Link>
-            <img src={logoUrl} alt="DeskTown" className="h-8 w-8 object-contain" />
+            <img src={logoUrl} alt="DeskTown" className="h-10 w-10 object-contain" />
             <span className="text-lg font-bold text-white">DeskTown</span>
           </div>
         </header>

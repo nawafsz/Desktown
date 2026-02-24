@@ -359,8 +359,8 @@ export default function Storefront() {
     <div className="min-h-screen bg-background" dir={isRTL ? 'rtl' : 'ltr'}>
       <header className="fixed top-0 left-0 right-0 z-50 border-b border-white/5 bg-background/80 backdrop-blur-xl">
         <div className="container mx-auto px-4 py-3 flex items-center justify-between">
-          <div className={`flex items-center gap-3`}>
-            <img src={logoUrl} alt="DeskTown" className="h-9 w-9" />
+          <div className={`flex items-center gap-4`}>
+            <img src={logoUrl} alt="DeskTown" className="h-11 w-11" />
             <span className="text-lg font-bold gradient-text">DeskTown</span>
           </div>
           <nav className="hidden md:flex items-center gap-6">
@@ -623,8 +623,8 @@ export default function Storefront() {
       <footer className="border-t border-white/5 bg-background/50 py-12 pb-24">
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-            <div className="flex items-center gap-3">
-              <img src={logoUrl} alt="DeskTown" className="h-8 w-8" />
+            <div className="flex items-center gap-4">
+              <img src={logoUrl} alt="DeskTown" className="h-10 w-10" />
               <span className="font-semibold">DeskTown</span>
             </div>
             <div className="flex items-center gap-6 text-sm text-muted-foreground">

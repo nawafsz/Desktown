@@ -99,8 +99,8 @@ export default function PublicServicePage() {
     return (
       <div className="min-h-screen bg-background">
         <header className="border-b border-white/5 bg-background/80 backdrop-blur-xl">
-          <div className="container mx-auto px-4 py-3 flex items-center gap-3">
-            <img src={logoUrl} alt="DeskTown" className="h-9 w-9" />
+          <div className="container mx-auto px-4 py-3 flex items-center gap-4">
+            <img src={logoUrl} alt="DeskTown" className="h-11 w-11" />
             <span className="text-lg font-bold gradient-text">DeskTown</span>
           </div>
         </header>
@@ -123,8 +123,8 @@ export default function PublicServicePage() {
     return (
       <div className="min-h-screen bg-background">
         <header className="border-b border-white/5 bg-background/80 backdrop-blur-xl">
-          <div className="container mx-auto px-4 py-3 flex items-center gap-3">
-            <img src={logoUrl} alt="DeskTown" className="h-9 w-9" />
+          <div className="container mx-auto px-4 py-3 flex items-center gap-4">
+            <img src={logoUrl} alt="DeskTown" className="h-11 w-11" />
             <span className="text-lg font-bold gradient-text">DeskTown</span>
           </div>
         </header>
@@ -178,8 +178,8 @@ export default function PublicServicePage() {
     <div className="min-h-screen bg-background">
       <header className="border-b border-white/5 bg-background/80 backdrop-blur-xl sticky top-0 z-50">
         <div className="container mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <img src={logoUrl} alt="DeskTown" className="h-9 w-9" />
+          <div className="flex items-center gap-4">
+            <img src={logoUrl} alt="DeskTown" className="h-11 w-11" />
             <span className="text-lg font-bold gradient-text">DeskTown</span>
           </div>
           {service.office && (
