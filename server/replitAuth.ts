@@ -7,7 +7,11 @@ import session from "express-session";
 import type { Express, RequestHandler } from "express";
 import memoize from "memoizee";
 import connectPg from "connect-pg-simple";
+import { scrypt, timingSafeEqual } from "crypto";
+import { promisify } from "util";
 import { storage } from "./storage.ts";
+
+const scryptAsync = promisify(scrypt);
 
 const getOidcConfig = memoize(
   async () => {
@@ -71,6 +75,18 @@ async function upsertUser(claims: any) {
     status: "online",
     lastSeenAt: new Date(),
   });
+}
+
+async function comparePassword(supplied: string, stored?: string | null): Promise<boolean> {
+  if (!stored) return false;
+  const parts = stored.split(".");
+  if (parts.length !== 2) {
+    return supplied === stored;
+  }
+  const [hashed, salt] = parts;
+  const hashedBuf = Buffer.from(hashed, "hex");
+  const suppliedBuf = (await scryptAsync(supplied, salt, 64)) as Buffer;
+  return timingSafeEqual(hashedBuf, suppliedBuf);
 }
 
 export async function setupAuth(app: Express) {
@@ -274,7 +290,9 @@ export async function setupAuth(app: Express) {
             }
         }
 
-        if (!user || user.password !== password) {
+        const isPasswordValid = await comparePassword(password, user?.password);
+
+        if (!user || !isPasswordValid) {
           console.warn(`[Auth] Login failed. User exists: ${!!user}, Password Match: ${user?.password === password}`);
           return res.status(401).json({ message: "Invalid username or password" });
         }
