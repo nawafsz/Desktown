@@ -3736,10 +3736,28 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
         return res.status(400).json({ message: "Name and email are required" });
       }
 
-      // Check if job exists and is published
       const job = await storage.getJobPosting(jobId);
       if (!job || job.status !== 'published') {
         return res.status(404).json({ message: "Job posting not found" });
+      }
+
+      let applicantUserId: string | null = null;
+      try {
+        const normalizedEmail = email.toLowerCase();
+        const existingApplicant = await storage.getUserByEmail(normalizedEmail);
+        if (existingApplicant) {
+          applicantUserId = existingApplicant.id;
+        } else {
+          const newApplicant = await storage.upsertUser({
+            email: normalizedEmail,
+            firstName: fullName,
+            role: "visitor",
+            status: "offline",
+          } as any);
+          applicantUserId = newApplicant.id;
+        }
+      } catch (applicantError) {
+        console.error("Failed to upsert applicant user for job application:", applicantError);
       }
 
       // Try to find office for this creator to link the service request

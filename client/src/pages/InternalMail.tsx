@@ -97,6 +97,17 @@ export default function InternalMail() {
     queryKey: ["/api/users"],
   });
 
+  const extractApplicantEmail = (body: string): string | null => {
+    const lines = body.split("\n");
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (trimmed.toLowerCase().startsWith("email:")) {
+        return trimmed.substring(6).trim();
+      }
+    }
+    return null;
+  };
+
   const invalidateAllEmailQueries = () => {
     queryClient.invalidateQueries({ queryKey: ["/api/emails/inbox"] });
     queryClient.invalidateQueries({ queryKey: ["/api/emails/sent"] });
@@ -448,8 +459,24 @@ export default function InternalMail() {
                     <Button
                       onClick={() => {
                         const replyPrefix = language === 'ar' ? 'رد: ' : 'Re: ';
+                        let recipientId = selectedEmail.senderId;
+
+                        if (selectedEmail.subject?.startsWith("New Job Application") && selectedEmail.body) {
+                          const applicantEmail = extractApplicantEmail(selectedEmail.body);
+                          if (applicantEmail) {
+                            const applicantUser = users.find(
+                              (u) =>
+                                u.email &&
+                                u.email.toLowerCase() === applicantEmail.toLowerCase()
+                            );
+                            if (applicantUser) {
+                              recipientId = applicantUser.id;
+                            }
+                          }
+                        }
+
                         setComposeData({
-                          recipientId: selectedEmail.senderId,
+                          recipientId,
                           subject: `${replyPrefix}${selectedEmail.subject}`,
                           body: "",
                           isDraft: false,
