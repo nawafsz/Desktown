@@ -7,7 +7,7 @@ import session from "express-session";
 import type { Express, RequestHandler } from "express";
 import memoize from "memoizee";
 import connectPg from "connect-pg-simple";
-import { scrypt, timingSafeEqual } from "crypto";
+import { randomBytes, scrypt, timingSafeEqual } from "crypto";
 import { promisify } from "util";
 import { storage } from "./storage.ts";
 
@@ -75,6 +75,12 @@ async function upsertUser(claims: any) {
     status: "online",
     lastSeenAt: new Date(),
   });
+}
+
+async function hashPassword(password: string): Promise<string> {
+  const salt = randomBytes(16).toString("hex");
+  const buf = (await scryptAsync(password, salt, 64)) as Buffer;
+  return `${buf.toString("hex")}.${salt}`;
 }
 
 async function comparePassword(supplied: string, stored?: string | null): Promise<boolean> {
@@ -332,6 +338,60 @@ export async function setupAuth(app: Express) {
       } catch (err) {
         console.error("Login POST error:", err);
         return res.status(500).json({ message: "Login failed due to server error" });
+      }
+    });
+
+    app.post("/api/register", async (req, res) => {
+      try {
+        const { username, password, email, firstName, lastName, interests, role } = req.body;
+
+        if (!username || !password || !email) {
+          return res.status(400).json({ message: "Missing required fields" });
+        }
+
+        const existingUser =
+          (await storage.getUserByEmail(email)) || (await storage.getUserByUsername(username));
+
+        if (existingUser) {
+          return res.status(400).json({ message: "User already exists" });
+        }
+
+        const allowedRoles = ["member", "visitor", "office_renter"];
+        const userRole = role && allowedRoles.includes(role) ? role : "member";
+
+        const hashedPassword = await hashPassword(password);
+
+        const newUser = await storage.upsertUser({
+          username,
+          email,
+          password: hashedPassword,
+          firstName: firstName || username,
+          lastName: lastName || "",
+          role: userRole,
+          status: "online",
+          interests: interests || null,
+          profileImageUrl: `https://ui-avatars.com/api/?name=${username}&background=random`,
+        } as any);
+
+        req.logIn(
+          {
+            claims: {
+              sub: newUser.id,
+              email: newUser.email,
+              first_name: newUser.firstName,
+              last_name: newUser.lastName,
+              profile_image_url: newUser.profileImageUrl,
+              role: newUser.role,
+              exp: Math.floor(Date.now() / 1000) + 7 * 24 * 60 * 60,
+            },
+          } as any,
+          (err) => {
+            if (err) return res.status(500).json({ message: `LOGIN_FAIL: ${err.message}` });
+            res.status(201).json({ message: "Registered successfully", user: newUser });
+          }
+        );
+      } catch (error: any) {
+        res.status(500).json({ message: `REG_CRASH: ${error.message}` });
       }
     });
 
