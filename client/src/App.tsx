@@ -199,6 +199,7 @@ function AuthenticatedRouter({ userRole }: { userRole: string | null | undefined
       <Route path="/inventory-management" component={InventoryManagement} />
       <Route path="/ai-assistant" component={AiAssistant} />
       <Route path="/subscription" component={Subscription} />
+      <Route path="/my-subscriptions" component={MySubscriptions} />
       <Route path="/office/:slug" component={OfficeDetail} />
       <Route path="/offices" component={Storefront} />
       <Route path="/employees" component={Team} />

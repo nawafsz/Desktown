@@ -81,7 +81,7 @@ const navigationItems: NavItem[] = [
   { titleKey: "myOffice", url: "/my-office", icon: Store, categoryKey: "businessServices", allowedRoles: ["office_renter"] },
   { titleKey: "myServices", url: "/my-services", icon: Package, categoryKey: "businessServices", allowedRoles: ["office_renter"] },
   { titleKey: "paidServices", url: "/paid-services", icon: CreditCard, categoryKey: "businessServices", allowedRoles: ["office_renter"] },
-  { titleKey: "mySubscriptions", url: "/my-subscriptions", icon: DollarSign, categoryKey: "businessServices", allowedRoles: ["office_renter"] },
+  { titleKey: "mySubscriptions", url: "/my-subscriptions", icon: DollarSign, categoryKey: "account", allowedRoles: ["member", "manager", "admin", "office_renter"] },
   { titleKey: "aiAssistant", url: "/ai-assistant", icon: BrainCircuit, categoryKey: "businessServices", allowedRoles: ["office_renter", "manager", "admin"] },
   // Hidden from main sidebar, accessed via Departments page
   // { titleKey: "financialAccounting", url: "/financial-accounting", icon: Calculator, categoryKey: "businessServices", allowedRoles: ["office_renter", "manager", "admin"] },
