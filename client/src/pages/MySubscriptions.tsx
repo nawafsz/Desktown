@@ -106,8 +106,8 @@ export default function MySubscriptions() {
                 <div>
                   <CardTitle className="text-2xl flex items-center gap-2">
                     {subscription.plan === 'vip' ? 'VIP Plan' : 'Standard Plan'}
-                    <Badge variant="outline" className={getStatusColor(subscription.status)}>
-                      {getStatusText(subscription.status)}
+                    <Badge variant="outline" className={getStatusColor(subscription.status || 'pending')}>
+                      {getStatusText(subscription.status || 'pending')}
                     </Badge>
                   </CardTitle>
                   <CardDescription className="mt-2">
@@ -118,10 +118,10 @@ export default function MySubscriptions() {
                 </div>
                 <div className="text-right">
                   <div className="text-2xl font-bold text-primary">
-                    {subscription.amount} SAR
+                    {subscription.totalPrice} SAR
                   </div>
                   <div className="text-sm text-muted-foreground">
-                    /{subscription.interval === 'year' ? (language === 'ar' ? 'سنة' : 'year') : (language === 'ar' ? 'شهر' : 'month')}
+                    /{subscription.billingCycle === 'yearly' ? (language === 'ar' ? 'سنة' : 'year') : (language === 'ar' ? 'شهر' : 'month')}
                   </div>
                 </div>
               </div>
@@ -199,7 +199,7 @@ export default function MySubscriptions() {
             <CardContent>
               <div className="space-y-4">
                 {[
-                  { date: subscription.startDate, amount: subscription.amount, status: 'Paid' },
+                  { date: subscription.startDate, amount: subscription.totalPrice, status: 'Paid' },
                 ].map((invoice, i) => (
                   <div key={i} className="flex justify-between items-center p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors">
                     <div className="space-y-1">
@@ -220,7 +220,7 @@ export default function MySubscriptions() {
               </div>
             </CardContent>
             <CardFooter>
-              <Button variant="link" className="w-full text-muted-foreground">
+              <Button variant="ghost" className="w-full text-muted-foreground">
                 {language === 'ar' ? "عرض كل الفواتير" : "View All Invoices"}
               </Button>
             </CardFooter>

@@ -28,6 +28,7 @@ import MyEmployeeProfile from "@/pages/MyEmployeeProfile";
 import Profile from "@/pages/Profile";
 import FollowUp from "@/pages/FollowUp";
 import Subscription from "@/pages/Subscription";
+import MySubscriptions from "@/pages/MySubscriptions";
 import Advertising from "@/pages/Advertising";
 import N8nSettings from "@/pages/N8nSettings";
 import HumanResources from "@/pages/HumanResources";

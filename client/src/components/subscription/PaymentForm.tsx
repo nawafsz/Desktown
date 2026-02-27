@@ -4,7 +4,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useLanguage } from "@/lib/i18n";
 import { CreditCard, Users, Calendar, Lock, Shield } from "lucide-react";
-import { SiVisa } from "react-icons/si";
 
 interface PaymentFormProps {
   cardDetails: {
@@ -32,7 +31,7 @@ export function PaymentForm({ cardDetails, setCardDetails }: PaymentFormProps) {
             </CardDescription>
           </div>
           <div className="flex gap-2">
-            <SiVisa className="h-8 w-8 text-blue-600" />
+            <CreditCard className="h-8 w-8 text-blue-600" />
             <div className="h-8 w-12 bg-slate-200 rounded flex items-center justify-center text-[10px] font-bold text-slate-500">Mada</div>
           </div>
         </div>

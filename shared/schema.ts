@@ -720,6 +720,7 @@ export type Notification = typeof notifications.$inferSelect;
 export const subscriptions = pgTable("subscriptions", {
   id: serial("id").primaryKey(),
   userId: varchar("user_id").references(() => users.id).notNull(),
+  plan: varchar("plan").default("vip"),
   billingCycle: varchar("billing_cycle").notNull(), // 'monthly' or 'yearly'
   basePrice: integer("base_price").notNull(), // 499 monthly or 3000 yearly in riyals
   addOnCount: integer("add_on_count").default(0),
@@ -729,6 +730,8 @@ export const subscriptions = pgTable("subscriptions", {
   paymentMethod: varchar("payment_method").notNull(), // 'apple_pay', 'visa', 'credit_card'
   status: varchar("status").default("pending"), // 'pending', 'active', 'cancelled', 'expired'
   addOnServices: jsonb("add_on_services").default([]), // Array of selected add-on service keys
+  startDate: timestamp("start_date"),
+  endDate: timestamp("end_date"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

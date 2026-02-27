@@ -35,7 +35,9 @@ import {
   Globe,
   Headphones,
   Lock,
-  Palette
+  Palette,
+  Wallet,
+  Megaphone
 } from "lucide-react";
 import { PaymentForm } from "@/components/subscription/PaymentForm";
 import type { Subscription } from "@shared/schema";
@@ -51,8 +53,8 @@ const ADD_ON_SERVICES = [
 ];
 
 const PAYMENT_METHODS = [
-  { key: "apple_pay", nameKey: "applePay", icon: SiApplepay, descKey: "applePayDesc" },
-  { key: "visa", nameKey: "visa", icon: SiVisa, descKey: "visaDesc" },
+  { key: "apple_pay", nameKey: "applePay", icon: Wallet, descKey: "applePayDesc" },
+  { key: "visa", nameKey: "visa", icon: CreditCard, descKey: "visaDesc" },
   { key: "credit_card", nameKey: "creditCard", icon: CreditCard, descKey: "creditCardDesc" },
 ];
 
