@@ -62,6 +62,7 @@ import { useLanguage, translations } from "@/lib/i18n";
 interface PublicService extends OfficeService {
   officeName: string;
   officeSlug: string | null;
+  subscriptionPlan: string | null;
 }
 
 const requestFormSchema = z.object({
@@ -285,10 +286,18 @@ function ServiceCard({ service }: { service: PublicService }) {
       </div>
       <CardContent className="p-5 flex flex-col flex-1">
         <h3 className="font-semibold text-base mb-1 line-clamp-1">{service.title}</h3>
-        <p className={`text-xs text-muted-foreground mb-3 flex items-center gap-1`}>
-          <Building2 className="h-3 w-3" />
-          {service.officeName}
-        </p>
+        <div className={`text-xs text-muted-foreground mb-3 flex items-center gap-2`}>
+          <div className="flex items-center gap-1">
+            <Building2 className="h-3 w-3" />
+            {service.officeName}
+          </div>
+          {service.subscriptionPlan === 'vip' && (
+            <Badge className="bg-gradient-to-r from-yellow-500 to-amber-600 text-white border-0 hover:from-yellow-600 hover:to-amber-700 shadow-sm h-4 px-1 text-[10px]">
+              <Star className={`h-2 w-2 fill-current ${isRTL ? 'ml-1' : 'mr-1'}`} />
+              VIP
+            </Badge>
+          )}
+        </div>
         <p className="text-sm text-muted-foreground line-clamp-2 mb-4 flex-1">
           {service.description || (language === 'ar' ? "خدمة احترافية مقدمة من مكتبنا الشريك." : "Professional service provided by our partner office.")}
         </p>

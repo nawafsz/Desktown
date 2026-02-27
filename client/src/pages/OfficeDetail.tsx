@@ -803,7 +803,15 @@ export default function OfficeDetail() {
               </AvatarFallback>
             </Avatar>
             <div className="mb-2">
-              <h1 className="text-3xl font-bold">{office.name}</h1>
+              <div className="flex items-center gap-2">
+                <h1 className="text-3xl font-bold">{office.name}</h1>
+                {office.subscriptionPlan === 'vip' && (
+                  <Badge className="bg-gradient-to-r from-yellow-500 to-amber-600 text-white border-0 hover:from-yellow-600 hover:to-amber-700 shadow-sm h-6 px-2 text-xs">
+                    <Star className={`h-3 w-3 fill-current ${isRTL ? 'ml-1' : 'mr-1'}`} />
+                    VIP
+                  </Badge>
+                )}
+              </div>
               <div className="flex items-center gap-4 mt-2 text-sm">
                 {office.category && (
                   <Badge variant="secondary">{office.category}</Badge>

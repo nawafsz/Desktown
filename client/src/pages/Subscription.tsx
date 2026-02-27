@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
@@ -36,7 +37,7 @@ import {
   Lock,
   Palette
 } from "lucide-react";
-import { SiApplepay, SiVisa } from "react-icons/si";
+import { PaymentForm } from "@/components/subscription/PaymentForm";
 import type { Subscription } from "@shared/schema";
 
 const ADD_ON_SERVICES = [
@@ -64,7 +65,13 @@ export default function Subscription() {
   
   const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("monthly");
   const [selectedAddOns, setSelectedAddOns] = useState<string[]>([]);
-  const [paymentMethod, setPaymentMethod] = useState<string>("apple_pay");
+  const [paymentMethod, setPaymentMethod] = useState<string>("credit_card");
+  const [cardDetails, setCardDetails] = useState({
+    number: "",
+    name: "",
+    cvv: "",
+    expiry: ""
+  });
   const [step, setStep] = useState<1 | 2>(1);
 
   const formatCurrency = (amount: number) => {
@@ -77,20 +84,29 @@ export default function Subscription() {
 
   const getPricing = () => ({
     monthly: {
-      base: 499,
-      addOn: 50,
-      label: t.subscription?.monthly || "Monthly",
+      base: 99,
+      addOn: 0,
+      label: "VIP",
       period: t.subscription?.perMonth || "/month",
       savings: null
     },
     yearly: {
-      base: 3000,
-      addOn: 200,
-      label: t.subscription?.yearly || "Yearly",
+      base: 999, // 99 * 10 (2 months free roughly)
+      addOn: 0,
+      label: "VIP Yearly",
       period: t.subscription?.perYear || "/year",
-      savings: `${t.subscription?.save || "Save"} 2,988 SAR`
+      savings: `${t.subscription?.save || "Save"} 189 SAR`
     }
   });
+
+  const VIP_FEATURES = [
+    { icon: Building2, label: { ar: "أقسام غير محدودة", en: "Unlimited Departments" } },
+    { icon: MessageSquare, label: { ar: "نظام الشوت بوت (المساعد الذكي)", en: "AI Chatbot Assistant" } },
+    { icon: Headphones, label: { ar: "الدعم الفني المميز", en: "Premium Support" } },
+    { icon: Zap, label: { ar: "نظام الأتمته n8n", en: "n8n Automation System" } },
+    { icon: Megaphone, label: { ar: "أعلاناتك بالصفحة الرئيسية", en: "Homepage Ads Placement" } },
+  ];
+
 
   const getAddOnServiceName = (nameKey: string) => {
     const names: Record<string, { en: string; ar: string }> = {
@@ -183,6 +199,17 @@ export default function Subscription() {
   };
 
   const handleSubscribe = () => {
+    if (step === 2 && paymentMethod === 'credit_card') {
+      if (!cardDetails.number || !cardDetails.name || !cardDetails.cvv || !cardDetails.expiry) {
+        toast({
+          title: language === 'ar' ? "خطأ" : "Error",
+          description: language === 'ar' ? "يرجى تعبئة جميع بيانات البطاقة" : "Please fill in all card details",
+          variant: "destructive"
+        });
+        return;
+      }
+    }
+
     createSubscription.mutate({
       billingCycle,
       basePrice,
@@ -192,6 +219,7 @@ export default function Subscription() {
       currency: "SAR",
       paymentMethod,
       addOnServices: selectedAddOns,
+      cardDetails: paymentMethod === 'credit_card' ? { ...cardDetails } : undefined
     });
   };
 
@@ -207,7 +235,7 @@ export default function Subscription() {
     );
   }
 
-  if (existingSubscription) {
+  if (existingSubscription && existingSubscription.plan === 'vip') {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4" dir={isRTL ? 'rtl' : 'ltr'}>
         <Card className="max-w-md w-full text-center">
@@ -215,9 +243,9 @@ export default function Subscription() {
             <div className="w-16 h-16 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mx-auto mb-4">
               <Check className="h-8 w-8 text-green-600" />
             </div>
-            <CardTitle>{t.subscription?.activeSubscription || "Already Subscribed"}</CardTitle>
+            <CardTitle>{t.subscription?.activeSubscription || "VIP Active"}</CardTitle>
             <CardDescription>
-              {t.subscription?.alreadySubscribed || "You already have an active subscription. Continue to your workspace."}
+              {t.subscription?.alreadySubscribed || "You are already a VIP member. Enjoy your exclusive benefits."}
             </CardDescription>
           </CardHeader>
           <CardFooter className="justify-center">
@@ -271,305 +299,163 @@ export default function Subscription() {
         </div>
 
         {step === 1 && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2 space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">
-                    {language === 'ar' ? "اختر دورة الفوترة" : "Select Billing Cycle"}
+          <div className="grid grid-cols-1 gap-6">
+            <div className="space-y-6">
+              <Card className="border-2 border-yellow-500/50 shadow-2xl overflow-hidden relative transform hover:scale-[1.01] transition-transform duration-300">
+                <div className="absolute top-0 right-0 p-4 z-10">
+                  <Badge className="bg-gradient-to-r from-yellow-500 to-amber-600 text-white border-0 px-4 py-1 text-lg font-bold shadow-lg animate-pulse">
+                    VIP
+                  </Badge>
+                </div>
+                <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/5 via-transparent to-transparent pointer-events-none" />
+                
+                <CardHeader className="text-center pb-2">
+                  <CardTitle className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-yellow-600 to-amber-700">
+                    {language === 'ar' ? "باقة التميز" : "VIP Package"}
                   </CardTitle>
-                  <CardDescription>
-                    {language === 'ar' ? "اختر عدد مرات الفوترة" : "Choose how often you'd like to be billed"}
+                  <CardDescription className="text-lg font-medium text-yellow-600/80">
+                    {language === 'ar' ? "ارتقِ بمكتبك إلى مستوى جديد" : "Take your office to the next level"}
                   </CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <RadioGroup 
-                    value={billingCycle} 
-                    onValueChange={(v) => setBillingCycle(v as "monthly" | "yearly")}
-                    className="grid grid-cols-1 sm:grid-cols-2 gap-4"
-                  >
-                    <div className="relative">
-                      <RadioGroupItem value="monthly" id="monthly" className="peer sr-only" />
-                      <Label 
-                        htmlFor="monthly" 
-                        className="flex flex-col items-center justify-between rounded-lg border-2 border-muted bg-popover p-4 hover-elevate cursor-pointer peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary"
-                        data-testid="radio-monthly"
-                      >
-                        <div className="text-center">
-                          <p className="text-2xl font-bold">{formatCurrency(499)} <span className="text-sm font-normal text-muted-foreground">SAR</span></p>
-                          <p className="text-muted-foreground text-sm">{t.subscription?.perMonth || "per month"}</p>
-                        </div>
-                      </Label>
-                    </div>
-                    
-                    <div className="relative">
-                      <RadioGroupItem value="yearly" id="yearly" className="peer sr-only" />
-                      <Label 
-                        htmlFor="yearly" 
-                        className="flex flex-col items-center justify-between rounded-lg border-2 border-muted bg-popover p-4 hover-elevate cursor-pointer peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary"
-                        data-testid="radio-yearly"
-                      >
-                        <Badge className={`absolute -top-2 ${isRTL ? 'left-2' : 'right-2'}`} variant="default">
-                          {language === 'ar' ? "أفضل قيمة" : "Best Value"}
-                        </Badge>
-                        <div className="text-center">
-                          <p className="text-2xl font-bold">{formatCurrency(3000)} <span className="text-sm font-normal text-muted-foreground">SAR</span></p>
-                          <p className="text-muted-foreground text-sm">{t.subscription?.perYear || "per year"}</p>
-                          <p className="text-xs text-green-600 dark:text-green-400 mt-1">
-                            {t.subscription?.save || "Save"} {formatCurrency(2988)} SAR
-                          </p>
-                        </div>
-                      </Label>
-                    </div>
-                  </RadioGroup>
-                </CardContent>
-              </Card>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">{t.subscription?.addOns || "Add-On Services"}</CardTitle>
-                  <CardDescription>
-                    {language === 'ar' ? "عزز مكتبك بميزات إضافية" : "Enhance your office with additional features"}
-                    <Badge variant="secondary" className={isRTL ? "mr-2" : "ml-2"}>
-                      {billingCycle === "monthly" 
-                        ? (language === 'ar' ? "50 ريال/شهر لكل خدمة" : "50 SAR/month each")
-                        : (language === 'ar' ? "200 ريال/سنة لكل خدمة" : "200 SAR/year each")}
-                    </Badge>
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {ADD_ON_SERVICES.map((service) => (
-                      <div
-                        key={service.key}
-                        className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer hover-elevate transition-colors ${
-                          selectedAddOns.includes(service.key) 
-                            ? 'border-primary bg-primary/5' 
-                            : 'border-border'
-                        }`}
-                        onClick={() => toggleAddOn(service.key)}
-                        data-testid={`addon-${service.key}`}
-                      >
-                        <Checkbox 
-                          checked={selectedAddOns.includes(service.key)}
-                          onCheckedChange={() => toggleAddOn(service.key)}
-                          className="mt-0.5"
-                        />
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <service.icon className="h-4 w-4 text-primary" />
-                            <span className="font-medium text-sm">{getAddOnServiceName(service.nameKey)}</span>
-                          </div>
-                          <p className="text-xs text-muted-foreground mt-0.5">{getAddOnServiceDesc(service.descKey)}</p>
-                        </div>
-                      </div>
-                    ))}
+                <CardContent className="grid md:grid-cols-2 gap-8 p-8">
+                  <div className="space-y-6">
+                    <div className="space-y-4">
+                      <h3 className="font-semibold text-lg flex items-center gap-2">
+                        <Zap className="h-5 w-5 text-yellow-500" />
+                        {language === 'ar' ? "مميزات الباقة" : "Package Features"}
+                      </h3>
+                      <ul className="space-y-3">
+                        {VIP_FEATURES.map((feature, idx) => (
+                          <li key={idx} className="flex items-center gap-3 text-sm md:text-base">
+                            <div className="p-2 rounded-full bg-yellow-100 dark:bg-yellow-900/20 text-yellow-600 dark:text-yellow-400">
+                              <feature.icon className="h-4 w-4" />
+                            </div>
+                            <span>{language === 'ar' ? feature.label.ar : feature.label.en}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
                   </div>
-                </CardContent>
-              </Card>
-            </div>
 
-            <div className="lg:col-span-1">
-              <Card className="sticky top-24">
-                <CardHeader>
-                  <CardTitle className="text-lg">
-                    {language === 'ar' ? "ملخص الطلب" : "Order Summary"}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <span className="text-muted-foreground">
-                      {t.subscription?.basePlan || "Base Plan"} ({pricing.label})
-                    </span>
-                    <span className="font-medium">{formatCurrency(basePrice)} SAR</span>
-                  </div>
-                  
-                  {selectedAddOns.length > 0 && (
-                    <div className="flex justify-between items-center">
-                      <span className="text-muted-foreground">
-                        {t.subscription?.addOns || "Add-ons"} ({selectedAddOns.length})
+                  <div className="flex flex-col justify-center space-y-6 bg-muted/30 p-6 rounded-xl border border-border/50">
+                    <div className="text-center space-y-2">
+                      <span className="text-sm text-muted-foreground uppercase tracking-wider font-semibold">
+                        {language === 'ar' ? "سعر الباقة" : "Package Price"}
                       </span>
-                      <span className="font-medium">{formatCurrency(addOnPrice)} SAR</span>
+                      <div className="flex items-baseline justify-center gap-1">
+                        <span className="text-5xl font-bold text-primary">99</span>
+                        <span className="text-xl text-muted-foreground">SAR</span>
+                        <span className="text-muted-foreground">/ {language === 'ar' ? "شهر" : "mo"}</span>
+                      </div>
                     </div>
-                  )}
-                  
-                  <Separator />
-                  
-                  <div className="flex justify-between items-center">
-                    <span className="font-semibold">{t.subscription?.totalPrice || "Total"}</span>
-                    <div className={isRTL ? "text-left" : "text-right"}>
-                      <p className="text-2xl font-bold text-primary">{formatCurrency(totalPrice)} SAR</p>
-                      <p className="text-xs text-muted-foreground">{pricing.period}</p>
-                    </div>
-                  </div>
 
-                  {billingCycle === "yearly" && (
-                    <div className="bg-green-50 dark:bg-green-900/20 p-3 rounded-lg">
-                      <p className="text-sm text-green-700 dark:text-green-400 flex items-center gap-2">
-                        <Check className="h-4 w-4" />
-                        {language === 'ar' 
-                          ? `أنت توفر ${formatCurrency(2988)} ريال مع الفوترة السنوية`
-                          : `You're saving ${formatCurrency(2988)} SAR with yearly billing`}
-                      </p>
-                    </div>
-                  )}
+                    <RadioGroup 
+                      value={billingCycle} 
+                      onValueChange={(v) => setBillingCycle(v as "monthly" | "yearly")}
+                      className="grid grid-cols-2 gap-4"
+                    >
+                      <div className="relative">
+                        <RadioGroupItem value="monthly" id="monthly" className="peer sr-only" />
+                        <Label 
+                          htmlFor="monthly" 
+                          className="flex flex-col items-center justify-center rounded-lg border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 cursor-pointer transition-all"
+                        >
+                          <span className="font-semibold">{language === 'ar' ? "شهري" : "Monthly"}</span>
+                          <span className="text-sm text-muted-foreground">99 SAR</span>
+                        </Label>
+                      </div>
+                      
+                      <div className="relative">
+                        <RadioGroupItem value="yearly" id="yearly" className="peer sr-only" />
+                        <Label 
+                          htmlFor="yearly" 
+                          className="flex flex-col items-center justify-center rounded-lg border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 cursor-pointer transition-all"
+                        >
+                          <Badge className="absolute -top-2 -right-2 bg-green-600 hover:bg-green-700 text-[10px] px-1.5 h-5">
+                            -16%
+                          </Badge>
+                          <span className="font-semibold">{language === 'ar' ? "سنوي" : "Yearly"}</span>
+                          <span className="text-sm text-muted-foreground">999 SAR</span>
+                        </Label>
+                      </div>
+                    </RadioGroup>
+
+                    <Button 
+                      className="w-full h-12 text-lg font-bold bg-gradient-to-r from-yellow-500 to-amber-600 hover:from-yellow-600 hover:to-amber-700 text-white shadow-lg shadow-yellow-500/20"
+                      onClick={() => setStep(2)}
+                    >
+                      {language === 'ar' ? "اشترك الآن" : "Subscribe Now"}
+                      <ArrowIcon className={`h-5 w-5 ${iconMarginStart}`} />
+                    </Button>
+                  </div>
                 </CardContent>
-                <CardFooter>
-                  <Button 
-                    className="w-full" 
-                    size="lg"
-                    onClick={() => setStep(2)}
-                    data-testid="button-continue-to-payment"
-                  >
-                    {t.subscription?.continue || "Continue to Payment"}
-                    <ArrowIcon className={`h-4 w-4 ${iconMarginStart}`} />
-                  </Button>
-                </CardFooter>
               </Card>
+
+              {/* Keep add-ons if needed, but maybe hide for VIP focus or make them included? 
+                  The prompt implies specific features are included. I'll hide the add-ons section for now to focus on the requested design.
+              */}
             </div>
           </div>
         )}
 
         {step === 2 && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">{t.subscription?.paymentMethod || "Select Payment Method"}</CardTitle>
-                  <CardDescription>
-                    {language === 'ar' ? "اختر طريقة الدفع" : "Choose how you'd like to pay"}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <RadioGroup 
-                    value={paymentMethod} 
-                    onValueChange={setPaymentMethod}
-                    className="space-y-3"
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-in fade-in slide-in-from-right-4 duration-500">
+            <div className="lg:col-span-2 space-y-6">
+              <PaymentForm 
+                cardDetails={cardDetails} 
+                setCardDetails={setCardDetails} 
+              />
+              
+              <div className="flex justify-between border-t bg-muted/20 p-6 rounded-lg">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setStep(1)}
+                    className="h-11 px-6"
                   >
-                    {PAYMENT_METHODS.map((method) => (
-                      <div key={method.key} className="relative">
-                        <RadioGroupItem value={method.key} id={method.key} className="peer sr-only" />
-                        <Label 
-                          htmlFor={method.key} 
-                          className="flex items-center gap-4 rounded-lg border-2 border-muted bg-popover p-4 hover-elevate cursor-pointer peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary"
-                          data-testid={`payment-${method.key}`}
-                        >
-                          <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center">
-                            <method.icon className="h-6 w-6" />
-                          </div>
-                          <div className="flex-1">
-                            <p className="font-medium">{getPaymentMethodName(method.nameKey)}</p>
-                            <p className="text-sm text-muted-foreground">{getPaymentMethodDesc(method.descKey)}</p>
-                          </div>
-                          {paymentMethod === method.key && (
-                            <Check className="h-5 w-5 text-primary" />
-                          )}
-                        </Label>
-                      </div>
-                    ))}
-                  </RadioGroup>
-
-                  <div className="mt-6 p-4 bg-muted/50 rounded-lg">
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Shield className="h-4 w-4" />
-                      <span>
-                        {language === 'ar' 
-                          ? "معلومات الدفع الخاصة بك مشفرة وآمنة"
-                          : "Your payment information is encrypted and secure"}
-                      </span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <div className="mt-4">
-                <Button 
-                  variant="ghost" 
-                  onClick={() => setStep(1)}
-                  data-testid="button-back-to-plan"
-                >
-                  {t.subscription?.back || "Back to Plan Selection"}
-                </Button>
-              </div>
+                    <ArrowIcon className={`h-4 w-4 ${iconMarginEnd} rotate-180`} />
+                    {language === 'ar' ? "رجوع" : "Back"}
+                  </Button>
+                  <Button 
+                    className="h-11 px-8 bg-primary hover:bg-primary/90"
+                    onClick={handleSubscribe}
+                    disabled={createSubscription.isPending}
+                  >
+                    {createSubscription.isPending ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                        {language === 'ar' ? "جاري المعالجة..." : "Processing..."}
+                      </>
+                    ) : (
+                      <>
+                        {language === 'ar' ? `ادفع ${formatCurrency(totalPrice)} ريال` : `Pay ${formatCurrency(totalPrice)} SAR`}
+                        <CreditCard className="ml-2 h-4 w-4" />
+                      </>
+                    )}
+                  </Button>
+                </div>
             </div>
 
             <div className="lg:col-span-1">
-              <Card className="sticky top-24">
-                <CardHeader>
+              <Card className="sticky top-24 border-dashed">
+                <CardHeader className="pb-2">
                   <CardTitle className="text-lg">
                     {language === 'ar' ? "ملخص الطلب" : "Order Summary"}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="flex justify-between items-center">
+                  <div className="flex justify-between items-center text-sm">
                     <span className="text-muted-foreground">
                       {t.subscription?.basePlan || "Base Plan"} ({pricing.label})
                     </span>
                     <span className="font-medium">{formatCurrency(basePrice)} SAR</span>
                   </div>
-                  
-                  {selectedAddOns.length > 0 && (
-                    <>
-                      <div className="flex justify-between items-center">
-                        <span className="text-muted-foreground">
-                          {t.subscription?.addOns || "Add-ons"} ({selectedAddOns.length})
-                        </span>
-                        <span className="font-medium">{formatCurrency(addOnPrice)} SAR</span>
-                      </div>
-                      <div className={isRTL ? "pr-4 space-y-1" : "pl-4 space-y-1"}>
-                        {selectedAddOns.map(key => {
-                          const service = ADD_ON_SERVICES.find(s => s.key === key);
-                          return (
-                            <p key={key} className="text-xs text-muted-foreground flex items-center gap-1">
-                              <Check className="h-3 w-3 text-green-500" />
-                              {service ? getAddOnServiceName(service.nameKey) : key}
-                            </p>
-                          );
-                        })}
-                      </div>
-                    </>
-                  )}
-                  
                   <Separator />
-                  
                   <div className="flex justify-between items-center">
-                    <span className="font-semibold">{t.subscription?.totalPrice || "Total"}</span>
-                    <div className={isRTL ? "text-left" : "text-right"}>
-                      <p className="text-2xl font-bold text-primary">{formatCurrency(totalPrice)} SAR</p>
-                      <p className="text-xs text-muted-foreground">{pricing.period}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <span>{language === 'ar' ? "الدفع عبر:" : "Payment via:"}</span>
-                    <Badge variant="secondary">
-                      {PAYMENT_METHODS.find(m => m.key === paymentMethod) 
-                        ? getPaymentMethodName(PAYMENT_METHODS.find(m => m.key === paymentMethod)!.nameKey)
-                        : paymentMethod}
-                    </Badge>
+                    <span className="font-bold">{t.subscription?.totalPrice || "Total"}</span>
+                    <span className="text-xl font-bold text-primary">{formatCurrency(totalPrice)} SAR</span>
                   </div>
                 </CardContent>
-                <CardFooter>
-                  <Button 
-                    className="w-full" 
-                    size="lg"
-                    onClick={handleSubscribe}
-                    disabled={createSubscription.isPending}
-                    data-testid="button-subscribe"
-                  >
-                    {createSubscription.isPending ? (
-                      <>
-                        <Loader2 className={`h-4 w-4 animate-spin ${iconMarginEnd}`} />
-                        {t.subscription?.processing || "Processing..."}
-                      </>
-                    ) : (
-                      <>
-                        {t.subscription?.subscribe || "Subscribe Now"}
-                        <ArrowIcon className={`h-4 w-4 ${iconMarginStart}`} />
-                      </>
-                    )}
-                  </Button>
-                </CardFooter>
               </Card>
             </div>
           </div>

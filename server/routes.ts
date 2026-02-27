@@ -2776,6 +2776,10 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
         status: 'active', // Mock: Set to active immediately (real implementation would wait for payment confirmation)
       });
       const subscription = await storage.createSubscription(data);
+
+      // Update user's offices to VIP status
+      await storage.updateUserOfficesSubscription(userId, 'vip', 'active');
+
       res.status(201).json(subscription);
     } catch (error: any) {
       if (error.name === 'ZodError') {
@@ -2802,6 +2806,17 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
       }
 
       const updated = await storage.updateSubscription(subscriptionId, req.body);
+      
+      // Update offices based on new subscription status
+      if (updated) {
+        const isActive = updated.status === 'active';
+        await storage.updateUserOfficesSubscription(
+          userId, 
+          isActive ? 'vip' : 'free',
+          updated.status || 'inactive'
+        );
+      }
+
       res.json(updated);
     } catch (error) {
       console.error("Error updating subscription:", error);
@@ -4056,6 +4071,29 @@ ${coverLetter || 'No cover letter provided'}
     }
   });
 
+  // Get single office
+  app.get('/api/offices/:id', isAuthenticated, requireRole("manager", "admin"), async (req: any, res) => {
+    try {
+      const officeId = parseInt(req.params.id);
+      const userId = req.user.claims.sub;
+
+      const office = await storage.getOffice(officeId);
+      if (!office) {
+        return res.status(404).json({ message: "Office not found" });
+      }
+      
+      // Allow if owner or admin, otherwise 403
+      if (office.ownerId !== userId && req.userRole !== 'admin') {
+        return res.status(403).json({ message: "Not authorized" });
+      }
+
+      res.json(office);
+    } catch (error) {
+      console.error("Error fetching office:", error);
+      res.status(500).json({ message: "Failed to fetch office" });
+    }
+  });
+
   // Update office
   app.patch('/api/offices/:id', isAuthenticated, requireRole("manager", "admin"), async (req: any, res) => {
     try {
@@ -4219,6 +4257,17 @@ ${coverLetter || 'No cover letter provided'}
       const office = await storage.getOffice(officeId);
       if (!office || office.ownerId !== userId) {
         return res.status(403).json({ message: "Not authorized" });
+      }
+
+      // Check subscription limits for free plan
+      if (office.subscriptionPlan !== 'vip') {
+        const existingDepartments = await storage.getCompanyDepartments(officeId);
+        if (existingDepartments.length >= 2) {
+          return res.status(403).json({ 
+            message: "Free plan limit reached. Upgrade to VIP to add more departments.",
+            code: "LIMIT_REACHED"
+          });
+        }
       }
 
       const data = insertCompanyDepartmentSchema.parse({

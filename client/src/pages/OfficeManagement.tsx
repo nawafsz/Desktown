@@ -1,3 +1,4 @@
+import { Link } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -63,6 +64,7 @@ import {
   Clock,
   CheckCheck,
   RefreshCw,
+  Lock,
 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useState, useRef, useEffect } from "react";
@@ -859,6 +861,12 @@ function OfficeCard({
               <div>
                 <h3 className="font-semibold truncate">{office.name}</h3>
                 <div className="flex items-center gap-2 mt-1">
+                  {office.subscriptionPlan === 'vip' && (
+                    <Badge className="bg-gradient-to-r from-yellow-500 to-amber-600 text-white border-0 hover:from-yellow-600 hover:to-amber-700 shadow-sm">
+                      <Star className={`h-3 w-3 fill-current ${isRTL ? 'ml-1' : 'mr-1'}`} />
+                      VIP
+                    </Badge>
+                  )}
                   {office.category && (
                     <Badge variant="secondary" className="text-xs capitalize">
                       {office.category}
@@ -948,6 +956,10 @@ function DepartmentsPanel({ officeId }: { officeId: number }) {
     queryKey: ['/api/offices', officeId, 'departments'],
   });
 
+  const { data: office } = useQuery<Office>({ queryKey: ['/api/offices', officeId] });
+  const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
+  const isLimitReached = office?.subscriptionPlan !== 'vip' && departments.length >= 2;
+
   const createDeptMutation = useMutation({
     mutationFn: async (data: Partial<InsertCompanyDepartment>) => {
       return apiRequest('POST', `/api/offices/${officeId}/departments`, data);
@@ -958,8 +970,12 @@ function DepartmentsPanel({ officeId }: { officeId: number }) {
       setAddingDepartment(false);
       setDeptForm({ name: '', nameAr: '', description: '', descriptionAr: '' });
     },
-    onError: () => {
-      toast({ title: language === 'ar' ? 'فشل في إنشاء الإدارة' : 'Failed to create department', variant: 'destructive' });
+    onError: (error: Error) => {
+      if (error.message.includes("LIMIT_REACHED") || error.message.includes("Free plan limit reached")) {
+        setShowUpgradeDialog(true);
+      } else {
+        toast({ title: language === 'ar' ? 'فشل في إنشاء الإدارة' : 'Failed to create department', variant: 'destructive' });
+      }
     },
   });
 
@@ -1002,17 +1018,78 @@ function DepartmentsPanel({ officeId }: { officeId: number }) {
     });
   };
 
+
+
+  const handleAddDepartment = () => {
+    if (isLimitReached) {
+      setShowUpgradeDialog(true);
+    } else {
+      setAddingDepartment(true);
+    }
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold">{t.officeManagement?.departments || "Departments"}</h3>
+        <div className="flex items-center gap-2">
+          <h3 className="text-lg font-semibold">{t.officeManagement?.departments || "Departments"}</h3>
+          {office?.subscriptionPlan !== 'vip' && (
+            <Badge variant="outline" className={departments.length >= 2 ? "text-destructive border-destructive" : "text-muted-foreground"}>
+              {departments.length} / 2
+            </Badge>
+          )}
+        </div>
+        
+        <Dialog open={showUpgradeDialog} onOpenChange={setShowUpgradeDialog}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Star className="h-5 w-5 text-yellow-500 fill-yellow-500" />
+                {language === 'ar' ? 'ترقية إلى VIP' : 'Upgrade to VIP'}
+              </DialogTitle>
+              <DialogDescription className="pt-4 space-y-2">
+                <p className="font-semibold text-lg text-primary">
+                  {language === 'ar' 
+                    ? 'أطلق العنان لإمكانيات مكتبك الكاملة!' 
+                    : 'Unlock your office full potential!'}
+                </p>
+                <p>
+                  {language === 'ar'
+                    ? 'لقد وصلت للحد الأقصى من الأقسام المسموح به في الباقة المجانية (قسمين). اشترك الآن في باقة VIP واستمتع بإنشاء عدد غير محدود من الأقسام وتنظيم هيكلك الإداري بحرية تامة.'
+                    : 'You have reached the maximum number of departments allowed on the free plan (2 departments). Subscribe now to the VIP plan to create unlimited departments and organize your administrative structure with complete freedom.'}
+                </p>
+                <ul className="list-disc list-inside text-sm text-muted-foreground pt-2">
+                  <li>{language === 'ar' ? 'أقسام غير محدودة' : 'Unlimited Departments'}</li>
+                  <li>{language === 'ar' ? 'مساعد ذكي (AI Chatbot)' : 'AI Chatbot Assistant'}</li>
+                  <li>{language === 'ar' ? 'دعم فني مميز' : 'Premium Support'}</li>
+                  <li>{language === 'ar' ? 'نظام أتمتة n8n' : 'n8n Automation'}</li>
+                </ul>
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowUpgradeDialog(false)}>
+                {t.officeManagement?.cancel || "Cancel"}
+              </Button>
+              <Link href="/my-subscriptions">
+                <Button className="bg-gradient-to-r from-yellow-500 to-amber-600 hover:from-yellow-600 hover:to-amber-700 text-white border-0">
+                  {language === 'ar' ? 'اشترك الآن - 99 ر.س/شهر' : 'Subscribe Now - 99 SAR/mo'}
+                </Button>
+              </Link>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        <Button 
+          onClick={handleAddDepartment} 
+          data-testid="button-add-department"
+          variant={isLimitReached ? "outline" : "default"}
+          className={isLimitReached ? "border-yellow-500 text-yellow-600 hover:text-yellow-700 hover:bg-yellow-50" : ""}
+        >
+          {isLimitReached ? <Lock className={`h-4 w-4 ${isRTL ? 'ml-2' : 'mr-2'}`} /> : <Plus className={`h-4 w-4 ${isRTL ? 'ml-2' : 'mr-2'}`} />}
+          {t.officeManagement?.addDepartment || "Add Department"}
+        </Button>
+
         <Dialog open={addingDepartment} onOpenChange={setAddingDepartment}>
-          <DialogTrigger asChild>
-            <Button data-testid="button-add-department">
-              <Plus className={`h-4 w-4 ${isRTL ? 'ml-2' : 'mr-2'}`} />
-              {t.officeManagement?.addDepartment || "Add Department"}
-            </Button>
-          </DialogTrigger>
           <DialogContent className="max-w-lg">
             <DialogHeader>
               <DialogTitle>{t.officeManagement?.addDepartment || "Add Department"}</DialogTitle>
@@ -1085,7 +1162,7 @@ function DepartmentsPanel({ officeId }: { officeId: number }) {
             <FolderTree className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
             <h3 className="font-semibold mb-2">{t.officeManagement?.noDepartments || "No departments yet"}</h3>
             <p className="text-muted-foreground mb-4">{t.officeManagement?.createFirstDepartment || "Create departments to organize your company structure"}</p>
-            <Button onClick={() => setAddingDepartment(true)} data-testid="button-add-first-department">
+            <Button onClick={handleAddDepartment} data-testid="button-add-first-department">
               <Plus className={`h-4 w-4 ${isRTL ? 'ml-2' : 'mr-2'}`} />
               {t.officeManagement?.addDepartment || "Add Department"}
             </Button>
@@ -1939,7 +2016,15 @@ function OfficeManagementPanel({
             <Building2 className="h-5 w-5" />
           </Button>
           <div>
-            <h2 className="text-2xl font-bold">{office.name}</h2>
+            <div className="flex items-center gap-2">
+              <h2 className="text-2xl font-bold">{office.name}</h2>
+              {office.subscriptionPlan === 'vip' && (
+                <Badge className="bg-gradient-to-r from-yellow-500 to-amber-600 text-white border-0 hover:from-yellow-600 hover:to-amber-700 shadow-sm h-5 px-1.5 text-[10px]">
+                  <Star className={`h-3 w-3 fill-current ${isRTL ? 'ml-1' : 'mr-1'}`} />
+                  VIP
+                </Badge>
+              )}
+            </div>
             <p className="text-sm text-muted-foreground">{t.officeManagement?.manageYourOffice || "Manage your office and services"}</p>
           </div>
         </div>

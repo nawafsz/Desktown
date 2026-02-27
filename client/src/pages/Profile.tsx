@@ -13,7 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { UserAvatar } from "@/components/UserAvatar";
 import { ObjectUploader } from "@/components/ObjectUploader";
 import { 
-  Building2, Check, Plus, X, Home, Briefcase, Play, UserCircle, Edit
+  Building2, Check, Plus, X, Home, Briefcase, Play, UserCircle, Edit, Star
 } from "lucide-react";
 import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
@@ -26,7 +26,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { User } from "@shared/schema";
+import type { User, Subscription } from "@shared/schema";
 
 interface Profile {
   id: number;
@@ -60,6 +60,10 @@ export default function Profile() {
 
   const { data: profile, isLoading: profileLoading } = useQuery<Profile>({
     queryKey: ["/api/profile"],
+  });
+
+  const { data: subscription } = useQuery<Subscription>({
+    queryKey: ['/api/subscriptions/active'],
   });
 
   const updateProfileMutation = useMutation({
@@ -280,7 +284,15 @@ export default function Profile() {
               <div className="space-y-4">
                  <div className="flex justify-between items-center border-b border-gray-100 dark:border-gray-800 pb-3">
                     <span className="text-gray-500 text-sm">{language === 'ar' ? 'الاسم' : 'Name'}</span>
-                    <span className="font-semibold text-gray-900 dark:text-white">{officeName || displayName}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold text-gray-900 dark:text-white">{officeName || displayName}</span>
+                      {subscription?.plan === 'vip' && (
+                        <Badge className="bg-gradient-to-r from-yellow-500 to-amber-600 text-white border-0 hover:from-yellow-600 hover:to-amber-700 shadow-sm h-5 px-1.5 text-[10px]">
+                          <Star className={`h-2.5 w-2.5 fill-current ${isRTL ? 'ml-1' : 'mr-1'}`} />
+                          VIP
+                        </Badge>
+                      )}
+                    </div>
                  </div>
                  <div className="flex justify-between items-center border-b border-gray-100 dark:border-gray-800 pb-3">
                     <span className="text-gray-500 text-sm">{language === 'ar' ? 'البريد الإلكتروني' : 'Email'}</span>
@@ -292,9 +304,17 @@ export default function Profile() {
                  </div>
                  <div className="flex justify-between items-center border-b border-gray-100 dark:border-gray-800 pb-3">
                     <span className="text-gray-500 text-sm">{language === 'ar' ? 'حالة الحساب' : 'Account Status'}</span>
-                    <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                      {language === 'ar' ? 'نشط' : 'Active'}
-                    </Badge>
+                    <div className="flex gap-2">
+                      {subscription?.plan === 'vip' && (
+                        <Badge className="bg-gradient-to-r from-yellow-500 to-amber-600 text-white border-0">
+                          <Star className="h-3 w-3 mr-1 fill-current" />
+                          VIP
+                        </Badge>
+                      )}
+                      <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                        {language === 'ar' ? 'نشط' : 'Active'}
+                      </Badge>
+                    </div>
                  </div>
               </div>
             )}

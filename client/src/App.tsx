@@ -329,7 +329,7 @@ function OfficeRenterRouter() {
       <Route path="/hr" component={HumanResources} />
 
       {/* Office Renter Specific */}
-      <Route path="/my-subscriptions" component={Subscription} />
+      <Route path="/my-subscriptions" component={MySubscriptions} />
       <Route path="/office/:slug" component={OfficeDetail} />
       <Route path="/profile" component={Profile} />
       <Route path="/profile/office" component={OfficeProfile} />

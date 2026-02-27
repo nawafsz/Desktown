@@ -273,6 +273,7 @@ export interface IStorage {
   createSubscription(subscription: InsertSubscription): Promise<Subscription>;
   updateSubscription(id: number, subscription: Partial<InsertSubscription>): Promise<Subscription | undefined>;
   getActiveSubscription(userId: string): Promise<Subscription | undefined>;
+  updateUserOfficesSubscription(userId: string, plan: string, status: string): Promise<void>;
 
   // Advertisement operations
   getAdvertisements(): Promise<Advertisement[]>;
@@ -1414,6 +1415,17 @@ export class DatabaseStorage implements IStorage {
     return subscription;
   }
 
+  async updateUserOfficesSubscription(userId: string, plan: string, status: string): Promise<void> {
+    await db
+      .update(offices)
+      .set({ 
+        subscriptionPlan: plan, 
+        subscriptionStatus: status,
+        updatedAt: new Date()
+      })
+      .where(eq(offices.ownerId, userId));
+  }
+
   async getAllSubscriptions(): Promise<Subscription[]> {
     return await db.select().from(subscriptions);
   }
@@ -1711,7 +1723,7 @@ export class DatabaseStorage implements IStorage {
   // =====================
   // Office Service Operations
   // =====================
-  async getAllPublicServices(): Promise<(OfficeService & { officeName: string; officeSlug: string | null })[]> {
+  async getAllPublicServices(): Promise<(OfficeService & { officeName: string; officeSlug: string | null; subscriptionPlan: string | null })[]> {
     const result = await db
       .select({
         id: officeServices.id,
@@ -1729,6 +1741,7 @@ export class DatabaseStorage implements IStorage {
         updatedAt: officeServices.updatedAt,
         officeName: offices.name,
         officeSlug: offices.slug,
+        subscriptionPlan: offices.subscriptionPlan,
       })
       .from(officeServices)
       .innerJoin(offices, eq(officeServices.officeId, offices.id))

@@ -837,6 +837,7 @@ export const offices = pgTable("offices", {
   isPublished: boolean("is_published").default(false),
   approvalStatus: varchar("approval_status").default("pending"), // 'pending', 'approved', 'rejected'
   subscriptionStatus: varchar("subscription_status").default("inactive"), // 'active', 'inactive', 'expired'
+  subscriptionPlan: varchar("subscription_plan").default("free"), // 'free', 'vip'
   contactEmail: varchar("contact_email"),
   contactPhone: varchar("contact_phone"),
   workingHours: varchar("working_hours"),
