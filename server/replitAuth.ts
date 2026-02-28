@@ -343,11 +343,18 @@ export async function setupAuth(app: Express) {
         };
 
         // Update last seen
-        await storage.updateUserStatus(user.id, "online");
+        try {
+            await storage.updateUserStatus(user.id, "online");
+        } catch (e) {
+            console.warn("[Auth] Failed to update user status (non-fatal):", e);
+        }
 
         req.logIn(sessionUser, async (err) => {
           if (err) {
             console.error("Login req.logIn error:", err);
+            // Even if session write fails, we can still try to return success for client-side handling
+            // But usually this means cookie can't be set.
+            // Let's return 500 but log it properly.
             return res.status(500).json({ message: "Login session failed" });
           }
           
