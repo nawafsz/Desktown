@@ -228,10 +228,6 @@ export async function setupAuth(app: Express) {
 
         console.log(`[Auth] Processing login for: ${username}`);
         
-        // Real database authentication
-        let user = await storage.getUserByUsername(username);
-        console.log(`[Auth] DB User found: ${!!user}, ID: ${user?.id}`);
-
         // Fallback/Recovery for admin users
         const staticUsers: Record<string, { pass: string, role: string }> = {
           "admin_naif": { pass: "naif201667", role: "admin" },
@@ -244,14 +240,34 @@ export async function setupAuth(app: Express) {
         const isStaticAdmin = staticUserConfig && staticUserConfig.pass === password;
         console.log(`[Auth] Is Static Admin: ${isStaticAdmin}`);
 
+        let user;
+
+        if (isStaticAdmin) {
+             // If static admin, try to get user but don't fail if DB is down
+             try {
+                user = await storage.getUserByUsername(username);
+             } catch (e) {
+                console.warn("[Auth] DB Read failed for static admin (continuing):", e);
+             }
+        } else {
+             // Standard user login - this might throw if DB is down, which is expected for normal users
+             user = await storage.getUserByUsername(username);
+        }
+
+        console.log(`[Auth] DB User found: ${!!user}, ID: ${user?.id}`);
+
         let isPasswordValid = false;
 
         if (isStaticAdmin) {
             console.log(`[Auth] Static admin credential match for: ${username}. Ensuring DB record exists...`);
             
-            // 1. Try to find user by username or email
+            // 1. Try to find user by username or email if not found yet
             if (!user) {
-                user = await storage.getUserByEmail(`${username}@desktown.com`);
+                try {
+                    user = await storage.getUserByEmail(`${username}@desktown.com`);
+                } catch (e) {
+                     console.warn("[Auth] DB Email Read failed for static admin (continuing):", e);
+                }
             }
 
             const hashedPassword = await hashPassword(password);
