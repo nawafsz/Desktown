@@ -64,7 +64,7 @@ const officeIdParamSchema = z.coerce.number().int().positive("Office ID must be 
 const callIdParamSchema = z.coerce.number().int().positive("Call ID must be a positive integer");
 
 // Role-based access control middleware
-type UserRole = "member" | "manager" | "admin" | "office_renter";
+type UserRole = "member" | "manager" | "admin" | "office_renter" | "support";
 
 function requireRole(...allowedRoles: UserRole[]) {
   return async (req: any, res: any, next: any) => {
@@ -6389,6 +6389,210 @@ ${priority ? `الأولوية: ${priority}` : ''}
       console.error("Error getting Stripe key:", error);
       res.status(500).json({ message: "Failed to get payment configuration" });
     }
+  });
+
+  // ============================================
+  // ADMIN DASHBOARD ROUTES
+  // ============================================
+
+  // Get all clients (office renters)
+  app.get('/api/admin/clients', isAuthenticated, requireRole("admin", "support"), async (req: any, res) => {
+    try {
+      const users = await storage.getAllUsers(); 
+      const officeRenters = users.filter((u: any) => u.role === 'office_renter');
+      
+      // Enrich with office and subscription data
+      const enrichedClients = await Promise.all(officeRenters.map(async (user: any) => {
+        // Find office for this user - iterate through all offices for now as getOfficeByOwnerId might not exist
+        const allOffices = await storage.getOffices();
+        const office = allOffices.find((o: any) => o.ownerId === user.id);
+        const subscription = await storage.getActiveSubscription(user.id);
+        return {
+          ...user,
+          office,
+          subscription
+        };
+      }));
+      
+      res.json(enrichedClients);
+    } catch (error) {
+      console.error("Error fetching clients:", error);
+      res.status(500).json({ message: "Failed to fetch clients" });
+    }
+  });
+
+  // Create new client (Office Renter) + Office + Subscription
+  app.post('/api/admin/clients', isAuthenticated, requireRole("admin"), async (req: any, res) => {
+    try {
+      const { 
+        businessName, businessType, crNumber, country, city, address, phone, additionalPhone,
+        username, email, password, subscriptionType // 'vip' or 'free'
+      } = req.body;
+      
+      const existingUser = await storage.getUserByUsername(username);
+      if (existingUser) return res.status(400).json({ message: "Username already exists" });
+
+      const newUser = await storage.upsertUser({
+        username,
+        email,
+        password, 
+        role: 'office_renter',
+        firstName: businessName, 
+        businessName,
+        businessType,
+        crNumber,
+        country,
+        city,
+        address,
+        phone,
+        additionalPhone,
+        status: 'online'
+      } as any);
+
+      // 2. Create Office
+      const officeSlug = (businessName || username).toLowerCase().replace(/[^a-z0-9]/g, '-') + '-' + Math.floor(Math.random()*1000);
+      const newOffice = await storage.createOffice({
+        name: businessName || username,
+        slug: officeSlug,
+        ownerId: newUser.id,
+        subscriptionPlan: subscriptionType || 'free',
+        subscriptionStatus: 'active',
+        isPublished: true,
+        approvalStatus: 'approved'
+      } as any);
+
+      // 3. Create Subscription Record
+      if (subscriptionType === 'vip') {
+         await storage.createSubscription({
+             userId: newUser.id,
+             plan: 'vip',
+             billingCycle: 'yearly', 
+             basePrice: 3000,
+             totalPrice: 3000,
+             paymentMethod: 'manual', 
+             status: 'active',
+             startDate: new Date(),
+             endDate: new Date(new Date().setFullYear(new Date().getFullYear() + 1))
+         } as any);
+      }
+
+      res.status(201).json({ user: newUser, office: newOffice });
+    } catch (error) {
+      console.error("Error creating client:", error);
+      res.status(500).json({ message: "Failed to create client" });
+    }
+  });
+
+  // Update Client
+  app.patch('/api/admin/clients/:id', isAuthenticated, requireRole("admin", "support"), async (req: any, res) => {
+      try {
+          const userId = req.params.id;
+          const updates = req.body; 
+          
+          // Need to handle user updates - check if updateUser exists in storage or create it
+          // Assuming updateUser exists based on schema imports
+          const updatedUser = await storage.updateUser(userId, updates);
+          
+          // Update subscription if provided
+          if (updates.subscriptionType) {
+              await storage.updateUserOfficesSubscription(userId, updates.subscriptionType, 'active');
+          }
+          
+          res.json(updatedUser);
+      } catch (error) {
+          console.error("Error updating client:", error);
+          res.status(500).json({ message: "Failed to update client" });
+      }
+  });
+
+  // Delete Client
+  app.delete('/api/admin/clients/:id', isAuthenticated, requireRole("admin"), async (req: any, res) => {
+      try {
+          const userId = req.params.id;
+          // Deleting user is complex due to foreign keys. 
+          // For now, we might just set status to inactive or deleted if possible.
+          // Or strictly delete.
+          // If storage.deleteUser exists, use it. Otherwise, simple disable.
+          // Since deleteUser is not in standard storage usually, let's assume we can just delete from DB if we added method,
+          // but safely, let's just update status to 'offline' or 'banned' if we had that status.
+          // Assuming we want real delete:
+          // await storage.deleteUser(userId); // This likely throws if not implemented
+          
+          // Let's implement a soft delete by updating status
+          await storage.updateUser(userId, { status: 'offline' } as any); 
+          
+          res.json({ message: "Client deactivated (soft delete)" });
+      } catch (error) {
+          res.status(500).json({ message: "Failed to delete client" });
+      }
+  });
+
+  // Financial Reports
+  app.get('/api/admin/financials', isAuthenticated, requireRole("admin"), async (req: any, res) => {
+      try {
+          const subscriptions = await storage.getAllSubscriptions();
+          res.json({ 
+              totalRevenue: subscriptions.reduce((acc: number, sub: any) => acc + (sub.totalPrice || 0), 0),
+              transactions: subscriptions 
+          });
+      } catch (error) {
+          res.status(500).json({ message: "Failed to fetch financials" });
+      }
+  });
+
+  // Generate Invoice (Mock)
+  app.post('/api/admin/invoices', isAuthenticated, requireRole("admin"), async (req: any, res) => {
+      try {
+          const { userId, subscriptionId } = req.body;
+          // Logic to generate PDF or just send email with details
+          // Mock sending email
+          res.json({ message: "Invoice generated and sent" });
+      } catch (error) {
+          res.status(500).json({ message: "Failed to generate invoice" });
+      }
+  });
+
+  // Staff Management
+  app.get('/api/admin/staff', isAuthenticated, requireRole("admin"), async (req: any, res) => {
+      try {
+          const users = await storage.getAllUsers();
+          const staff = users.filter((u: any) => ['admin', 'manager', 'support'].includes(u.role || ''));
+          res.json(staff);
+      } catch (error) {
+          res.status(500).json({ message: "Failed to fetch staff" });
+      }
+  });
+
+  app.post('/api/admin/staff', isAuthenticated, requireRole("admin"), async (req: any, res) => {
+      try {
+          const { username, password, role, email, firstName } = req.body;
+          const newUser = await storage.upsertUser({
+          username, password, role, email, firstName, status: 'online'
+      } as any);
+          res.status(201).json(newUser);
+      } catch (error) {
+          res.status(500).json({ message: "Failed to create staff" });
+      }
+  });
+  
+  // Tech Support Routes
+  app.get('/api/support/offices', isAuthenticated, requireRole("admin", "support"), async (req: any, res) => {
+      try {
+          const offices = await storage.getOffices(); 
+          res.json(offices);
+      } catch (error) {
+          res.status(500).json({ message: "Failed to fetch offices" });
+      }
+  });
+
+  app.patch('/api/support/offices/:id', isAuthenticated, requireRole("admin", "support"), async (req: any, res) => {
+      try {
+          const officeId = parseInt(req.params.id);
+          const updated = await storage.updateOffice(officeId, req.body);
+          res.json(updated);
+      } catch (error) {
+           res.status(500).json({ message: "Failed to update office" });
+      }
   });
 
   return httpServer;

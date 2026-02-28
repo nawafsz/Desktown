@@ -45,12 +45,21 @@ export const users = pgTable("users", {
   mfaExpiresAt: timestamp("mfa_expires_at"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
+  // Business/Client Details
+  businessName: varchar("business_name"),
+  businessType: varchar("business_type"),
+  crNumber: varchar("cr_number"),
+  country: varchar("country"),
+  city: varchar("city"),
+  address: varchar("address"),
+  phone: varchar("phone"),
+  additionalPhone: varchar("additional_phone"),
 });
 
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
 
-export const validUserRoles = ['admin', 'manager', 'member', 'office_renter', 'visitor'] as const;
+export const validUserRoles = ['admin', 'manager', 'member', 'office_renter', 'visitor', 'support'] as const;
 export type UserRoleType = typeof validUserRoles[number];
 
 export const updateUserSchema = z.object({

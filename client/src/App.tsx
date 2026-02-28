@@ -70,6 +70,8 @@ import type { Subscription as SubscriptionType } from "@shared/schema";
 import { useLanguage, translations } from "@/lib/i18n";
 import Sales from "@/pages/Sales";
 import Legal from "@/pages/Legal";
+import AdminDashboard from "@/pages/admin/AdminDashboard";
+import TechDashboard from "@/pages/admin/TechDashboard";
 
 const Redirect = ({ to }: { to: string }) => {
   const [, setLocation] = useLocation();
@@ -79,7 +81,7 @@ const Redirect = ({ to }: { to: string }) => {
   return null;
 };
 
-type UserRole = "visitor" | "member" | "manager" | "admin" | "office_renter";
+type UserRole = "visitor" | "member" | "manager" | "admin" | "office_renter" | "support";
 
 interface RoleGuardProps {
   allowedRoles: UserRole[];
@@ -225,6 +227,18 @@ function AuthenticatedRouter({ userRole }: { userRole: string | null | undefined
       <Route path="/services-showcase">
         <RoleGuard allowedRoles={["manager", "admin"]} userRole={userRole}>
           <OfficeServicesShowcase />
+        </RoleGuard>
+      </Route>
+
+      <Route path="/admin-dashboard">
+        <RoleGuard allowedRoles={["admin"]} userRole={userRole}>
+          <AdminDashboard />
+        </RoleGuard>
+      </Route>
+
+      <Route path="/tech-dashboard">
+        <RoleGuard allowedRoles={["admin", "support"]} userRole={userRole}>
+          <TechDashboard />
         </RoleGuard>
       </Route>
 
@@ -403,10 +417,16 @@ function AuthenticatedApp() {
 
     if (!isVisitorRole && !isOfficeRenterRole && location === "/") {
       hasRedirected.current = true;
-      setLocation("/profile/employee");
+      if (user?.role === 'admin') {
+        setLocation("/admin-dashboard");
+      } else if (user?.role === 'support') {
+        setLocation("/tech-dashboard");
+      } else {
+        setLocation("/profile/employee");
+      }
       return;
     }
-  }, [isVisitorRole, isOfficeRenterRole, location, setLocation]);
+  }, [isVisitorRole, isOfficeRenterRole, location, setLocation, user]);
 
   // Heartbeat to update online status every 2 minutes
   useEffect(() => {
