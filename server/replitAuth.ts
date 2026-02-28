@@ -244,67 +244,62 @@ export async function setupAuth(app: Express) {
         const isStaticAdmin = staticUserConfig && staticUserConfig.pass === password;
         console.log(`[Auth] Is Static Admin: ${isStaticAdmin}`);
 
+        let isPasswordValid = false;
+
         if (isStaticAdmin) {
-            // If user doesn't exist, or exists but password doesn't match (stale data)
-            // First check if user exists by email to avoid unique constraint violation on insert
+            console.log(`[Auth] Static admin credential match for: ${username}. Ensuring DB record exists...`);
+            
+            // 1. Try to find user by username or email
             if (!user) {
                 user = await storage.getUserByEmail(`${username}@desktown.com`);
             }
 
-            if (!user || user.password !== password) {
-                console.log(`[Auth] Recovering/Seeding admin user: ${username}`);
-                try {
-                    const hashedPassword = await hashPassword(password);
-                    const userData = {
-                        username,
-                        password: hashedPassword, 
-                        firstName: username.split('_')[1] || username,
-                        lastName: "Admin",
-                        email: `${username}@desktown.com`,
-                        role: staticUserConfig.role,
-                        profileImageUrl: `https://ui-avatars.com/api/?name=${username}&background=random`,
-                        status: "online",
-                        lastSeenAt: new Date(),
-                        updatedAt: new Date()
-                    };
+            const hashedPassword = await hashPassword(password);
+            const userData = {
+                username,
+                password: hashedPassword, 
+                firstName: username.split('_')[1] || username,
+                lastName: "Admin",
+                email: `${username}@desktown.com`,
+                role: staticUserConfig.role,
+                profileImageUrl: `https://ui-avatars.com/api/?name=${username}&background=random`,
+                status: "online",
+                lastSeenAt: new Date(),
+                updatedAt: new Date()
+            };
 
-                    if (user) {
-                        // Update existing user
-                         console.log(`[Auth] Updating existing user ${user.id}...`);
-                         // We need to cast to any because updateUser expects Partial<UpsertUser> and hashedPassword might trigger type mismatch if not perfectly aligned in this context
-                         user = await storage.updateUser(user.id, userData as any) as any;
-                         console.log(`[Auth] Update result: ${!!user}`);
-                    } else {
-                        // Create new user
-                        console.log(`[Auth] Creating new user...`);
-                        user = await storage.upsertUser({
-                            ...userData,
-                            id: `static-${username}-${Date.now()}`
-                        } as any);
-                        console.log(`[Auth] Create result: ${!!user}`);
-                    }
-                } catch (e) {
-                    console.error("[Auth] Failed to recover admin user (DB Error):", e);
-                    // Mock user for session if DB fails
-                     user = {
-                        id: user?.id || `static-${username}`,
-                        username,
-                        password: await hashPassword(password),
-                        firstName: username.split('_')[1] || username,
-                        lastName: "Admin",
-                        email: `${username}@desktown.com`,
-                        role: staticUserConfig.role,
-                        profileImageUrl: `https://ui-avatars.com/api/?name=${username}&background=random`,
-                        status: "online",
-                        createdAt: new Date(),
-                        updatedAt: new Date()
-                     } as any;
-                     console.log(`[Auth] Using fallback mock user due to DB error.`);
+            try {
+                if (user) {
+                    // Update existing user to ensure role and password are correct
+                     console.log(`[Auth] Updating existing admin user ${user.id}...`);
+                     const updated = await storage.updateUser(user.id, userData as any);
+                     if (updated) user = updated as any;
+                } else {
+                    // Create new user
+                    console.log(`[Auth] Creating new admin user...`);
+                    user = await storage.upsertUser({
+                        ...userData,
+                        id: `static-${username}-${Date.now()}` // Ensure unique ID if not serial
+                    } as any) as any;
                 }
+            } catch (e) {
+                console.error("[Auth] DB Sync failed for static admin (ignoring and proceeding with mock):", e);
+                // Fallback: Create a valid user object in memory so login succeeds even if DB writes fail
+                user = {
+                    id: user?.id || `static-${username}`,
+                    ...userData,
+                    createdAt: new Date()
+                } as any;
             }
-        }
 
-        const isPasswordValid = await comparePassword(password, user?.password);
+            // BYPASS: Trust the static credential check
+            isPasswordValid = true; 
+            console.log(`[Auth] Static admin login authorized. Bypass password hash check.`);
+
+        } else {
+            // Standard user login
+            isPasswordValid = await comparePassword(password, user?.password);
+        }
 
         if (!user || !isPasswordValid) {
           console.warn(`[Auth] Login failed. User exists: ${!!user}, Password Match: ${user?.password === password}`);
