@@ -80,8 +80,12 @@ export default function Login() {
         description: language === 'ar' ? `مرحباً بك ${user.firstName}` : `Welcome back ${user.firstName}`,
       });
 
-      // Redirect based on type
-      if (type === 'office') {
+      // Redirect based on role first, then type
+      if (user.role === 'admin') {
+        setLocation('/admin-dashboard');
+      } else if (user.role === 'support') {
+        setLocation('/tech-dashboard');
+      } else if (type === 'office') {
         setLocation('/dashboard');
       } else if (type === 'visitor') {
         setLocation('/profile/visitor');

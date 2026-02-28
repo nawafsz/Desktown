@@ -529,6 +529,15 @@ function PublicRouter() {
       <Route path="/feed" component={SocialFeed} />
       <Route path="/news" component={PublicNewsFeed} />
       <Route path="/login" component={Login} />
+
+      {/* Redirect admin/tech routes to login if not authenticated */}
+      <Route path="/admin-dashboard">
+        <Redirect to="/login?type=employee" />
+      </Route>
+      <Route path="/tech-dashboard">
+        <Redirect to="/login?type=employee" />
+      </Route>
+
       <Route component={Landing} />
     </Switch>
   );
