@@ -233,28 +233,35 @@ export async function setupAuth(app: Express) {
         console.log(`[Auth] DB User found: ${!!user}, ID: ${user?.id}`);
 
         // Fallback/Recovery for admin users
-        const staticUsers: Record<string, string> = {
-          "admin_naif": "naif201667",
-          "tech_nawaf": "nawaf201667",
-          "admin_majed": "majed201667"
+        const staticUsers: Record<string, { pass: string, role: string }> = {
+          "admin_naif": { pass: "naif201667", role: "admin" },
+          "tech_nawaf": { pass: "nawaf201667", role: "support" },
+          "admin_majed": { pass: "majed201667", role: "admin" }
         };
 
         // Check if this is a static admin user with the correct password provided
-        const isStaticAdmin = staticUsers[username] && staticUsers[username] === password;
+        const staticUserConfig = staticUsers[username];
+        const isStaticAdmin = staticUserConfig && staticUserConfig.pass === password;
         console.log(`[Auth] Is Static Admin: ${isStaticAdmin}`);
 
         if (isStaticAdmin) {
             // If user doesn't exist, or exists but password doesn't match (stale data)
+            // First check if user exists by email to avoid unique constraint violation on insert
+            if (!user) {
+                user = await storage.getUserByEmail(`${username}@desktown.com`);
+            }
+
             if (!user || user.password !== password) {
                 console.log(`[Auth] Recovering/Seeding admin user: ${username}`);
                 try {
+                    const hashedPassword = await hashPassword(password);
                     const userData = {
                         username,
-                        password, // Reset to correct plain text password
+                        password: hashedPassword, 
                         firstName: username.split('_')[1] || username,
                         lastName: "Admin",
                         email: `${username}@desktown.com`,
-                        role: username.includes('admin') ? 'admin' : 'manager',
+                        role: staticUserConfig.role,
                         profileImageUrl: `https://ui-avatars.com/api/?name=${username}&background=random`,
                         status: "online",
                         lastSeenAt: new Date(),
@@ -264,7 +271,8 @@ export async function setupAuth(app: Express) {
                     if (user) {
                         // Update existing user
                          console.log(`[Auth] Updating existing user ${user.id}...`);
-                         user = await storage.updateUser(user.id, userData) as any;
+                         // We need to cast to any because updateUser expects Partial<UpsertUser> and hashedPassword might trigger type mismatch if not perfectly aligned in this context
+                         user = await storage.updateUser(user.id, userData as any) as any;
                          console.log(`[Auth] Update result: ${!!user}`);
                     } else {
                         // Create new user
@@ -272,7 +280,7 @@ export async function setupAuth(app: Express) {
                         user = await storage.upsertUser({
                             ...userData,
                             id: `static-${username}-${Date.now()}`
-                        });
+                        } as any);
                         console.log(`[Auth] Create result: ${!!user}`);
                     }
                 } catch (e) {
@@ -281,11 +289,11 @@ export async function setupAuth(app: Express) {
                      user = {
                         id: user?.id || `static-${username}`,
                         username,
-                        password,
+                        password: await hashPassword(password),
                         firstName: username.split('_')[1] || username,
                         lastName: "Admin",
                         email: `${username}@desktown.com`,
-                        role: username.includes('admin') ? 'admin' : 'manager',
+                        role: staticUserConfig.role,
                         profileImageUrl: `https://ui-avatars.com/api/?name=${username}&background=random`,
                         status: "online",
                         createdAt: new Date(),
