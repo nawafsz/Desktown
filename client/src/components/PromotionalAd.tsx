@@ -19,8 +19,18 @@ export function PromotionalAd() {
   };
 
   const handleSubscribeClick = async () => {
-    const whatsappWindow = window.open("about:blank", "_blank", "noopener,noreferrer");
+    // 1. Open WhatsApp immediately with the hardcoded admin number
+    const phone = "966558255536";
+    const text =
+      language === "ar"
+        ? "السلام عليكم، أريد الاشتراك والتواصل مع موظف الاستقبال."
+        : "Hello, I want to subscribe and chat with the receptionist.";
+    const whatsappUrl = `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
+    
+    // Open in new tab immediately to avoid popup blockers and ensure it works
+    window.open(whatsappUrl, "_blank", "noopener,noreferrer");
 
+    // 2. Try to redirect the current page to the office chat
     try {
       const res = await fetch("/api/public/offices");
       const offices = (await res.json()) as Array<{
@@ -34,28 +44,26 @@ export function PromotionalAd() {
         offices.find((o) => (o.name || "").toLowerCase().includes("desktown")) ||
         offices[0];
 
-      if (!office?.slug) {
-        whatsappWindow?.close();
-        setLocation("/storefront");
-        return;
-      }
-
-      const phone = "966558255536";
-      if (phone) {
-        const text =
-          language === "ar"
-            ? "السلام عليكم، أريد الاشتراك والتواصل مع موظف الاستقبال."
-            : "Hello, I want to subscribe and chat with the receptionist.";
-        const url = `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
-        whatsappWindow?.location.assign(url);
+      if (office?.slug) {
+        setLocation(`/office/${office.slug}?chat=1`);
       } else {
-        whatsappWindow?.close();
+        // If no office found, stay on current page or redirect to storefront
+        // Since WhatsApp is already open, maybe just stay?
+        // But user reported "redirects to company ads page" (storefront) as an issue/observation.
+        // If we remove the redirect, they stay on Landing.
+        // Let's remove the fallback redirect to avoid confusion if office is missing.
+        // Or redirect to storefront if they really need to see something else.
+        // Given the user wants to "Subscribe", staying on Landing is fine, 
+        // but maybe we should try to navigate to /storefront if we can't find the specific office.
+        // However, the "empty tab" was the main bug.
+        // Let's KEEP the redirect logic but only if we find an office, 
+        // OR fallback to storefront if we really want to move them away from Landing.
+        // I will choose to NOT redirect if office is missing, to avoid "randomly" going to storefront.
+        console.warn("Office 'desktown' not found, staying on landing page.");
       }
-
-      setLocation(`/office/${office.slug}?chat=1`);
-    } catch {
-      whatsappWindow?.close();
-      setLocation("/storefront");
+    } catch (e) {
+      console.error("Error fetching offices:", e);
+      // Do nothing, stay on page. WhatsApp is already open.
     }
   };
 
