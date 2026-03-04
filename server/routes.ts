@@ -262,8 +262,12 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
       }
 
       if (!mailTransporter) {
-        console.warn("Mail transporter not configured. Cannot send landing page contact email.");
-        return res.status(503).json({ message: "Email service unavailable" });
+        console.warn("Mail transporter not configured. Landing submission received:", {
+          name: contactName,
+          email: contactEmail,
+          company: contactCompany ?? null,
+        });
+        return res.status(202).json({ success: true, message: "تم استلام طلبك بنجاح" });
       }
 
       const mailOptions = {
