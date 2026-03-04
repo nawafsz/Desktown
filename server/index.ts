@@ -68,7 +68,7 @@ const landingDir = path.resolve(process.cwd(), "desktownlandingpage");
 if (fs.existsSync(landingDir)) {
   app.use("/landing", express.static(landingDir));
   app.get("/landing", (_req, res) => {
-    res.sendFile(path.resolve(landingDir, "index.html"));
+    res.redirect(302, "/landing/");
   });
 }
 
