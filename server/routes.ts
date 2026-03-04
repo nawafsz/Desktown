@@ -272,7 +272,11 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
 
       const mailOptions = {
         from: `DeskTown Landing <no-reply@desktown.com>`,
-        to: ["naif@desktown.com", "majed@desktown.com", "nawaf@desktown.com"],
+        to: [
+          "admin_naif@desktown.com",
+          "admin_majed@desktown.com",
+          "tech_nawaf@desktown.com",
+        ],
         subject: `New Landing Page Submission: ${contactName}`,
         html: `
           <h2>New Registration Request</h2>
