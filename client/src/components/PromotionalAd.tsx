@@ -19,13 +19,8 @@ export function PromotionalAd() {
   };
 
   const handleSubscribeClick = async () => {
-    // 1. Open WhatsApp immediately with the hardcoded admin number
-    const phone = "966558255536";
-    const text =
-      language === "ar"
-        ? "السلام عليكم، أريد الاشتراك والتواصل مع موظف الاستقبال."
-        : "Hello, I want to subscribe and chat with the receptionist.";
-    const whatsappUrl = `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
+    // 1. Open WhatsApp immediately with the group link
+    const whatsappUrl = "https://chat.whatsapp.com/Gi9GSmEZnolKp1hhXqFcIg";
     
     // Open in new tab immediately to avoid popup blockers and ensure it works
     window.open(whatsappUrl, "_blank", "noopener,noreferrer");
