@@ -26,7 +26,7 @@ import {
 } from "lucide-react";
 import logoUrl from "/assets/logo.png";
 import { useState, useEffect, useRef } from "react";
-import { Link, useParams } from "wouter";
+import { Link, useLocation, useParams } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useLanguage, translations } from "@/lib/i18n";
@@ -347,7 +347,7 @@ function ChatPanel({
   };
 
   return (
-    <Card className="h-[400px] flex flex-col" data-testid="panel-chat" dir={isRTL ? 'rtl' : 'ltr'}>
+    <Card id="reception-chat" className="h-[400px] flex flex-col" data-testid="panel-chat" dir={isRTL ? 'rtl' : 'ltr'}>
       <CardHeader className="py-3 px-4 border-b flex-shrink-0">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -676,6 +676,7 @@ function VideoChatPanel({
 
 export default function OfficeDetail() {
   const { slug } = useParams<{ slug: string }>();
+  const [location] = useLocation();
   const { language } = useLanguage();
   const t = translations[language].officeDetail;
   const isRTL = language === 'ar';
@@ -713,6 +714,17 @@ export default function OfficeDetail() {
     localStorage.setItem("cloudoffice_redirect", "/");
     window.location.href = "/api/login";
   };
+
+  useEffect(() => {
+    const search = location.includes("?") ? location.slice(location.indexOf("?")) : "";
+    const params = new URLSearchParams(search);
+    if (params.get("chat") !== "1") return;
+    const el = document.getElementById("reception-chat");
+    if (!el) return;
+    setTimeout(() => {
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 0);
+  }, [location, office?.id]);
 
   if (officeLoading) {
     return (

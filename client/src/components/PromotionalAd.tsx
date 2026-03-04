@@ -8,10 +8,55 @@ export function PromotionalAd() {
   const { language } = useLanguage();
   const [, setLocation] = useLocation();
 
-  const handleSubscribeClick = () => {
-    // Navigate to messages with a query param to start a support chat
-    // We'll handle this in the Messages page or just go to messages for now
-    setLocation("/messages?action=support");
+  const normalizeWhatsappNumber = (rawPhone: string) => {
+    const digitsOnly = rawPhone.replace(/[^\d]/g, "");
+    if (!digitsOnly) return null;
+    if (digitsOnly.startsWith("966")) return digitsOnly;
+    if (digitsOnly.startsWith("0") && digitsOnly.length === 10) {
+      return `966${digitsOnly.slice(1)}`;
+    }
+    return digitsOnly;
+  };
+
+  const handleSubscribeClick = async () => {
+    const whatsappWindow = window.open("about:blank", "_blank", "noopener,noreferrer");
+
+    try {
+      const res = await fetch("/api/public/offices");
+      const offices = (await res.json()) as Array<{
+        slug: string;
+        name?: string | null;
+        contactPhone?: string | null;
+      }>;
+
+      const office =
+        offices.find((o) => (o.slug || "").toLowerCase() === "desktown") ||
+        offices.find((o) => (o.name || "").toLowerCase().includes("desktown")) ||
+        offices[0];
+
+      if (!office?.slug) {
+        whatsappWindow?.close();
+        setLocation("/storefront");
+        return;
+      }
+
+      const phone = office.contactPhone ? normalizeWhatsappNumber(office.contactPhone) : null;
+      if (phone) {
+        const text =
+          language === "ar"
+            ? "السلام عليكم، أريد الاشتراك والتواصل مع موظف الاستقبال."
+            : "Hello, I want to subscribe and chat with the receptionist.";
+        const url = `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
+        whatsappWindow?.location.assign(url);
+      } else {
+        whatsappWindow?.close();
+      }
+
+      setLocation(`/office/${office.slug}?chat=1`);
+    } catch {
+      whatsappWindow?.close();
+      setLocation("/storefront");
+    }
   };
 
   return (
