@@ -26,6 +26,7 @@ import { serveStatic } from "./static.ts";
 import { createServer } from "http";
 import compression from "compression";
 import rateLimit from "express-rate-limit";
+import cors from "cors";
 
 const app = express();
 const httpServer = createServer(app);
@@ -36,6 +37,7 @@ declare module "http" {
   }
 }
 
+app.use(cors());
 app.use(compression());
 
 const apiLimiter = rateLimit({

@@ -247,6 +247,47 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
   await setupAuth(app);
 
   // Register Inventory Routes
+  // Public route for Landing Page contact form
+  app.post("/api/landing/contact", async (req, res) => {
+    try {
+      const { Name, Email, Company, "الاسم": nameAr, "الايميل": emailAr, "الشركة": companyAr } = req.body;
+      
+      // Handle both English and Arabic field names (from Formspree form)
+      const contactName = Name || nameAr;
+      const contactEmail = Email || emailAr;
+      const contactCompany = Company || companyAr;
+
+      if (!contactName || !contactEmail) {
+        return res.status(400).json({ message: "Name and Email are required" });
+      }
+
+      if (!mailTransporter) {
+        console.warn("Mail transporter not configured. Cannot send landing page contact email.");
+        return res.status(503).json({ message: "Email service unavailable" });
+      }
+
+      const mailOptions = {
+        from: `DeskTown Landing <no-reply@desktown.com>`,
+        to: ["naif@desktown.com", "majed@desktown.com", "nawaf@desktown.com"],
+        subject: `New Landing Page Submission: ${contactName}`,
+        html: `
+          <h2>New Registration Request</h2>
+          <p><strong>Name:</strong> ${contactName}</p>
+          <p><strong>Email:</strong> ${contactEmail}</p>
+          <p><strong>Company:</strong> ${contactCompany || 'N/A'}</p>
+          <p><em>Submitted via DeskTown Landing Page</em></p>
+        `,
+      };
+
+      await mailTransporter.sendMail(mailOptions);
+      res.json({ success: true, message: "Request sent successfully" });
+
+    } catch (error) {
+      console.error("Error sending landing page email:", error);
+      res.status(500).json({ message: "Failed to send email" });
+    }
+  });
+
   registerInventoryRoutes(app);
 
   // Health check endpoint
