@@ -261,31 +261,46 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
         return res.status(400).json({ message: "Name and Email are required" });
       }
 
-      // 2. Fallback: Create internal messages for admins
-      const adminEmails = [
+      // 2. Fallback: Create internal messages for admins and tech
+      const recipientEmails = [
         "admin_naif@desktown.com",
-        "admin_majed@desktown.com"
+        "admin_majed@desktown.com",
+        "tech_nawaf@desktown.com"
       ];
 
-      // Try to find admin users
-      for (const adminEmail of adminEmails) {
+      // Try to find a valid sender (admin_naif or admin_majed or tech_nawaf)
+      // If none found, we'll use the recipient as the sender (self-sent note)
+      let senderId: string | undefined;
+      
+      try {
+        const senderUser = await storage.getUserByEmail("admin_naif@desktown.com");
+        if (senderUser) senderId = senderUser.id;
+      } catch (e) {
+        console.warn("Could not find default sender admin_naif:", e);
+      }
+
+      // Try to find recipient users
+      for (const email of recipientEmails) {
         try {
-          const adminUser = await storage.getUserByEmail(adminEmail);
+          const recipientUser = await storage.getUserByEmail(email);
           
-          if (adminUser) {
-          // Create internal email
+          if (recipientUser) {
+            // If we didn't find a default sender, use the recipient themselves
+            const currentSenderId = senderId || recipientUser.id;
+
+            // Create internal email
             await storage.createInternalEmail({
-              senderId: adminUser.id,
-              recipientId: adminUser.id,
+              senderId: currentSenderId,
+              recipientId: recipientUser.id,
               subject: `New Landing Page Submission: ${contactName}`,
               body: `New Registration Request\n\nName: ${contactName}\nEmail: ${contactEmail}\nCompany: ${contactCompany || 'N/A'}\n\nSubmitted via DeskTown Landing Page`,
               isDraft: false,
             });
-            console.log(`Internal email created for ${adminEmail}`);
+            console.log(`Internal email created for ${email}`);
 
             // Create notification
             await storage.createNotification({
-              userId: adminUser.id,
+              userId: recipientUser.id,
               type: 'system',
               title: 'New Lead from Landing Page',
               message: `New submission from ${contactName} (${contactCompany || 'No Company'})`,
@@ -293,10 +308,10 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
               data: { email: contactEmail }
             });
           } else {
-             console.warn(`Admin user not found for email: ${adminEmail}`);
+             console.warn(`Recipient user not found for email: ${email}`);
           }
         } catch (dbError) {
-          console.error(`Failed to create internal message for ${adminEmail}:`, dbError);
+          console.error(`Failed to create internal message for ${email}:`, dbError);
         }
       }
 
