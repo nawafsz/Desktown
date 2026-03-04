@@ -15,13 +15,19 @@ interface OfficeDepartmentsDialogProps {
   onClose: () => void;
 }
 
+type OfficeDepartmentItem = {
+  id: number;
+  name: string;
+  nameAr: string | null;
+};
+
 export function OfficeDepartmentsDialog({ officeId, isOpen, onClose }: OfficeDepartmentsDialogProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [newDeptName, setNewDeptName] = useState("");
   const [newDeptNameAr, setNewDeptNameAr] = useState("");
 
-  const { data: departments, isLoading } = useQuery({
+  const { data: departments, isLoading } = useQuery<OfficeDepartmentItem[]>({
     queryKey: [`/api/offices/${officeId}/departments`],
     enabled: !!officeId,
   });
@@ -99,10 +105,10 @@ export function OfficeDepartmentsDialog({ officeId, isOpen, onClose }: OfficeDep
           <div className="border rounded-lg divide-y">
             {isLoading ? (
               <div className="p-4 text-center"><Loader2 className="h-6 w-6 animate-spin mx-auto" /></div>
-            ) : departments?.length === 0 ? (
+            ) : (departments ?? []).length === 0 ? (
               <div className="p-4 text-center text-muted-foreground">لا توجد أقسام مضافة</div>
             ) : (
-              departments?.map((dept: any) => (
+              (departments ?? []).map((dept) => (
                 <div key={dept.id} className="p-3 flex justify-between items-center bg-white hover:bg-gray-50 transition-colors">
                   <div className="flex items-center gap-3">
                     <GripVertical className="h-4 w-4 text-gray-400 cursor-move" />

@@ -27,6 +27,8 @@ import { createServer } from "http";
 import compression from "compression";
 import rateLimit from "express-rate-limit";
 import cors from "cors";
+import fs from "fs";
+import path from "path";
 
 const app = express();
 const httpServer = createServer(app);
@@ -61,6 +63,14 @@ app.use(
 );
 
 app.use(express.urlencoded({ extended: false, limit: '50mb' }));
+
+const landingDir = path.resolve(process.cwd(), "desktownlandingpage");
+if (fs.existsSync(landingDir)) {
+  app.use("/landing", express.static(landingDir));
+  app.get("/landing", (_req, res) => {
+    res.sendFile(path.resolve(landingDir, "index.html"));
+  });
+}
 
 export function log(message: string, source = "express") {
   const formattedTime = new Date().toLocaleTimeString("en-US", {

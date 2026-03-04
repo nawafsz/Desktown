@@ -17,13 +17,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = Object.fromEntries(formData.entries());
 
             try {
-                // Point this to your DeskTwon backend URL
-                // Using temporary tunnel URL for external access
-                const response = await fetch('https://fast-meals-brake.loca.lt/api/landing/contact', {
+                const response = await fetch('/api/landing/contact', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
-                        'Bypass-Tunnel-Reminder': 'true'
+                        'Content-Type': 'application/json'
                     },
                     body: JSON.stringify(data)
                 });
