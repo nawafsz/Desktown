@@ -716,14 +716,13 @@ export default function OfficeDetail() {
   };
 
   useEffect(() => {
-    const search = location.includes("?") ? location.slice(location.indexOf("?")) : "";
-    const params = new URLSearchParams(search);
+    const params = new URLSearchParams(window.location.search);
     if (params.get("chat") !== "1") return;
     const el = document.getElementById("reception-chat");
     if (!el) return;
     setTimeout(() => {
       el.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 0);
+    }, 100);
   }, [location, office?.id]);
 
   if (officeLoading) {

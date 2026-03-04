@@ -40,7 +40,7 @@ export function PromotionalAd() {
         return;
       }
 
-      const phone = office.contactPhone ? normalizeWhatsappNumber(office.contactPhone) : null;
+      const phone = "966558255536";
       if (phone) {
         const text =
           language === "ar"
