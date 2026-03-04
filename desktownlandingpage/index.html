@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeskTown | التسجيل المسبق - مستقبل العمل السحابي</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <div class="bg-fixed"></div>
+
+    <div class="main-content">
+        <header>
+            <div class="logo">
+                <i class="fas fa-building-columns"></i> DeskTown
+            </div>
+        </header>
+
+        <div class="glass-card fade-in">
+            <h1>DESK TOWN</h1>
+            <p class="tagline">افتح مكتبك السحابي الآن</p>
+
+            <!-- 
+                هام: لجعل النموذج يعمل، يجب عليك التسجيل في Formspree.io والحصول على رابط خاص بك.
+                استبدل الرابط في الأسفل (action) بالرابط الذي ستحصل عليه.
+            -->
+            <form action="https://formspree.io/f/meelyeab" method="POST" id="signupForm">
+                <input type="hidden" name="_cc" value="naifalzhrzni000@gmail.com">
+                
+                <div class="input-group">
+                    <i class="fas fa-user"></i>
+                    <input type="text" name="الاسم" class="input-box" placeholder="اسم العميل" required>
+                </div>
+                <div class="input-group">
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" name="الايميل" class="input-box" placeholder="البريد الإلكتروني" required>
+                </div>
+                <div class="input-group">
+                    <i class="fas fa-building"></i>
+                    <input type="text" name="الشركة" class="input-box" placeholder="الشركة / المؤسسة" required>
+                </div>
+
+                <button type="submit" class="btn-3d">سجل الآن</button>
+            </form>
+
+            <div class="features-grid">
+                <div class="feature-item">
+                    <i class="fas fa-bolt"></i>
+                    <span>سرعة الإنجاز</span>
+                </div>
+                <div class="feature-item">
+                    <i class="fas fa-cloud"></i>
+                    <span>حرية كاملة</span>
+                </div>
+                <div class="feature-item">
+                    <i class="fas fa-shield-alt"></i>
+                    <span>مهنية عالية</span>
+                </div>
+            </div>
+
+            <div class="social-bar">
+                <a href="#" aria-label="Twitter"><i class="fab fa-x-twitter"></i></a>
+                <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+            </div>
+        </div>
+
+        <section class="services-section fade-in">
+            <div class="service-card">
+                <div class="card-image" style="background-image: url('images/service1.jpg');"></div>
+                <div class="service-card-content">
+                    <h3>تأسيس مكتبك في دقيقة</h3>
+                    <p>انسَ الإجراءات المعقدة وتكاليف التأسيس المرتفعة. مع DESK TOWN، ابدأ رحلتك الريادية اليوم بخطوات بسيطة وفورية.</p>
+                </div>
+            </div>
+
+            <div class="service-card">
+                <div class="card-image" style="background-image: url('images/service2.jpg');"></div>
+                <div class="service-card-content">
+                    <h3>أمان وموثوقية عالية</h3>
+                    <p>نولي حماية بياناتك أولوية قصوى. نستخدم أحدث تقنيات التشفير لضمان سرية معلوماتك وأمان مكاتبك الافتراضية.</p>
+                </div>
+            </div>
+
+            <div class="service-card">
+                <div class="card-image" style="background-image: url('images/service3.jpg');"></div>
+                <div class="service-card-content">
+                    <h3>مكتبك معك أينما كنت</h3>
+                    <p>تمتع بحرية العمل من أي مكان في العالم. منصتنا تكسر الحدود الجغرافية وتوفر لك وصولاً سلساً لمكتبك السحابي.</p>
+                </div>
+            </div>
+        </section>
+
+        <footer>
+            <p>منصة DESK TOWN &copy; 2026 | جميع الحقوق محفوظة</p>
+        </footer>
+    </div>
+
+    <script src="js/script.js"></script>
+</body>
+</html>
