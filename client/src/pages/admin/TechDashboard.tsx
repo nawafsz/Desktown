@@ -11,10 +11,14 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2, MessageSquare, Briefcase, CheckCircle, Clock, AlertCircle, Trash } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 
+import { OfficeDepartmentsDialog } from "@/components/admin/OfficeDepartmentsDialog";
+
 export default function TechDashboard() {
     const { toast } = useToast();
     const queryClient = useQueryClient();
     const [activeTab, setActiveTab] = useState("offices");
+    const [selectedOfficeId, setSelectedOfficeId] = useState<number | null>(null);
+    const [isDepartmentsOpen, setIsDepartmentsOpen] = useState(false);
 
     // Queries
     const { data: offices, isLoading: loadingOffices } = useQuery<any[]>({
@@ -77,13 +81,21 @@ export default function TechDashboard() {
                                         </Badge>
                                     </div>
                                     <div className="flex gap-2">
-                                        <Button variant="outline" className="flex-1">تعديل الأقسام</Button>
+                                        <Button variant="outline" className="flex-1" onClick={() => {
+                                            setSelectedOfficeId(office.id);
+                                            setIsDepartmentsOpen(true);
+                                        }}>تعديل الأقسام</Button>
                                         <Button variant="destructive" size="icon"><Trash className="h-4 w-4" /></Button>
                                     </div>
                                 </CardContent>
                             </Card>
                         ))}
                     </div>
+                    <OfficeDepartmentsDialog 
+                        officeId={selectedOfficeId} 
+                        isOpen={isDepartmentsOpen} 
+                        onClose={() => setIsDepartmentsOpen(false)} 
+                    />
                 </TabsContent>
 
                 <TabsContent value="tickets" className="space-y-4">

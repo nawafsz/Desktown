@@ -134,6 +134,9 @@ import { db } from "./db.ts";
 import { eq, desc, and, or, like, sql, inArray, gt, lte } from "drizzle-orm";
 
 export interface IStorage {
+  // Invoice operations
+  createInvoice(invoice: InsertInvoice): Promise<Invoice>;
+
   // User operations (Required for Replit Auth)
   getUser(id: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
@@ -443,6 +446,14 @@ export interface IStorage {
 }
 
 export class DatabaseStorage implements IStorage {
+  // =====================
+  // Invoice Operations
+  // =====================
+  async createInvoice(invoice: InsertInvoice): Promise<Invoice> {
+    const [newInvoice] = await db.insert(invoices).values(invoice).returning();
+    return newInvoice;
+  }
+
   // =====================
   // User Operations
   // =====================

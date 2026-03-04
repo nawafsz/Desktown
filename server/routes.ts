@@ -1648,6 +1648,27 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
         messageType: req.body.messageType || "text",
         mediaUrl: mediaUrl,
       });
+
+      // Create invoice record if message type is invoice
+      if (data.messageType === 'invoice') {
+        try {
+          const invoiceData = JSON.parse(data.content);
+          await storage.createInvoice({
+            invoiceNumber: invoiceData.invoiceNumber,
+            senderId: userId,
+            clientName: invoiceData.clientName,
+            amount: invoiceData.amount,
+            currency: invoiceData.currency || 'SAR',
+            description: invoiceData.description,
+            threadId: data.threadId,
+            status: 'pending'
+          });
+        } catch (error) {
+          console.error("Error creating invoice record:", error);
+          // Continue to send message even if invoice record fails (e.g. duplicate)
+        }
+      }
+
       const message = await storage.createMessage(data);
       res.status(201).json(message);
     } catch (error) {
@@ -6450,7 +6471,13 @@ ${priority ? `الأولوية: ${priority}` : ''}
       } as any);
 
       // 2. Create Office
-      const officeSlug = (businessName || username).toLowerCase().replace(/[^a-z0-9]/g, '-') + '-' + Math.floor(Math.random()*1000);
+      // Generate slug: try to use latin characters from username, otherwise use timestamp/random
+      let slugBase = username.toLowerCase().replace(/[^a-z0-9]/g, '-');
+      if (slugBase.length < 3) {
+        slugBase = `office-${Date.now()}`;
+      }
+      const officeSlug = `${slugBase}-${Math.floor(Math.random()*1000)}`;
+
       const newOffice = await storage.createOffice({
         name: businessName || username,
         slug: officeSlug,
@@ -6477,9 +6504,52 @@ ${priority ? `الأولوية: ${priority}` : ''}
       }
 
       res.status(201).json({ user: newUser, office: newOffice });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error creating client:", error);
-      res.status(500).json({ message: "Failed to create client" });
+      res.status(500).json({ message: error.message || "Failed to create client" });
+    }
+  });
+
+  // ============================================
+  // Company Departments Routes (Office Hierarchy)
+  // ============================================
+  
+  app.get('/api/offices/:officeId/departments', isAuthenticated, async (req: any, res) => {
+    try {
+      const officeId = parseInt(req.params.officeId);
+      const departments = await storage.getCompanyDepartments(officeId);
+      res.json(departments);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch departments" });
+    }
+  });
+
+  app.post('/api/offices/:officeId/departments', isAuthenticated, requireRole("admin", "support"), async (req: any, res) => {
+    try {
+      const officeId = parseInt(req.params.officeId);
+      const { name, nameAr, description, descriptionAr } = req.body;
+      const department = await storage.createCompanyDepartment({
+        officeId,
+        name,
+        nameAr,
+        description,
+        descriptionAr,
+        isActive: true,
+        sortOrder: 0
+      } as any);
+      res.json(department);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to create department" });
+    }
+  });
+
+  app.delete('/api/company/departments/:id', isAuthenticated, requireRole("admin", "support"), async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteCompanyDepartment(id);
+      res.json({ message: "Department deleted" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete department" });
     }
   });
 

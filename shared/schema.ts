@@ -9,6 +9,7 @@ import {
   index,
   jsonb,
   serial,
+  decimal,
 } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -614,6 +615,32 @@ export const transactionsRelations = relations(transactions, ({ one }) => ({
 export const insertTransactionSchema = createInsertSchema(transactions).omit({ id: true, createdAt: true, updatedAt: true });
 export type InsertTransaction = z.infer<typeof insertTransactionSchema>;
 export type Transaction = typeof transactions.$inferSelect;
+
+// ============================================
+// Invoices (Chat Invoices)
+// ============================================
+export const invoices = pgTable("invoices", {
+  id: serial("id").primaryKey(),
+  invoiceNumber: varchar("invoice_number").notNull().unique(),
+  senderId: varchar("sender_id").references(() => users.id).notNull(),
+  clientName: varchar("client_name").notNull(),
+  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+  currency: varchar("currency").default("SAR"),
+  description: text("description"),
+  status: varchar("status").default("pending"),
+  threadId: integer("thread_id").references(() => chatThreads.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const invoicesRelations = relations(invoices, ({ one }) => ({
+  sender: one(users, { fields: [invoices.senderId], references: [users.id] }),
+  thread: one(chatThreads, { fields: [invoices.threadId], references: [chatThreads.id] }),
+}));
+
+export const insertInvoiceSchema = createInsertSchema(invoices).omit({ id: true, createdAt: true, updatedAt: true });
+export type InsertInvoice = z.infer<typeof insertInvoiceSchema>;
+export type Invoice = typeof invoices.$inferSelect;
 
 // ============================================
 // Roles (Access Control)

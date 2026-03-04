@@ -34,6 +34,7 @@ import {
   Package,
   Link2,
   CreditCard,
+  FileText,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
@@ -49,8 +50,13 @@ interface EnhancedThread extends ChatThread {
   participants?: User[];
 }
 
+import { useLocation } from "wouter";
+import { InvoiceModal, InvoiceMessage, type InvoiceData } from "@/components/chat/InvoiceComponents";
+
 export default function Messages() {
   const { language } = useLanguage();
+  const [location] = useLocation();
+  const [showInvoiceModal, setShowInvoiceModal] = useState(false);
   const t = translations[language];
   const { user: currentUser } = useAuth();
   const { toast } = useToast();
@@ -72,6 +78,7 @@ export default function Messages() {
     queryKey: ["/api/threads"],
     refetchInterval: 5000,
   });
+
 
   const { data: users = [] } = useQuery<User[]>({
     queryKey: ["/api/users"],
@@ -190,6 +197,44 @@ export default function Messages() {
     },
   });
 
+  // Handle ?action=support query param
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const action = params.get("action");
+
+    if (action === "support" && !threadsLoading && users.length > 0) {
+      // Find an admin user to chat with
+      const supportUser = users.find(u => u.role === "admin" || u.role === "support");
+      
+      if (supportUser) {
+        // Check if we already have a thread with them
+        const existingThread = threads.find(t => 
+          t.type === "direct" && 
+          t.participants?.some(p => p.id === supportUser.id)
+        );
+
+        if (existingThread) {
+          setActiveThreadId(existingThread.id);
+        } else {
+          // Create new thread with support user if not exists
+          // We need to check if we are not already creating it to avoid loops
+          if (!createDirectChatMutation.isPending) {
+             createDirectChatMutation.mutate(supportUser.id);
+          }
+        }
+      } else {
+        toast({
+          title: language === 'ar' ? "عذراً" : "Sorry",
+          description: language === 'ar' ? "لا يوجد موظف دعم متاح حالياً" : "No support agent available at the moment",
+          variant: "destructive"
+        });
+      }
+      
+      // Clear the query param
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+  }, [threadsLoading, users, threads, createDirectChatMutation, language, toast]);
+
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
@@ -289,6 +334,16 @@ export default function Messages() {
     } catch {
       toast({ title: "Failed to share service link", variant: "destructive" });
     }
+  };
+
+  const handleSendInvoice = (data: InvoiceData) => {
+    if (!activeThreadId) return;
+    
+    sendMessageMutation.mutate({
+      content: JSON.stringify(data),
+      messageType: "invoice"
+    });
+    setShowInvoiceModal(false);
   };
 
   const getUserById = (userId: string | null) => {
@@ -711,6 +766,15 @@ export default function Messages() {
                                 className="max-w-[250px] rounded-xl"
                                 data-testid={`video-message-${message.id}`}
                               />
+                            ) : message.messageType === "invoice" ? (
+                              (() => {
+                                try {
+                                  const invoiceData = JSON.parse(message.content);
+                                  return <InvoiceMessage data={invoiceData} />;
+                                } catch (e) {
+                                  return <p className="text-destructive text-xs">Invalid Invoice Data</p>;
+                                }
+                              })()
                             ) : (
                               <p className="text-sm whitespace-pre-wrap break-words">{message.content}</p>
                             )}
@@ -869,6 +933,16 @@ export default function Messages() {
                         </PopoverContent>
                       </Popover>
                     )}
+                    <Button 
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => setShowInvoiceModal(true)}
+                      className="h-9 w-9 shrink-0"
+                      title={language === 'ar' ? "إنشاء فاتورة" : "Create Invoice"}
+                      data-testid="button-create-invoice"
+                    >
+                      <FileText className="h-4 w-4" />
+                    </Button>
                     <Input
                       placeholder="Type a message..."
                       value={newMessage}
@@ -921,6 +995,11 @@ export default function Messages() {
           </div>
         )}
       </div>
+      <InvoiceModal 
+        isOpen={showInvoiceModal} 
+        onClose={() => setShowInvoiceModal(false)} 
+        onSend={handleSendInvoice} 
+      />
     </div>
   );
 }

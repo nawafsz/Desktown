@@ -1,9 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Building2,
   Search,
@@ -11,19 +8,11 @@ import {
   Gift,
   User,
   UserCircle,
-  DoorOpen,
   Bell,
   Monitor,
   Globe,
-  Home,
-  Play,
   X,
   Users,
-  Plus,
-  Video,
-  Clock,
-  Upload,
-  ChevronLeft,
   Megaphone,
   ChevronRight,
 } from "lucide-react";
@@ -32,8 +21,9 @@ import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import type { Advertisement, Office, Story } from "@shared/schema";
+import type { Advertisement, Office } from "@shared/schema";
 import { useLanguage } from "@/lib/i18n";
+import { PromotionalAd } from "@/components/PromotionalAd";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -107,77 +97,6 @@ export default function Landing() {
   const { data: realOffices = [] } = useQuery<Office[]>({
     queryKey: ['/api/public/offices'],
   });
-
-  // Stories query
-  const { data: activeStories = [] } = useQuery<(Story & { author?: { firstName?: string; lastName?: string; profileImageUrl?: string } })[]>({
-    queryKey: ['/api/public/stories'],
-  });
-
-  // Upload modal state
-  const [showUploadModal, setShowUploadModal] = useState(false);
-
-  // Story types with author info
-  type StoryWithAuthor = Story & { author?: { firstName?: string | null; lastName?: string | null; profileImageUrl?: string | null } };
-
-  const [selectedStory, setSelectedStory] = useState<StoryWithAuthor | null>(null);
-  const [currentStoryIndex, setCurrentStoryIndex] = useState(0);
-  const [currentUserStories, setCurrentUserStories] = useState<StoryWithAuthor[]>([]);
-
-  // Group stories by author
-  const groupedStories = activeStories.reduce((acc, story) => {
-    const authorId = story.authorId;
-    if (!acc[authorId]) {
-      acc[authorId] = {
-        author: story.author,
-        authorId,
-        stories: []
-      };
-    }
-    acc[authorId].stories.push(story);
-    return acc;
-  }, {} as Record<string, { author?: { firstName?: string; lastName?: string; profileImageUrl?: string }; authorId: string; stories: typeof activeStories }>);
-
-  const userGroups = Object.values(groupedStories);
-
-  // Handle opening stories for a user
-  const openUserStories = (authorId: string) => {
-    const userStories = groupedStories[authorId]?.stories || [];
-    if (userStories.length > 0) {
-      setCurrentUserStories(userStories);
-      setCurrentStoryIndex(0);
-      setSelectedStory(userStories[0]);
-    }
-  };
-
-  // Navigate to next story
-  const nextStory = () => {
-    if (currentStoryIndex < currentUserStories.length - 1) {
-      const newIndex = currentStoryIndex + 1;
-      setCurrentStoryIndex(newIndex);
-      setSelectedStory(currentUserStories[newIndex]);
-    } else {
-      // Close when all stories are viewed
-      setSelectedStory(null);
-      setCurrentUserStories([]);
-      setCurrentStoryIndex(0);
-    }
-  };
-
-  // Navigate to previous story
-  const prevStory = () => {
-    if (currentStoryIndex > 0) {
-      const newIndex = currentStoryIndex - 1;
-      setCurrentStoryIndex(newIndex);
-      setSelectedStory(currentUserStories[newIndex]);
-    }
-  };
-
-  // Close story viewer
-  const closeStoryViewer = () => {
-    setSelectedStory(null);
-    setCurrentUserStories([]);
-    setCurrentStoryIndex(0);
-  };
 
   const trackAdView = async (adId: number) => {
     if (!viewedAds.has(adId)) {
@@ -268,75 +187,8 @@ export default function Landing() {
           </div>
         </header>
 
-        {/* Search Bar with Title */}
-        <div className="flex items-center gap-3">
-          <h2 className="text-lg font-bold text-white whitespace-nowrap">{language === 'ar' ? 'الحالات' : 'Cases'}</h2>
-          <div className="relative flex-1">
-            <Search className={`absolute ${isRTL ? 'right-4' : 'left-4'} top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500`} />
-            <Input
-              placeholder={language === 'ar' ? 'ابحث عن المكاتب الافتراضية...' : 'Search for virtual offices...'}
-              className={`${isRTL ? 'pr-11 pl-4' : 'pl-11 pr-4'} h-11 bg-[#1a1f2e] border-0 text-white placeholder:text-gray-500 rounded-xl text-sm`}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              data-testid="input-search"
-            />
-          </div>
-        </div>
-
-        {/* Stories Section */}
-        <ScrollArea className="w-full whitespace-nowrap">
-          <div className="flex gap-3 pb-2">
-
-            {/* Active Stories - Grouped by User */}
-            {userGroups.length > 0 ? (
-              userGroups.map((group) => (
-                <div
-                  key={group.authorId}
-                  className="flex flex-col items-center gap-1.5 min-w-[60px] cursor-pointer"
-                  onClick={() => openUserStories(group.authorId)}
-                  data-testid={`story-user-${group.authorId}`}
-                >
-                  <div className="relative">
-                    {/* Rainbow ring for stories */}
-                    <div className="h-14 w-14 rounded-full p-[2px] bg-gradient-to-tr from-amber-500 via-pink-500 to-purple-500">
-                      <Avatar className="h-full w-full ring-2 ring-[#0B0F19]">
-                        <AvatarImage src={group.author?.profileImageUrl || ''} className="object-cover" />
-                        <AvatarFallback className="bg-gradient-to-br from-amber-500 to-orange-600 text-white text-xs">
-                          {group.author?.firstName?.[0] || group.author?.lastName?.[0] || <User className="h-4 w-4" />}
-                        </AvatarFallback>
-                      </Avatar>
-                    </div>
-                    {/* Story count badge */}
-                    {group.stories.length > 1 && (
-                      <div className="absolute -bottom-0.5 -right-0.5 bg-amber-500 rounded-full min-w-[16px] h-4 flex items-center justify-center px-1">
-                        <span className="text-[10px] text-white font-bold">{group.stories.length}</span>
-                      </div>
-                    )}
-                  </div>
-                  <span className="text-[10px] text-gray-400 truncate max-w-[60px] text-center">
-                    {group.author?.firstName || (language === 'ar' ? 'مستخدم' : 'User')}
-                  </span>
-                </div>
-              ))
-            ) : (
-              // Fallback partners when no stories
-              partners.map((partner) => (
-                <div key={partner.id} className="flex flex-col items-center gap-1.5 min-w-[60px]">
-                  <Avatar className="h-12 w-12 ring-2 ring-amber-500/60">
-                    <AvatarImage src={partner.avatar} />
-                    <AvatarFallback className="bg-gradient-to-br from-amber-500 to-orange-600 text-white text-xs font-medium">
-                      {partner.name[0]}
-                    </AvatarFallback>
-                  </Avatar>
-                  <span className="text-[10px] text-gray-400 truncate max-w-[60px] text-center">
-                    {partner.name}
-                  </span>
-                </div>
-              ))
-            )}
-          </div>
-          <ScrollBar orientation="horizontal" />
-        </ScrollArea>
+        {/* Promotional Ad */}
+        <PromotionalAd />
 
         {/* Hero Banner */}
         <div className="relative rounded-3xl overflow-hidden shadow-2xl border border-white/10 group bg-[#111625]">
@@ -564,14 +416,6 @@ export default function Landing() {
             >
               <Briefcase className="h-5 w-5" />
               <span className="text-[9px] font-medium">{language === 'ar' ? 'الوظائف' : 'Jobs'}</span>
-            </Link>
-            <Link
-              href="/videos"
-              className="flex flex-col items-center gap-0.5 p-2 min-w-[50px] text-gray-500 hover:text-amber-400 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 rounded-lg"
-              data-testid="nav-bottom-videos"
-            >
-              <Play className="h-5 w-5" />
-              <span className="text-[9px] font-medium">{language === 'ar' ? 'المقاطع' : 'Reels'}</span>
             </Link>
           </div>
         </div>
@@ -801,180 +645,6 @@ export default function Landing() {
                 </>
               )}
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* Upload Modal - Choose between Videos or Stories */}
-      {showUploadModal && (
-        <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4" onClick={() => setShowUploadModal(false)}>
-          <div
-            className="bg-[#1a1f2e] rounded-3xl p-6 w-full max-w-md border border-white/10"
-            onClick={(e) => e.stopPropagation()}
-            dir={isRTL ? 'rtl' : 'ltr'}
-          >
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-white">
-                {language === 'ar' ? 'رفع محتوى جديد' : 'Upload New Content'}
-              </h2>
-              <button
-                onClick={() => setShowUploadModal(false)}
-                className="text-gray-400 hover:text-white"
-                data-testid="button-close-upload-modal"
-              >
-                <X className="h-6 w-6" />
-              </button>
-            </div>
-
-            <p className="text-gray-400 text-sm mb-6">
-              {language === 'ar' ? 'اختر نوع المحتوى الذي تريد رفعه:' : 'Choose the type of content you want to upload:'}
-            </p>
-
-            <div className="space-y-4">
-              {/* Videos (Reels) Option */}
-              <button
-                onClick={() => {
-                  setShowUploadModal(false);
-                  setLocation('/feed?upload=reel');
-                }}
-                className="w-full flex items-center gap-4 p-4 bg-gradient-to-r from-purple-500/20 to-pink-500/10 border border-purple-500/30 rounded-2xl hover:border-purple-400 transition-all"
-                data-testid="button-upload-video"
-              >
-                <div className="p-3 rounded-full bg-gradient-to-br from-purple-500 to-pink-500">
-                  <Video className="h-6 w-6 text-white" />
-                </div>
-                <div className={`flex-1 ${isRTL ? 'text-right' : 'text-left'}`}>
-                  <h3 className="text-white font-bold text-lg">
-                    {language === 'ar' ? 'قسم المقاطع' : 'Videos Section'}
-                  </h3>
-                  <p className="text-gray-400 text-sm">
-                    {language === 'ar' ? 'يظهر في صفحة المقاطع للجميع' : 'Appears in the Videos page for everyone'}
-                  </p>
-                </div>
-                <Play className="h-5 w-5 text-purple-400" />
-              </button>
-
-              {/* Stories Option */}
-              <button
-                onClick={() => {
-                  setShowUploadModal(false);
-                  setLocation('/feed?upload=story');
-                }}
-                className="w-full flex items-center gap-4 p-4 bg-gradient-to-r from-amber-500/20 to-orange-500/10 border border-amber-500/30 rounded-2xl hover:border-amber-400 transition-all"
-                data-testid="button-upload-story"
-              >
-                <div className="p-3 rounded-full bg-gradient-to-br from-amber-500 to-orange-500">
-                  <Clock className="h-6 w-6 text-white" />
-                </div>
-                <div className={`flex-1 ${isRTL ? 'text-right' : 'text-left'}`}>
-                  <h3 className="text-white font-bold text-lg">
-                    {language === 'ar' ? 'الحالات اليومية' : 'Daily Stories'}
-                  </h3>
-                  <p className="text-gray-400 text-sm">
-                    {language === 'ar' ? 'تختفي بعد 24 ساعة' : 'Disappears after 24 hours'}
-                  </p>
-                </div>
-                <Upload className="h-5 w-5 text-amber-400" />
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Story Viewer Modal - Snapchat Style */}
-      {selectedStory && (
-        <div className="fixed inset-0 bg-black z-50 flex items-center justify-center">
-          {/* Close button */}
-          <button
-            className="absolute top-4 right-4 text-white z-20 hover:bg-white/10 rounded-full p-2 transition-colors"
-            onClick={closeStoryViewer}
-            data-testid="button-close-story"
-          >
-            <X className="h-8 w-8" />
-          </button>
-
-          {/* Previous button */}
-          {currentStoryIndex > 0 && (
-            <button
-              className="absolute left-4 top-1/2 -translate-y-1/2 text-white z-20 hover:bg-white/10 rounded-full p-2 transition-colors"
-              onClick={(e) => { e.stopPropagation(); prevStory(); }}
-              data-testid="button-prev-story"
-            >
-              <ChevronLeft className="h-10 w-10" />
-            </button>
-          )}
-
-          {/* Next button */}
-          <button
-            className="absolute right-4 top-1/2 -translate-y-1/2 text-white z-20 hover:bg-white/10 rounded-full p-2 transition-colors"
-            onClick={(e) => { e.stopPropagation(); nextStory(); }}
-            data-testid="button-next-story"
-          >
-            <ChevronRight className="h-10 w-10" />
-          </button>
-
-          {/* Story content */}
-          <div className="w-full h-full max-w-lg mx-auto relative" onClick={nextStory}>
-            {/* Progress bars for all stories */}
-            <div className="absolute top-4 left-4 right-4 flex gap-1 z-10">
-              {currentUserStories.map((_, idx) => (
-                <div key={idx} className="flex-1 h-1 bg-white/30 rounded-full overflow-hidden">
-                  <div
-                    className={`h-full bg-white transition-all duration-300 ${idx < currentStoryIndex ? 'w-full' :
-                      idx === currentStoryIndex ? 'w-full animate-[progress_5s_linear_forwards]' :
-                        'w-0'
-                      }`}
-                  />
-                </div>
-              ))}
-            </div>
-
-            {/* User info header */}
-            <div className="absolute top-10 left-4 right-16 flex items-center gap-3 z-10">
-              <Avatar className="h-10 w-10 ring-2 ring-white/50">
-                <AvatarImage src={selectedStory.author?.profileImageUrl || ''} />
-                <AvatarFallback className="bg-gradient-to-br from-amber-500 to-orange-600 text-white text-sm">
-                  {selectedStory.author?.firstName?.[0] || <User className="h-4 w-4" />}
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex flex-col">
-                <span className="text-white font-medium text-sm">
-                  {selectedStory.author?.firstName} {selectedStory.author?.lastName}
-                </span>
-                <span className="text-white/60 text-xs">
-                  {currentStoryIndex + 1} / {currentUserStories.length}
-                </span>
-              </div>
-            </div>
-
-            {selectedStory.mediaType === 'video' ? (
-              <video
-                key={selectedStory.id}
-                src={selectedStory.mediaUrl}
-                className="w-full h-full object-contain"
-                autoPlay
-                muted
-                playsInline
-                controls
-                onEnded={nextStory}
-                onClick={(e) => e.stopPropagation()}
-              />
-            ) : (
-              <img
-                key={selectedStory.id}
-                src={selectedStory.mediaUrl}
-                alt={selectedStory.caption || 'Story'}
-                className="w-full h-full object-contain"
-              />
-            )}
-
-            {selectedStory.caption && (
-              <div className="absolute bottom-8 left-4 right-4 text-center">
-                <p className="text-white text-lg font-medium bg-black/50 rounded-lg px-4 py-2">
-                  {selectedStory.caption}
-                </p>
-              </div>
-            )}
           </div>
         </div>
       )}
