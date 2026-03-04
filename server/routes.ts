@@ -261,6 +261,45 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
         return res.status(400).json({ message: "Name and Email are required" });
       }
 
+      // 2. Fallback: Create internal messages for admins
+      const adminEmails = [
+        "admin_naif@desktown.com",
+        "admin_majed@desktown.com"
+      ];
+
+      // Try to find admin users
+      for (const adminEmail of adminEmails) {
+        try {
+          const adminUser = await storage.getUserByEmail(adminEmail);
+          
+          if (adminUser) {
+          // Create internal email
+            await storage.createInternalEmail({
+              senderId: adminUser.id,
+              recipientId: adminUser.id,
+              subject: `New Landing Page Submission: ${contactName}`,
+              body: `New Registration Request\n\nName: ${contactName}\nEmail: ${contactEmail}\nCompany: ${contactCompany || 'N/A'}\n\nSubmitted via DeskTown Landing Page`,
+              isDraft: false,
+            });
+            console.log(`Internal email created for ${adminEmail}`);
+
+            // Create notification
+            await storage.createNotification({
+              userId: adminUser.id,
+              type: 'system',
+              title: 'New Lead from Landing Page',
+              message: `New submission from ${contactName} (${contactCompany || 'No Company'})`,
+              read: false,
+              data: { email: contactEmail }
+            });
+          } else {
+             console.warn(`Admin user not found for email: ${adminEmail}`);
+          }
+        } catch (dbError) {
+          console.error(`Failed to create internal message for ${adminEmail}:`, dbError);
+        }
+      }
+
       if (!mailTransporter) {
         console.warn("Mail transporter not configured. Landing submission received:", {
           name: contactName,
